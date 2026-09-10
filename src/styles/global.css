@@ -224,12 +224,12 @@ em.accent, .accent {
 
 .header__actions { display: flex; align-items: center; gap: .6rem; }
 .lang-toggle { display: flex; padding: 3px; border-radius: 999px; background: var(--cream-deep); }
-.lang-toggle button {
+.lang-toggle button, .lang-toggle .lang-btn {
   padding: .35rem .7rem; border-radius: 999px;
   font-family: var(--font-display); font-size: .8rem; font-weight: 600;
   color: var(--ink-soft); transition: all .2s ease;
 }
-.lang-toggle button.is-active { background: var(--burgundy); color: var(--white); }
+.lang-toggle button.is-active, .lang-toggle .lang-btn.is-active { background: var(--burgundy); color: var(--white); }
 
 .nav-toggle { display: none; width: 2.6rem; height: 2.6rem; border-radius: 50%; background: var(--cream-deep); }
 .nav-toggle span { display: block; width: 1.05rem; height: 1.6px; margin: 3.5px auto; background: var(--ink); transition: transform .3s ease, opacity .2s ease; }

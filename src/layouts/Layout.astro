@@ -2,7 +2,7 @@
 import Header from '../components/Header.astro';
 import Footer from '../components/Footer.astro';
 import type { Locale, RouteKey } from '../i18n';
-import { useTranslations } from '../i18n';
+import { useTranslations, path } from '../i18n';
 import '../styles/global.css';
 
 interface Props {
@@ -23,13 +23,17 @@ const t = useTranslations(locale);
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
+    <link rel="canonical" href={new URL(path(routeKey, locale), Astro.site)} />
+    <link rel="alternate" hreflang="en" href={new URL(path(routeKey, 'en'), Astro.site)} />
+    <link rel="alternate" hreflang="fr" href={new URL(path(routeKey, 'fr'), Astro.site)} />
+    <link rel="alternate" hreflang="x-default" href={new URL(path(routeKey, 'en'), Astro.site)} />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..600&family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&family=Poppins:wght@600;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&display=swap"
       rel="stylesheet"
     />
   </head>
@@ -145,11 +149,27 @@ const t = useTranslations(locale);
         });
       }
 
+      function initForms() {
+        document.querySelectorAll('form[data-site-form]').forEach(form => {
+          form.addEventListener('submit', event => {
+            event.preventDefault();
+            const status = form.querySelector('.form__status');
+            if (status) {
+              status.textContent = document.documentElement.lang === 'fr'
+                ? 'Le formulaire est prêt pour la connexion au service de soumission.'
+                : 'The form is ready for its submission service connection.';
+              status.classList.add('form__status--ok');
+            }
+          });
+        });
+      }
+
       document.addEventListener('DOMContentLoaded', () => {
         initHeader();
         initReveal();
         initCarousels();
         initFilters();
+        initForms();
       });
     </script>
   </body>

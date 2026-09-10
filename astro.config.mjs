@@ -5,7 +5,7 @@ import tailwindcss from '@tailwindcss/vite';
 
 // Longhorn Publishers Cameroon — see Docs/technical_architecture.md
 export default defineConfig({
-  site: 'https://longhornpublishers-cm.com',
+  site: 'https://longhornpublishers-cm.netlify.app',
   output: 'static',
   adapter: netlify(),
 

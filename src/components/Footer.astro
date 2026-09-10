@@ -39,6 +39,12 @@ const serviceAnchors = [
             ? 'Créateurs de contenus et fournisseurs de solutions de plateforme pour l’Afrique centrale — services d’édition complets, du manuscrit au livre imprimé.'
             : 'Content creators and platform business providers for Central Africa — end-to-end publishing services from manuscript to printed book, in English and French.'}
         </p>
+        <form class="newsletter" data-site-form>
+          <label class="visually-hidden" for={`footerEmail-${locale}`}>{locale === 'fr' ? 'Adresse e-mail' : 'Email address'}</label>
+          <input id={`footerEmail-${locale}`} type="email" name="email" placeholder={locale === 'fr' ? 'Votre e-mail pour nos actualités' : 'Your email for publishing insights'} required />
+          <button type="submit" aria-label={locale === 'fr' ? 'S’abonner' : 'Subscribe'}><Icon name="arrow" /></button>
+          <p class="form__status visually-hidden" aria-live="polite"></p>
+        </form>
       </div>
 
       <div class="footer__col">

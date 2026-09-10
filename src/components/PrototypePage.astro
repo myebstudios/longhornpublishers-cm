@@ -1,0 +1,56 @@
+---
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import type { Locale, RouteKey } from '../i18n';
+import { path } from '../i18n';
+import { en } from '../i18n/en';
+import { fr } from '../i18n/fr';
+
+interface Props {
+  file: 'index' | 'about' | 'services' | 'catalogue' | 'why-choose-us' | 'contact' | 'news';
+  locale: Locale;
+}
+
+const { file, locale } = Astro.props;
+const source = readFileSync(resolve(process.cwd(), 'prototype', `${file}.html`), 'utf8');
+const bodyMatch = source.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
+if (!bodyMatch) throw new Error(`Prototype page ${file}.html has no body element`);
+
+let markup = bodyMatch[1]
+  .replaceAll('assets/img/', '/img/')
+  .replaceAll('data-prototype-form', 'data-site-form');
+
+const routeFiles: Array<[string, RouteKey]> = [
+  ['why-choose-us.html', 'why'], ['catalogue.html', 'catalogue'],
+  ['services.html', 'services'], ['contact.html', 'contact'],
+  ['about.html', 'about'], ['news.html', 'news'], ['index.html', 'home'],
+];
+for (const [htmlFile, routeKey] of routeFiles) {
+  const escaped = htmlFile.replace('.', '\\.');
+  markup = markup.replace(new RegExp(`${escaped}(#[^\"']*)?`, 'g'), (_match, hash = '') => `${path(routeKey, locale)}${hash}`);
+}
+
+function collectPairs(sourceValue: unknown, targetValue: unknown, pairs: Array<[string, string]>) {
+  if (typeof sourceValue === 'string' && typeof targetValue === 'string' && sourceValue !== targetValue) {
+    pairs.push([sourceValue, targetValue]); return;
+  }
+  if (Array.isArray(sourceValue) && Array.isArray(targetValue)) {
+    sourceValue.forEach((value, index) => collectPairs(value, targetValue[index], pairs)); return;
+  }
+  if (sourceValue && targetValue && typeof sourceValue === 'object' && typeof targetValue === 'object') {
+    for (const key of Object.keys(sourceValue)) collectPairs((sourceValue as Record<string, unknown>)[key], (targetValue as Record<string, unknown>)[key], pairs);
+  }
+}
+
+if (locale === 'fr') {
+  const pairs: Array<[string, string]> = [];
+  collectPairs(en, fr, pairs);
+  pairs.sort((a, b) => b[0].length - a[0].length);
+  for (const [english, french] of pairs) {
+    markup = markup.replaceAll(english, french);
+    markup = markup.replaceAll(english.replaceAll('&', '&amp;'), french.replaceAll('&', '&amp;'));
+  }
+}
+---
+
+<Fragment set:html={markup} />
