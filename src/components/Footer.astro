@@ -17,12 +17,12 @@ const contactInfo = {
 };
 
 const serviceAnchors = [
-  { name: 'Editing', slug: 'editing' },
-  { name: 'Proofreading', slug: 'proofreading' },
-  { name: 'Translation', slug: 'translation' },
-  { name: 'Designing', slug: 'designing' },
-  { name: 'Illustration', slug: 'illustration' },
-  { name: 'Printing', slug: 'printing' },
+  { en: 'Editing', fr: 'Révision', slug: 'editing' },
+  { en: 'Proofreading', fr: 'Correction d’épreuves', slug: 'proofreading' },
+  { en: 'Translation', fr: 'Traduction', slug: 'translation' },
+  { en: 'Designing', fr: 'Conception graphique', slug: 'designing' },
+  { en: 'Illustration', fr: 'Illustration', slug: 'illustration' },
+  { en: 'Printing', fr: 'Impression', slug: 'printing' },
 ];
 ---
 
@@ -39,11 +39,13 @@ const serviceAnchors = [
             ? 'Créateurs de contenus et fournisseurs de solutions de plateforme pour l’Afrique centrale — services d’édition complets, du manuscrit au livre imprimé.'
             : 'Content creators and platform business providers for Central Africa — end-to-end publishing services from manuscript to printed book, in English and French.'}
         </p>
-        <form class="newsletter" data-site-form>
+        <form class="newsletter" name="newsletter" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field">
+          <input type="hidden" name="form-name" value="newsletter" />
+          <p class="visually-hidden"><label>{locale === 'fr' ? 'Ne remplissez pas ce champ :' : 'Do not fill this out:'} <input name="bot-field" /></label></p>
           <label class="visually-hidden" for={`footerEmail-${locale}`}>{locale === 'fr' ? 'Adresse e-mail' : 'Email address'}</label>
           <input id={`footerEmail-${locale}`} type="email" name="email" placeholder={locale === 'fr' ? 'Votre e-mail pour nos actualités' : 'Your email for publishing insights'} required />
           <button type="submit" aria-label={locale === 'fr' ? 'S’abonner' : 'Subscribe'}><Icon name="arrow" /></button>
-          <p class="form__status visually-hidden" aria-live="polite"></p>
+          <p class="form__status" aria-live="polite"></p>
         </form>
       </div>
 
@@ -61,7 +63,7 @@ const serviceAnchors = [
         <h4>{locale === 'fr' ? 'Services' : 'Services'}</h4>
         <ul>
           {serviceAnchors.map((s) => (
-            <li><a href={`${path('services', locale)}#${s.slug}`}>{s.name}</a></li>
+            <li><a href={`${path('services', locale)}#${s.slug}`}>{s[locale]}</a></li>
           ))}
         </ul>
       </div>

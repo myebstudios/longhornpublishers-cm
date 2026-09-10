@@ -5,6 +5,7 @@ import type { Locale, RouteKey } from '../i18n';
 import { path } from '../i18n';
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
+import { SERVICES, PROCESS, TITLES, ARTICLES } from '../data/site';
 
 interface Props {
   file: 'index' | 'about' | 'services' | 'catalogue' | 'why-choose-us' | 'contact' | 'news';
@@ -18,7 +19,15 @@ if (!bodyMatch) throw new Error(`Prototype page ${file}.html has no body element
 
 let markup = bodyMatch[1]
   .replaceAll('assets/img/', '/img/')
-  .replaceAll('data-prototype-form', 'data-site-form');
+  .replace('Prototype only — no data is submitted or stored. In production this posts to a Netlify Function.', 'Your details are submitted securely to the Longhorn Cameroon team.')
+  .replace(
+    '<form class="form" data-prototype-form>',
+    '<form class="form" name="contact" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field"><input type="hidden" name="form-name" value="contact"><p class="visually-hidden"><label>Do not fill this out: <input name="bot-field"></label></p>',
+  );
+
+if (file === 'contact') {
+  markup = markup.replace('</form>', '<p class="form__status" aria-live="polite"></p></form>');
+}
 
 const routeFiles: Array<[string, RouteKey]> = [
   ['why-choose-us.html', 'why'], ['catalogue.html', 'catalogue'],
@@ -45,11 +54,46 @@ function collectPairs(sourceValue: unknown, targetValue: unknown, pairs: Array<[
 if (locale === 'fr') {
   const pairs: Array<[string, string]> = [];
   collectPairs(en, fr, pairs);
+  SERVICES.forEach((service) => collectPairs(service.en, service.fr, pairs));
+  PROCESS.forEach((step) => collectPairs(step.en, step.fr, pairs));
+  TITLES.forEach((title) => collectPairs(title.en, title.fr, pairs));
+  ARTICLES.forEach((article) => collectPairs(article.en, article.fr, pairs));
+  pairs.push(
+    ['Structural and line editing that sharpens argument, accuracy and readability before a word reaches layout.', 'Une révision structurelle et stylistique qui renforce l’argumentation, l’exactitude et la lisibilité avant la mise en page.'],
+    ['The final quality gate — grammar, consistency, typography and factual detail checked line by line.', 'Le dernier contrôle qualité — grammaire, cohérence, typographie et exactitude vérifiées ligne par ligne.'],
+    ['English to French and back, handled by translators who work in the education context daily — not literal, but localised.', 'De l’anglais au français et inversement, par des traducteurs du secteur éducatif — une adaptation locale, jamais littérale.'],
+    ['Cover and interior design, typesetting and layout built for legibility in the classroom and on the shelf.', 'Couvertures, intérieurs, composition et mise en page pensés pour la lisibilité en classe comme en rayon.'],
+    ['Original artwork and diagrams — culturally grounded imagery that learners recognise as their own.', 'Illustrations et schémas originaux — une imagerie culturellement pertinente dans laquelle les élèves se reconnaissent.'],
+    ['Print production and delivery at the quality and volume an institutional rollout demands.', 'Production et livraison imprimées au niveau de qualité et au volume exigés par un déploiement institutionnel.'],
+    ['Sample excerpt. Real articles are authored in the admin panel post-launch.', 'Extrait d’exemple. Les articles réels seront rédigés dans l’espace d’administration après le lancement.'],
+    ['Step 01', 'Étape 01'], ['Step 02', 'Étape 02'], ['Step 03', 'Étape 03'], ['Step 04', 'Étape 04'], ['Step 05', 'Étape 05'],
+    ['We map the scope, audience, curriculum requirements and language needs before quoting.', 'Nous définissons le périmètre, le public, les exigences du programme et les besoins linguistiques avant tout devis.'],
+    ['Schedule, team allocation and milestones agreed in writing, with both language tracks planned together.', 'Calendrier, affectation de l’équipe et jalons convenus par écrit, les deux versions linguistiques étant planifiées ensemble.'],
+    ['Editorial, design and illustration run in parallel against the agreed brief.', 'La révision, la conception et l’illustration avancent en parallèle selon le cahier des charges convenu.'],
+    ['Proofreading, factual checks and curriculum alignment verified before sign-off to print.', 'Correction d’épreuves, vérification des faits et conformité au programme contrôlées avant le bon à tirer.'],
+    ['Printing, finishing and distribution to the schedule set at planning.', 'Impression, façonnage et distribution selon le calendrier fixé lors de la planification.'],
+    ['Placeholder headline for a company news item', 'Exemple de titre pour une actualité de l’entreprise'],
+    ['Placeholder headline for a new title announcement', 'Exemple de titre pour l’annonce d’un nouvel ouvrage'],
+    ['Placeholder headline for a partnership update', 'Exemple de titre pour une actualité de partenariat'],
+    ["We describe ourselves as content creators and platform business providers — we make the content, and we run the process that gets it into learners' hands.", 'Nous nous définissons comme créateurs de contenus et fournisseurs de solutions éditoriales — nous produisons le contenu et pilotons le processus qui le met entre les mains des élèves.'],
+    ['Sample data — the live catalogue is populated from Netlify Database via the admin panel. A title list from the client is still outstanding (open item 4, Docs/README.md).', 'Données d’exemple — le catalogue final sera alimenté depuis la base de données Netlify via l’espace d’administration. La liste définitive des titres reste attendue du client.'],
+    ['Your details are submitted securely to the Longhorn Cameroon team.', 'Vos coordonnées sont transmises de manière sécurisée à l’équipe de Longhorn Cameroun.'],
+    ['Map placeholder — a branded embed replaces this in the Astro build.', 'Emplacement réservé pour la carte — une intégration aux couleurs de la marque la remplacera.'],
+    ['Placeholder articles. Whether News ships at launch — and who on the Cameroon team owns posting — is open item 5 in Docs/README.md.', 'Articles d’exemple. La publication des actualités au lancement et leur responsable au sein de l’équipe camerounaise restent à confirmer.'],
+    ['Do not fill this out:', 'Ne remplissez pas ce champ :'],
+    ['Sample data — the live catalogue is populated from Netlify Database via the admin panel.', 'Données d’exemple — le catalogue final sera alimenté depuis la base de données Netlify via l’espace d’administration.'],
+    ['A title list from the client is still outstanding (open item 4,', 'La liste définitive des titres reste attendue du client (point 4,'],
+    ['Placeholder articles. Whether News ships at launch — and who on the Cameroon team owns posting —', 'Articles d’exemple. La publication des actualités au lancement et leur responsable au sein de l’équipe camerounaise'],
+    ['is open item 5 in', 'restent à confirmer au point 5 dans'],
+  );
   pairs.sort((a, b) => b[0].length - a[0].length);
-  for (const [english, french] of pairs) {
-    markup = markup.replaceAll(english, french);
-    markup = markup.replaceAll(english.replaceAll('&', '&amp;'), french.replaceAll('&', '&amp;'));
-  }
+  markup = markup.replace(/>([^<]+)</g, (whole, text: string) => {
+    const leading = text.match(/^\s*/)?.[0] ?? '';
+    const trailing = text.match(/\s*$/)?.[0] ?? '';
+    const normalized = text.replace(/\s+/g, ' ').trim();
+    const pair = pairs.findLast(([english]) => normalized === english || normalized === english.replaceAll('&', '&amp;'));
+    return pair ? `>${leading}${pair[1]}${trailing}<` : whole;
+  });
 }
 ---
 

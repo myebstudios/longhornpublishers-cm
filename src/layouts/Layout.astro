@@ -149,16 +149,37 @@ const t = useTranslations(locale);
         });
       }
 
-      function initForms() {
-        document.querySelectorAll('form[data-site-form]').forEach(form => {
-          form.addEventListener('submit', event => {
+      function initNetlifyForms() {
+        document.querySelectorAll('form[data-netlify="true"]').forEach(form => {
+          form.addEventListener('submit', async event => {
             event.preventDefault();
-            const status = form.querySelector('.form__status');
-            if (status) {
-              status.textContent = document.documentElement.lang === 'fr'
-                ? 'Le formulaire est prêt pour la connexion au service de soumission.'
-                : 'The form is ready for its submission service connection.';
-              status.classList.add('form__status--ok');
+            const htmlForm = form as HTMLFormElement;
+            const status = htmlForm.querySelector('.form__status');
+            const submit = htmlForm.querySelector('[type="submit"]') as HTMLButtonElement | null;
+            if (submit) submit.disabled = true;
+            try {
+              const response = await fetch('/__forms.html', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                body: new URLSearchParams(new FormData(htmlForm) as unknown as Record<string, string>).toString(),
+              });
+              if (!response.ok) throw new Error('Submission failed');
+              htmlForm.reset();
+              if (status) {
+                status.textContent = document.documentElement.lang === 'fr'
+                  ? 'Merci — votre message a bien été envoyé.'
+                  : 'Thank you — your message has been sent.';
+                status.className = 'form__status form__status--ok';
+              }
+            } catch {
+              if (status) {
+                status.textContent = document.documentElement.lang === 'fr'
+                  ? 'Échec de l’envoi. Veuillez réessayer.'
+                  : 'Submission failed. Please try again.';
+                status.className = 'form__status form__status--err';
+              }
+            } finally {
+              if (submit) submit.disabled = false;
             }
           });
         });
@@ -169,7 +190,7 @@ const t = useTranslations(locale);
         initReveal();
         initCarousels();
         initFilters();
-        initForms();
+        initNetlifyForms();
       });
     </script>
   </body>
