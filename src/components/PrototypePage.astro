@@ -5,7 +5,7 @@ import type { Locale, RouteKey } from '../i18n';
 import { path } from '../i18n';
 import { en } from '../i18n/en';
 import { fr } from '../i18n/fr';
-import { SERVICES, PROCESS, TITLES, ARTICLES } from '../data/site';
+import { SERVICES, PROCESS, TITLES, ARTICLES, titleSlug } from '../data/site';
 
 interface Props {
   file: 'index' | 'about' | 'services' | 'catalogue' | 'why-choose-us' | 'contact' | 'news';
@@ -37,6 +37,17 @@ const routeFiles: Array<[string, RouteKey]> = [
 for (const [htmlFile, routeKey] of routeFiles) {
   const escaped = htmlFile.replace('.', '\\.');
   markup = markup.replace(new RegExp(`${escaped}(#[^\"']*)?`, 'g'), (_match, hash = '') => `${path(routeKey, locale)}${hash}`);
+}
+
+if (file === 'catalogue') {
+  let titleIndex = 0;
+  markup = markup.replace(
+    /(<article class="book-card"[\s\S]*?<a class="link-arrow" style="font-size:var\(--step--1\)" href=")[^"]+("?>Request this title)/g,
+    (_match, before: string, after: string) => {
+      const title = TITLES[titleIndex++];
+      return title ? `${before}/${locale}/catalogue/${titleSlug(title, locale)}/${after}` : _match;
+    },
+  );
 }
 
 function collectPairs(sourceValue: unknown, targetValue: unknown, pairs: Array<[string, string]>) {

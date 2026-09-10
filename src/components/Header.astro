@@ -2,6 +2,7 @@
 import type { Locale, RouteKey } from '../i18n';
 import { useTranslations, path, alternatePath, NAV_KEYS } from '../i18n';
 import Icon from './Icon.astro';
+import logo from '../../Assets/Longhorn CM logo.svg';
 
 interface Props {
   locale: Locale;
@@ -18,8 +19,7 @@ const switchHref = alternatePath(currentRouteKey, locale);
   <div class="wrap">
     <div class="site-header__inner">
       <a class="brand" href={path('home', locale)} aria-label={`${t.brand.name} ${t.brand.sub} — ${t.nav.home}`}>
-        <span class="brand__mark" aria-hidden="true">L</span>
-        <span class="brand__text">{t.brand.name}<span>{t.brand.sub}</span></span>
+        <img class="brand__logo" src={logo.src} alt="" aria-hidden="true" />
       </a>
 
       <nav class="nav" id="primaryNav" aria-label={t.nav.primaryNav}>

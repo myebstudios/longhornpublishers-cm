@@ -1,0 +1,55 @@
+---
+import Layout from '../../../layouts/Layout.astro';
+import { TITLES, titleSlug } from '../../../data/site';
+import { LOCALES, path, type Locale } from '../../../i18n';
+
+export function getStaticPaths() {
+  return LOCALES.flatMap((lang) =>
+    TITLES.map((title) => ({ params: { lang, slug: titleSlug(title, lang) }, props: { title } })),
+  );
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const { title } = Astro.props as { title: (typeof TITLES)[number] };
+const content = title[lang];
+const level = lang === 'fr' ? (title.level === 'primary' ? 'Primaire' : 'Secondaire') : title.level === 'primary' ? 'Primary' : 'Secondary';
+const subjectMap = {
+  maths: ['Mathematics', 'Mathématiques'],
+  english: ['English Language', 'Anglais'],
+  french: ['French', 'Français'],
+  science: ['Science', 'Sciences'],
+  social: ['Social Studies', 'Études sociales'],
+} as const;
+const subject = subjectMap[title.subject][lang === 'fr' ? 1 : 0];
+const language = title.lang === 'en' ? (lang === 'fr' ? 'Anglais' : 'English') : 'Français';
+const inquiry = `${path('contact', lang)}?title=${encodeURIComponent(content.title)}`;
+---
+
+<Layout title={`${content.title} — Longhorn Publishers`} description={`${content.note} ${lang === 'fr' ? 'Matériel pédagogique de Longhorn Publishers Cameroun.' : 'Learning material from Longhorn Publishers Cameroon.'}`} locale={lang} routeKey="catalogue">
+  <section class="section section--cream catalogue-detail">
+    <div class="wrap catalogue-detail__grid">
+      <div class="book-card__cover catalogue-detail__cover" aria-hidden="true"><span>{title.cover.replace('|', '\n')}</span></div>
+      <div>
+        <span class="eyebrow">{lang === 'fr' ? 'Matériel pédagogique' : 'Learning material'}</span>
+        <h1>{content.title}</h1>
+        <div class="pill-row catalogue-detail__pills">
+          <span class="pill pill--green">{level}</span>
+          <span class="pill">{subject}</span>
+          <span class="pill">{language}</span>
+        </div>
+        <p class="catalogue-detail__lede">{content.note}</p>
+        <dl class="catalogue-detail__facts">
+          <div><dt>{lang === 'fr' ? 'Niveau' : 'Level'}</dt><dd>{level}</dd></div>
+          <div><dt>{lang === 'fr' ? 'Matière' : 'Subject'}</dt><dd>{subject}</dd></div>
+          <div><dt>{lang === 'fr' ? 'Programme' : 'Curriculum alignment'}</dt><dd>{content.note}</dd></div>
+          <div><dt>{lang === 'fr' ? 'Langue disponible' : 'Available language'}</dt><dd>{language}</dd></div>
+        </dl>
+        <a class="btn btn--primary" href={inquiry}>
+          {lang === 'fr' ? 'Demander ce titre' : 'Request this title'}
+          <span class="btn__icon" aria-hidden="true">↗</span>
+        </a>
+        <a class="link-arrow catalogue-detail__back" href={path('catalogue', lang)}>{lang === 'fr' ? 'Retour au catalogue' : 'Back to catalogue'}</a>
+      </div>
+    </div>
+  </section>
+</Layout>

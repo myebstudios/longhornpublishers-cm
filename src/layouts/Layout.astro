@@ -150,6 +150,16 @@ const t = useTranslations(locale);
       }
 
       function initNetlifyForms() {
+        const requestedTitle = new URLSearchParams(window.location.search).get('title');
+        if (requestedTitle) {
+          const message = document.querySelector<HTMLTextAreaElement>('form[name="contact"] textarea[name="message"]');
+          if (message && !message.value) {
+            message.value = document.documentElement.lang === 'fr'
+              ? `Je souhaite en savoir plus sur le titre : ${requestedTitle}.`
+              : `I would like to know more about this title: ${requestedTitle}.`;
+          }
+        }
+
         document.querySelectorAll('form[data-netlify="true"]').forEach(form => {
           form.addEventListener('submit', async event => {
             event.preventDefault();

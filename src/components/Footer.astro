@@ -2,6 +2,7 @@
 import type { Locale } from '../i18n';
 import { useTranslations, path, NAV_KEYS } from '../i18n';
 import Icon from './Icon.astro';
+import logo from '../../Assets/Longhorn CM logo.svg';
 
 interface Props {
   locale: Locale;
@@ -30,9 +31,8 @@ const serviceAnchors = [
   <div class="wrap">
     <div class="footer__top">
       <div>
-        <a class="brand" href={path('home', locale)}>
-          <span class="brand__mark" aria-hidden="true">L</span>
-          <span class="brand__text">{t.brand.name}<span>{t.brand.sub}</span></span>
+        <a class="brand" href={path('home', locale)} aria-label={`${t.brand.name} ${t.brand.sub}`}>
+          <img class="brand__logo brand__logo--footer" src={logo.src} alt="" aria-hidden="true" />
         </a>
         <p class="footer__blurb">
           {locale === 'fr'

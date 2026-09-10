@@ -192,6 +192,16 @@ export const TITLES: Title[] = [
     fr: { title: 'Sciences de la Vie — 5ᵉ', note: 'Programme national — RDC.' } },
 ];
 
+/** Stable, readable local routes until catalogue records are supplied by the client CMS. */
+export function titleSlug(title: Title, locale: 'en' | 'fr'): string {
+  return title[locale].title
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/(^-|-$)/g, '');
+}
+
 export interface Article {
   id: string;
   category: 'company' | 'titles' | 'partnerships' | 'events';
