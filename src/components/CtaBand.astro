@@ -1,0 +1,40 @@
+---
+import Button from './Button.astro';
+import type { Titled } from '../i18n/types';
+
+interface Props {
+  content?: Titled;
+  eyebrow?: string;
+  titleLead?: string;
+  titleAccent?: string;
+  lede?: string;
+  buttonText?: string;
+  buttonHref?: string;
+  href?: string;
+  tone?: 'cream' | 'white';
+}
+
+const {
+  content,
+  eyebrow = content?.eyebrow,
+  titleLead = content?.titleLead || '',
+  titleAccent = content?.titleAccent || '',
+  lede = content?.lede,
+  buttonText = content?.button || 'Get in Touch',
+  buttonHref = Astro.props.href || Astro.props.buttonHref || '#',
+  tone = 'cream',
+} = Astro.props;
+---
+
+<section class:list={['section', `section--${tone}`]}>
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <div>
+        {eyebrow && <span class="eyebrow" style="color:var(--green)">{eyebrow}</span>}
+        <h2>{titleLead} <em class="accent">{titleAccent}</em></h2>
+        {lede && <p>{lede}</p>}
+      </div>
+      <Button href={buttonHref} variant="primary">{buttonText}</Button>
+    </div>
+  </div>
+</section>

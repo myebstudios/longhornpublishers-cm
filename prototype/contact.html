@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/site.js" defer></script>
+  <title>Contact Us — Longhorn Publishers Cameroon</title>
+  <meta name="description" content="Talk to Longhorn Publishers Cameroon about an editorial, design or print project. Tsinga, Yaoundé.">
+</head>
+<body>
+
+<section class="hero hero--compact">
+  <div class="hero__bg"><img src="assets/img/hero.svg" alt=""></div>
+  <div class="wrap">
+    <div class="hero__inner">
+      <div>
+        <span class="eyebrow">Contact us</span>
+        <h1>Let's work <em class="accent">together</em></h1>
+        <p class="hero__lede">Tell us the scope, the level and the languages. We will come back with a plan, a schedule and a price.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--cream">
+  <div class="wrap contact-layout">
+
+    <div class="reveal">
+      <span class="eyebrow">Direct contact</span>
+      <h2 style="margin-bottom:2rem">Reach the <em class="accent">Yaoundé office</em></h2>
+
+      <div class="contact-detail">
+        <div class="contact-detail__label">Office</div>
+        <p>Total École de police, Tsinga<br>Yaoundé, Cameroon</p>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-detail__label">Telephone</div>
+        <p><a href="tel:+237672491093">+237 672 49 10 93</a></p>
+        <p><a href="tel:+237657519203">+237 657 51 92 03</a></p>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-detail__label">Email</div>
+        <p><a href="mailto:info@longhornpublishers-cm.com">info@longhornpublishers-cm.com</a></p>
+        <p class="form__note">Placeholder address — to be confirmed with the client.</p>
+      </div>
+      <div class="contact-detail">
+        <div class="contact-detail__label">Hours</div>
+        <p>Monday – Friday</p>
+        <p class="form__note">Opening hours to be confirmed.</p>
+      </div>
+    </div>
+
+    <div class="reveal">
+      <form class="form" data-prototype-form>
+        <span class="eyebrow">Project inquiry</span>
+        <h2 style="margin-bottom:1.75rem;font-size:var(--step-2)">Start a conversation</h2>
+
+        <div class="form__grid">
+          <div class="field">
+            <label for="name">Full name</label>
+            <input id="name" name="name" type="text" required autocomplete="name">
+          </div>
+          <div class="field">
+            <label for="org">Organisation</label>
+            <input id="org" name="organisation" type="text" autocomplete="organization">
+          </div>
+          <div class="field">
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email" required autocomplete="email">
+          </div>
+          <div class="field">
+            <label for="phone">Telephone</label>
+            <input id="phone" name="phone" type="tel" autocomplete="tel">
+          </div>
+
+          <div class="field field--full">
+            <label for="ptype">Project type</label>
+            <select id="ptype" name="project_type" required>
+              <option value="">Select a project type…</option>
+              <option>Educational material</option>
+              <option>Training resource</option>
+              <option>Report or publication</option>
+              <option>Translation only</option>
+              <option>Design or illustration only</option>
+              <option>Print run only</option>
+              <option>Other</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="langs">Languages required</label>
+            <select id="langs" name="languages" required>
+              <option value="">Select…</option>
+              <option>English only</option>
+              <option>French only</option>
+              <option>Both English and French</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="stage">Current stage</label>
+            <select id="stage" name="stage">
+              <option value="">Select…</option>
+              <option>Idea or brief only</option>
+              <option>Draft manuscript</option>
+              <option>Edited manuscript</option>
+              <option>Designed and ready for print</option>
+            </select>
+          </div>
+
+          <div class="field field--full">
+            <label for="message">Tell us about the project</label>
+            <textarea id="message" name="message" required placeholder="Scope, level, curriculum, volumes and any deadline you are working to."></textarea>
+          </div>
+        </div>
+
+        <button class="btn btn--primary" type="submit">Send Inquiry<span class="btn__icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H5.5M12 4v6.5"/></svg></span></button>
+        <p class="form__note">Prototype only — no data is submitted or stored. In production this posts to a Netlify Function.</p>
+      </form>
+    </div>
+
+  </div>
+</section>
+
+<section class="section section--white">
+  <div class="wrap">
+    <div class="map-embed reveal">
+      <div>
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="margin:0 auto .75rem"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0116 0z"/><circle cx="12" cy="10" r="3"/></svg>
+        <h3>Total École de police, Tsinga — Yaoundé</h3>
+        <p style="color:rgba(255,255,255,.7);font-size:var(--step--1);margin-top:.5rem">Map placeholder — a branded embed replaces this in the Astro build.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

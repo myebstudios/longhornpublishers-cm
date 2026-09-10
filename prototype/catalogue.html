@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Inter:wght@400;500;600&family=Fraunces:ital,opsz,wght@1,9..144,300;1,9..144,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="assets/js/site.js" defer></script>
+  <title>Catalogue — Longhorn Publishers Cameroon</title>
+  <meta name="description" content="Primary and secondary learning materials aligned to the national curricula of Cameroon and the DRC, available in English and French.">
+</head>
+<body>
+
+<section class="hero hero--compact">
+  <div class="hero__bg"><img src="assets/img/catalogue.svg" alt=""></div>
+  <div class="wrap">
+    <div class="hero__inner">
+      <div>
+        <span class="eyebrow">Catalogue</span>
+        <h1>Our learning <em class="accent">materials</em></h1>
+        <p class="hero__lede">Primary and secondary titles aligned to the national curricula of Cameroon and the DRC — published in English and French.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="section section--cream" data-filter-scope>
+  <div class="wrap">
+
+    <div class="filter-bar">
+      <div class="filter-group">
+        <span class="filter-group__label">Level</span>
+        <button class="chip is-active" data-value="all">All</button>
+        <button class="chip" data-value="primary">Primary</button>
+        <button class="chip" data-value="secondary">Secondary</button>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group__label">Subject</span>
+        <button class="chip is-active" data-value="all">All</button>
+        <button class="chip" data-value="maths">Mathematics</button>
+        <button class="chip" data-value="english">English</button>
+        <button class="chip" data-value="french">French</button>
+        <button class="chip" data-value="science">Science</button>
+        <button class="chip" data-value="social">Social Studies</button>
+      </div>
+      <div class="filter-group">
+        <span class="filter-group__label">Language</span>
+        <button class="chip is-active" data-value="all">All</button>
+        <button class="chip" data-value="en">English</button>
+        <button class="chip" data-value="fr">Français</button>
+      </div>
+      <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)"><strong data-filter-count>0</strong> titles</p>
+    </div>
+
+    <p class="form__note reveal" style="margin-bottom:2rem">
+      Sample data — the live catalogue is populated from Netlify Database via the admin panel.
+      A title list from the client is still outstanding (open item 4, <code>Docs/README.md</code>).
+    </p>
+
+    <div class="grid grid--4 reveal">
+
+      <article class="book-card" data-tags="primary maths en">
+        <div class="book-card__cover"><span>Mathematics<br>Primary 5</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--green">Primary</span><span class="pill">Mathematics</span><span class="pill">EN</span></div>
+          <h3>Mathematics — Primary 5</h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Cameroon national curriculum.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="primary maths fr">
+        <div class="book-card__cover"><span>Mathématiques<br>CM1</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--green">Primary</span><span class="pill">Mathematics</span><span class="pill">FR</span></div>
+          <h3>Mathématiques — CM1</h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Programme national — Cameroun.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="primary science en">
+        <div class="book-card__cover"><span>Integrated<br>Science</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--green">Primary</span><span class="pill">Science</span><span class="pill">EN</span></div>
+          <h3>Integrated Science — Primary 4</h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Cameroon national curriculum.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="primary social fr">
+        <div class="book-card__cover"><span>Éducation<br>Civique</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--green">Primary</span><span class="pill">Social Studies</span><span class="pill">FR</span></div>
+          <h3>Éducation Civique — CE2</h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Programme national — RDC.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="secondary english en">
+        <div class="book-card__cover"><span>English<br>Language</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--purple">Secondary</span><span class="pill">English</span><span class="pill">EN</span></div>
+          <h3>English Language — Form 3</h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Cameroon national curriculum.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="secondary french fr">
+        <div class="book-card__cover"><span>Français<br>6<sup>e</sup></span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--purple">Secondary</span><span class="pill">French</span><span class="pill">FR</span></div>
+          <h3>Français — Classe de 6<sup>e</sup></h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Programme national — Cameroun.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="secondary maths en">
+        <div class="book-card__cover"><span>Mathematics<br>Form 4</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--purple">Secondary</span><span class="pill">Mathematics</span><span class="pill">EN</span></div>
+          <h3>Mathematics — Form 4</h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Cameroon national curriculum.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+      <article class="book-card" data-tags="secondary science fr">
+        <div class="book-card__cover"><span>Sciences<br>de la Vie</span></div>
+        <div class="book-card__body">
+          <div class="pill-row"><span class="pill pill--purple">Secondary</span><span class="pill">Science</span><span class="pill">FR</span></div>
+          <h3>Sciences de la Vie — 5<sup>e</sup></h3>
+          <p style="font-size:var(--step--1);color:var(--ink-soft)">Programme national — RDC.</p>
+          <a class="link-arrow" style="font-size:var(--step--1)" href="contact.html">Request this title</a>
+        </div>
+      </article>
+
+    </div>
+
+    <div class="mt-lg text-center"><button class="btn btn--ghost" type="button" onclick="alert('Prototype only — pagination is wired to the database in the Astro build.')">Load More<span class="btn__icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H5.5M12 4v6.5"/></svg></span></button></div>
+  </div>
+</section>
+
+<section class="section section--white">
+  <div class="wrap">
+    <div class="cta-band reveal">
+      <div>
+        <span class="eyebrow" style="color:var(--green)">Can't find it?</span>
+        <h2>Need a title <em class="accent">that doesn't exist yet?</em></h2>
+        <p>We publish to brief as well as from catalogue. Tell us the curriculum, level and languages.</p>
+      </div>
+      <a class="btn btn--primary" href="contact.html">Request a Title<span class="btn__icon" aria-hidden="true"><svg width="15" height="15" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12L12 4M12 4H5.5M12 4v6.5"/></svg></span></a>
+    </div>
+  </div>
+</section>
+
+</body>
+</html>

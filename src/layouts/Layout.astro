@@ -1,0 +1,156 @@
+---
+import Header from '../components/Header.astro';
+import Footer from '../components/Footer.astro';
+import type { Locale, RouteKey } from '../i18n';
+import { useTranslations } from '../i18n';
+import '../styles/global.css';
+
+interface Props {
+  title: string;
+  description: string;
+  locale: Locale;
+  routeKey: RouteKey;
+}
+
+const { title, description, locale, routeKey } = Astro.props;
+const t = useTranslations(locale);
+---
+
+<!DOCTYPE html>
+<html lang={t.htmlLang}>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@1,9..144,400..600&family=Inter:wght@400;500;600&family=Montserrat:wght@600;700&family=Poppins:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+  </head>
+  <body>
+    <a href="#main-content" class="skip-link">{t.nav.skip}</a>
+
+    <Header locale={locale} currentRouteKey={routeKey} />
+
+    <main id="main-content">
+      <slot />
+    </main>
+
+    <Footer locale={locale} />
+
+    <script>
+      function initHeader() {
+        const header = document.getElementById('siteHeader');
+        const toggle = document.getElementById('navToggle');
+        const nav = document.getElementById('primaryNav');
+
+        if (header) {
+          const onScroll = () => header.classList.toggle('is-solid', window.scrollY > 24);
+          onScroll();
+          window.addEventListener('scroll', onScroll, { passive: true });
+        }
+
+        if (toggle && nav) {
+          toggle.addEventListener('click', () => {
+            const open = toggle.getAttribute('aria-expanded') === 'true';
+            toggle.setAttribute('aria-expanded', String(!open));
+            nav.classList.toggle('is-open', !open);
+          });
+        }
+      }
+
+      function initReveal() {
+        const items = document.querySelectorAll('.reveal');
+        if (!('IntersectionObserver' in window)) {
+          items.forEach(i => i.classList.add('is-visible'));
+          return;
+        }
+        const io = new IntersectionObserver((entries) => {
+          entries.forEach(e => {
+            if (e.isIntersecting) {
+              e.target.classList.add('is-visible');
+              io.unobserve(e.target);
+            }
+          });
+        }, { threshold: 0.12, rootMargin: '0px 0px -60px' });
+        items.forEach(i => io.observe(i));
+      }
+
+      function initCarousels() {
+        document.querySelectorAll('.carousel').forEach(car => {
+          const view = car.querySelector('.carousel__viewport');
+          const prev = car.querySelector('[data-dir="prev"]') as HTMLButtonElement | null;
+          const next = car.querySelector('[data-dir="next"]') as HTMLButtonElement | null;
+          if (!view || !prev || !next) return;
+
+          const step = () => {
+            const first = view.querySelector('.carousel__track > *');
+            return first ? first.getBoundingClientRect().width + 24 : view.clientWidth * 0.8;
+          };
+          const sync = () => {
+            const max = view.scrollWidth - view.clientWidth - 2;
+            prev.disabled = view.scrollLeft <= 2;
+            next.disabled = view.scrollLeft >= max;
+          };
+          prev.addEventListener('click', () => view.scrollBy({ left: -step(), behavior: 'smooth' }));
+          next.addEventListener('click', () => view.scrollBy({ left: step(), behavior: 'smooth' }));
+          view.addEventListener('scroll', sync, { passive: true });
+          window.addEventListener('resize', sync);
+          sync();
+        });
+      }
+
+      function initFilters() {
+        document.querySelectorAll('[data-filter-scope]').forEach(scope => {
+          const targets = scope.querySelectorAll('[data-tags]');
+          const groups = scope.querySelectorAll('.filter-group');
+          const countEl = scope.querySelector('[data-filter-count]');
+
+          const apply = () => {
+            const active: string[] = [];
+            groups.forEach(g => {
+              const on = g.querySelector('.chip.is-active') as HTMLElement | null;
+              if (on && on.dataset.value && on.dataset.value !== 'all') {
+                active.push(on.dataset.value);
+              }
+            });
+            let shown = 0;
+            targets.forEach(t => {
+              const el = t as HTMLElement;
+              const tags = (el.dataset.tags || '').split(' ');
+              const match = active.every(a => tags.includes(a));
+              el.classList.toggle('is-hidden', !match);
+              if (match) shown++;
+            });
+            if (countEl) countEl.textContent = String(shown);
+          };
+
+          scope.querySelectorAll('.chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+              const parent = chip.closest('.filter-group');
+              if (parent) {
+                parent.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
+              }
+              chip.classList.add('is-active');
+              apply();
+            });
+          });
+          apply();
+        });
+      }
+
+      document.addEventListener('DOMContentLoaded', () => {
+        initHeader();
+        initReveal();
+        initCarousels();
+        initFilters();
+      });
+    </script>
+  </body>
+</html>

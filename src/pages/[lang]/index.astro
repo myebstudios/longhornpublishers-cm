@@ -1,0 +1,185 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../../components/Hero.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Button from '../../components/Button.astro';
+import Icon from '../../components/Icon.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import { LOCALES, type Locale, useTranslations, path } from '../../i18n';
+
+export function getStaticPaths() {
+  return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const t = useTranslations(lang);
+
+const serviceCards = [
+  { img: 'editorial', tag: 'Editorial', title: 'Editing', body: 'Structural and line editing that sharpens argument, accuracy and readability before a word reaches layout.' },
+  { img: 'editorial', tag: 'Editorial', title: 'Proofreading', body: 'The final quality gate — grammar, consistency, typography and factual detail checked line by line.' },
+  { img: 'editorial', tag: 'Editorial', title: 'Translation', body: 'English to French and back, handled by translators who work in the education context daily — not literal, but localised.' },
+  { img: 'creative', tag: 'Creative', title: 'Designing', body: 'Book covers, interior grids and typography that give content immediate authority on the shelf and in the classroom.' },
+  { img: 'creative', tag: 'Creative', title: 'Illustration', body: 'Custom educational and narrative artwork reflecting local contexts, cultures and learner demographics.' },
+  { img: 'production', tag: 'Production', title: 'Printing', body: 'Offset and digital print run management, paper selection, binding and delivery across Cameroon and the DRC.' },
+];
+---
+
+<Layout
+  title={t.meta.home.title}
+  description={t.meta.home.description}
+  locale={lang}
+  routeKey="home"
+>
+  <!-- Hero -->
+  <Hero
+    titleLead={t.home.hero.titleLead}
+    titleAccent={t.home.hero.titleAccent}
+    lede={t.home.hero.lede}
+    eyebrowStat={t.home.hero.eyebrowStat}
+    eyebrowStatSuffix={t.home.hero.eyebrowStatSuffix}
+    badgeNumber={t.home.hero.badgeNumber}
+    tags={t.home.hero.tags}
+    stats={t.home.hero.stats}
+    primaryCtaText={t.common.partnerWithUs}
+    primaryCtaHref={path('contact', lang)}
+    secondaryCtaText={t.common.exploreServices}
+    secondaryCtaHref={path('services', lang)}
+  />
+
+  <!-- Trust bar -->
+  <section class="trust-bar" aria-label="Key credentials">
+    <div class="wrap trust-bar__inner">
+      {t.home.trust.map((item) => (
+        <div class="trust-item">
+          <Icon name="check" />
+          <span>{item}</span>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      {[...t.home.trust, ...t.home.trust, ...t.home.trust].map((item) => (
+        <div class="marquee__item">
+          <Icon name="check" />
+          <span>{item}</span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <!-- Who We Are -->
+  <section class="section section--cream">
+    <div class="wrap split reveal">
+      <div class="split__media">
+        <img src="/img/team.svg" alt="The Longhorn Publishers Cameroon team" />
+      </div>
+      <div>
+        <span class="eyebrow">{t.home.whoWeAre.eyebrow}</span>
+        <h2>{t.home.whoWeAre.titleLead} <em class="accent">{t.home.whoWeAre.titleAccent}</em></h2>
+        {t.home.whoWeAre.body.map((p) => (
+          <p>{p}</p>
+        ))}
+        <a class="link-arrow" href={path('about', lang)}>{t.common.learnMore}</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services Carousel -->
+  <section class="section section--white">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">{t.home.services.eyebrow}</span>
+        <h2>{t.home.services.titleLead} <em class="accent">{t.home.services.titleAccent}</em></h2>
+        <p>{t.home.services.lede}</p>
+      </div>
+
+      <div class="carousel reveal">
+        <div class="carousel__viewport">
+          <div class="carousel__track">
+            {serviceCards.map((card) => (
+              <article class="media-card">
+                <img src={`/img/${card.img}.svg`} alt="" />
+                <span class="pill pill--glass media-card__tag">{card.tag}</span>
+                <h3>{card.title}</h3>
+                <p>{card.body}</p>
+                <Button href={`${path('services', lang)}#${card.title.toLowerCase()}`} variant="primary" size="sm">
+                  {t.common.learnMore}
+                </Button>
+              </article>
+            ))}
+          </div>
+        </div>
+        <div class="carousel__controls">
+          <button class="carousel__btn" data-dir="prev" aria-label={t.common.prev}>&larr;</button>
+          <button class="carousel__btn" data-dir="next" aria-label={t.common.next}>&rarr;</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- End-to-End Publishing Cards -->
+  <section class="section section--dark reveal">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.home.endToEnd.eyebrow}
+        titleLead={t.home.endToEnd.titleLead}
+        titleAccent={t.home.endToEnd.titleAccent}
+        lede={t.home.endToEnd.lede}
+      />
+
+      <div class="grid grid--3 mt-lg">
+        {t.home.endToEnd.cards.map((card) => (
+          <div class="card card--dark">
+            <h3>{card.title}</h3>
+            <p>{card.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Testimonials Carousel -->
+  <section class="section section--cream reveal">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.home.testimonials.eyebrow}
+        titleLead={t.home.testimonials.titleLead}
+        titleAccent={t.home.testimonials.titleAccent}
+        lede={t.home.testimonials.note}
+      />
+
+      <div class="grid grid--3">
+        {t.home.testimonials.items.map((item) => (
+          <div class="quote">
+            <span class="quote__mark">&ldquo;</span>
+            <p>{item.quote}</p>
+            <div class="quote__by">
+              <div class="quote__avatar">{item.initials}</div>
+              <div>
+                <strong>{item.name}</strong>
+                <span>{item.role}</span>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA Band -->
+  <section class="section section--white reveal">
+    <div class="wrap">
+      <CtaBand
+        eyebrow={t.home.cta.eyebrow}
+        titleLead={t.home.cta.titleLead}
+        titleAccent={t.home.cta.titleAccent}
+        lede={t.home.cta.lede}
+        buttonText={t.home.cta.button}
+        buttonHref={path('contact', lang)}
+      />
+    </div>
+  </section>
+</Layout>

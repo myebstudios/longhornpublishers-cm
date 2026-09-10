@@ -1,0 +1,113 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { LOCALES, type Locale, useTranslations, path } from '../../i18n';
+
+export function getStaticPaths() {
+  return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const t = useTranslations(lang);
+
+const servicesList = [
+  { slug: 'editing', icon: 'pen', title: 'Editing', eyebrow: 'Precision & Clarity', body: 'Structural editing, line editing and copyediting across educational, academic and trade titles in English and French.', bullets: ['Structural Editing', 'Line Editing', 'Copyediting'] },
+  { slug: 'proofreading', icon: 'book', title: 'Proofreading', eyebrow: 'Factual & Typographic Rigour', body: 'Final quality checks, error-free formatting, math & scientific symbol checks, curriculum compliance.', bullets: ['Typo Correction', 'Factual Checks', 'Curriculum Compliance'] },
+  { slug: 'translation', icon: 'globe', title: 'Translation', eyebrow: 'Bilingual Localisation', body: 'Localised English-to-French and French-to-English translation tuned to Central African registers and curricula.', bullets: ['EN to FR', 'FR to EN', 'Cultural Localisation'] },
+  { slug: 'designing', icon: 'layout', title: 'Designing', eyebrow: 'Visual & Prepress Design', body: 'Cover designs, page layouts, typesetting and print prepress formatting for complex textbooks.', bullets: ['Cover Art', 'Textbook Layout', 'Prepress Prep'] },
+  { slug: 'illustration', icon: 'brush', title: 'Illustration', eyebrow: 'Contextual Visual Arts', body: 'Custom vector and raster artwork created by local illustrators reflecting realistic cultural contexts.', bullets: ['Curriculum Visuals', 'Technical Diagrams', 'Narrative Art'] },
+  { slug: 'printing', icon: 'print', title: 'Printing', eyebrow: 'Volume & Quality Production', body: 'Short-run and high-volume offset printing, binding, lamination and local fulfillment.', bullets: ['Offset Printing', 'Perfect Binding', 'Distribution'] },
+];
+
+const processSteps = [
+  { title: 'Consultation & Briefing', body: 'Understanding scope, target readers, languages and curriculum standards.' },
+  { title: 'Editorial & Translation', body: 'Structuring content, copyediting and executing precise bilingual translation.' },
+  { title: 'Design & Illustration', body: 'Creating custom page layouts, cover artwork and technical graphics.' },
+  { title: 'Quality Review', body: 'Comprehensive proofreading, factual verification and pre-print sign-off.' },
+  { title: 'Production & Delivery', body: 'Managing press runs, binding and local distribution to warehouses or schools.' },
+];
+---
+
+<Layout
+  title={t.meta.services.title}
+  description={t.meta.services.description}
+  locale={lang}
+  routeKey="services"
+>
+  <section class="hero hero--compact">
+    <div class="hero__bg"><img src="/img/editorial.svg" alt="" /></div>
+    <div class="wrap">
+      <div class="hero__inner">
+        <div>
+          <span class="eyebrow">{t.services.hero.eyebrow}</span>
+          <h1>{t.services.hero.titleLead} <em class="accent">{t.services.hero.titleAccent}</em></h1>
+          <p class="hero__lede">{t.services.hero.lede}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Deep Dives -->
+  <section class="section section--white">
+    <div class="wrap">
+      <div class="zigzag">
+        {servicesList.map((item, idx) => {
+          const imgName = idx < 3 ? 'editorial' : idx < 5 ? 'creative' : 'production';
+          return (
+            <div id={item.slug} class={`split ${idx % 2 !== 0 ? 'split--reverse' : ''} reveal`}>
+              <div class="split__media">
+                <img src={`/img/${imgName}.svg`} alt={item.title} />
+              </div>
+              <div class="split__content">
+                <span class="eyebrow">{item.eyebrow}</span>
+                <h2>{item.title}</h2>
+                <p class="text-ink-soft mt-3">{item.body}</p>
+                <div class="pill-row mt-4">
+                  {item.bullets.map((b) => (
+                    <span class="pill pill--green">{b}</span>
+                  ))}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  </section>
+
+  <!-- 5-Step Process -->
+  <section class="section section--dark">
+    <div class="wrap">
+      <div class="section-head reveal">
+        <span class="eyebrow">{t.services.process.eyebrow}</span>
+        <h2>{t.services.process.titleLead} <em class="accent">{t.services.process.titleAccent}</em></h2>
+        <p>{t.services.process.lede}</p>
+      </div>
+      <div class="steps reveal">
+        {processSteps.map((step, i) => (
+          <div class="step">
+            <span class="step__num">0{i + 1}</span>
+            <h3>{step.title}</h3>
+            <p>{step.body}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section section--white reveal">
+    <div class="wrap">
+      <CtaBand
+        eyebrow={t.services.cta.eyebrow}
+        titleLead={t.services.cta.titleLead}
+        titleAccent={t.services.cta.titleAccent}
+        lede={t.services.cta.lede}
+        buttonText={t.services.cta.button}
+        buttonHref={path('contact', lang)}
+      />
+    </div>
+  </section>
+</Layout>

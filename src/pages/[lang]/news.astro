@@ -1,0 +1,90 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import { LOCALES, type Locale, useTranslations, path } from '../../i18n';
+
+export function getStaticPaths() {
+  return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const t = useTranslations(lang);
+
+const sampleArticles = [
+  { title: 'Longhorn Cameroon Expands Secondary Curriculum Offering', category: 'titles', date: 'September 2026', summary: t.news.placeholderExcerpt },
+  { title: 'Bilingual Publishing Standards in Central Africa Workshop', category: 'events', date: 'August 2026', summary: t.news.placeholderExcerpt },
+  { title: 'New Educational Partnerships Announced in Yaoundé', category: 'partnerships', date: 'July 2026', summary: t.news.placeholderExcerpt },
+];
+---
+
+<Layout
+  title={t.meta.news.title}
+  description={t.meta.news.description}
+  locale={lang}
+  routeKey="news"
+>
+  <section class="hero hero--compact">
+    <div class="hero__bg"><img src="/img/press.svg" alt="" /></div>
+    <div class="wrap">
+      <div class="hero__inner">
+        <div>
+          <span class="eyebrow">{t.news.hero.eyebrow}</span>
+          <h1>{t.news.hero.titleLead} <em class="accent">{t.news.hero.titleAccent}</em></h1>
+          <p class="hero__lede">{t.news.hero.lede}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- News Grid with Filters -->
+  <section class="section section--white reveal" data-filter-scope>
+    <div class="wrap">
+      <div class="filter-bar">
+        <div class="filter-group">
+          <span class="filter-group__label">{t.news.filterLabel}:</span>
+          <button class="chip is-active" data-value="all">{t.common.all}</button>
+          <button class="chip" data-value="company">{t.news.categories.company}</button>
+          <button class="chip" data-value="titles">{t.news.categories.titles}</button>
+          <button class="chip" data-value="partnerships">{t.news.categories.partnerships}</button>
+          <button class="chip" data-value="events">{t.news.categories.events}</button>
+        </div>
+        <div class="ml-auto text-sm text-ink-soft font-display font-medium">
+          <span data-filter-count>{sampleArticles.length}</span> {t.common.articles}
+        </div>
+      </div>
+
+      <div class="grid grid--3">
+        {sampleArticles.map((article) => (
+          <article class="article-card" data-tags={article.category}>
+            <div class="article-card__thumb">
+              <Icon name="news" />
+            </div>
+            <div class="article-card__body">
+              <div class="article-card__meta">
+                <span class="pill pill--green">{article.category.toUpperCase()}</span>
+                <time>{article.date}</time>
+              </div>
+              <h3>{article.title}</h3>
+              <p class="text-sm text-ink-soft">{article.summary}</p>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="section section--cream reveal">
+    <div class="wrap">
+      <CtaBand
+        eyebrow={t.home.cta.eyebrow}
+        titleLead={t.home.cta.titleLead}
+        titleAccent={t.home.cta.titleAccent}
+        lede={t.home.cta.lede}
+        buttonText={t.home.cta.button}
+        buttonHref={path('contact', lang)}
+      />
+    </div>
+  </section>
+</Layout>

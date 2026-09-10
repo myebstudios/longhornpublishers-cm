@@ -1,0 +1,17 @@
+---
+interface Props { prevLabel: string; nextLabel: string; center?: boolean; }
+const { prevLabel, nextLabel, center = false } = Astro.props;
+---
+<div class="carousel reveal">
+  <div class="carousel__viewport">
+    <div class="carousel__track"><slot /></div>
+  </div>
+  <div class:list={['carousel__controls', center && 'carousel__controls--center']}>
+    <button class="carousel__btn" data-dir="prev" aria-label={prevLabel}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>
+    </button>
+    <button class="carousel__btn" data-dir="next" aria-label={nextLabel}>
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg>
+    </button>
+  </div>
+</div>

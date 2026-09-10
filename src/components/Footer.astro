@@ -1,0 +1,83 @@
+---
+import type { Locale } from '../i18n';
+import { useTranslations, path, NAV_KEYS } from '../i18n';
+import Icon from './Icon.astro';
+
+interface Props {
+  locale: Locale;
+}
+
+const { locale } = Astro.props;
+const t = useTranslations(locale);
+const contactInfo = {
+  address: 'Total École de police, Tsinga — Yaoundé, Cameroon',
+  phone1: '+237 672 49 10 93',
+  phone2: '+237 657 51 92 03',
+  email: 'info@longhornpublishers-cm.com',
+};
+
+const serviceAnchors = [
+  { name: 'Editing', slug: 'editing' },
+  { name: 'Proofreading', slug: 'proofreading' },
+  { name: 'Translation', slug: 'translation' },
+  { name: 'Designing', slug: 'designing' },
+  { name: 'Illustration', slug: 'illustration' },
+  { name: 'Printing', slug: 'printing' },
+];
+---
+
+<footer class="site-footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div>
+        <a class="brand" href={path('home', locale)}>
+          <span class="brand__mark" aria-hidden="true">L</span>
+          <span class="brand__text">{t.brand.name}<span>{t.brand.sub}</span></span>
+        </a>
+        <p class="footer__blurb">
+          {locale === 'fr'
+            ? 'Créateurs de contenus et fournisseurs de solutions de plateforme pour l’Afrique centrale — services d’édition complets, du manuscrit au livre imprimé.'
+            : 'Content creators and platform business providers for Central Africa — end-to-end publishing services from manuscript to printed book, in English and French.'}
+        </p>
+      </div>
+
+      <div class="footer__col">
+        <h4>{locale === 'fr' ? 'Explorer' : 'Explore'}</h4>
+        <ul>
+          {NAV_KEYS.map((key) => (
+            <li><a href={path(key, locale)}>{t.nav[key]}</a></li>
+          ))}
+          <li><a href={path('news', locale)}>{t.nav.news}</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>{locale === 'fr' ? 'Services' : 'Services'}</h4>
+        <ul>
+          {serviceAnchors.map((s) => (
+            <li><a href={`${path('services', locale)}#${s.slug}`}>{s.name}</a></li>
+          ))}
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>{t.nav.getInTouch}</h4>
+        <ul>
+          <li><p>{contactInfo.address}</p></li>
+          <li><a href={`tel:${contactInfo.phone1.replace(/\s/g, '')}`}>{contactInfo.phone1}</a></li>
+          <li><a href={`tel:${contactInfo.phone2.replace(/\s/g, '')}`}>{contactInfo.phone2}</a></li>
+          <li><a href={`mailto:${contactInfo.email}`}>{contactInfo.email}</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; 2026 Longhorn Publishers Cameroon Ltd — a subsidiary of Longhorn Publishers PLC.</p>
+      <div class="footer__legal">
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href={path('news', locale)}>{t.nav.news}</a>
+      </div>
+    </div>
+  </div>
+</footer>

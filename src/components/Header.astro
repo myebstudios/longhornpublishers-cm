@@ -1,0 +1,81 @@
+---
+import type { Locale, RouteKey } from '../i18n';
+import { useTranslations, path, alternatePath, NAV_KEYS } from '../i18n';
+import Icon from './Icon.astro';
+
+interface Props {
+  locale: Locale;
+  currentRouteKey: RouteKey;
+}
+
+const { locale, currentRouteKey } = Astro.props;
+const t = useTranslations(locale);
+const otherLocale = locale === 'en' ? 'fr' : 'en';
+const switchHref = alternatePath(currentRouteKey, locale);
+---
+
+<header class="site-header" id="siteHeader">
+  <div class="wrap">
+    <div class="site-header__inner">
+      <a class="brand" href={path('home', locale)} aria-label={`${t.brand.name} ${t.brand.sub} — ${t.nav.home}`}>
+        <span class="brand__mark" aria-hidden="true">L</span>
+        <span class="brand__text">{t.brand.name}<span>{t.brand.sub}</span></span>
+      </a>
+
+      <nav class="nav" id="primaryNav" aria-label={t.nav.primaryNav}>
+        {NAV_KEYS.map((key) => {
+          const href = path(key, locale);
+          const isCurrent = key === currentRouteKey;
+          return (
+            <a href={href} aria-current={isCurrent ? 'page' : undefined}>
+              {t.nav[key]}
+            </a>
+          );
+        })}
+      </nav>
+
+      <div class="header__actions">
+        <div class="lang-toggle" role="group" aria-label={t.nav.language}>
+          <a
+            href={locale === 'en' ? path(currentRouteKey, 'en') : switchHref}
+            class:list={['lang-btn', { 'is-active': locale === 'en' }]}
+          >
+            EN
+          </a>
+          <a
+            href={locale === 'fr' ? path(currentRouteKey, 'fr') : switchHref}
+            class:list={['lang-btn', { 'is-active': locale === 'fr' }]}
+          >
+            FR
+          </a>
+        </div>
+
+        <a class="btn btn--dark btn--sm" href={path('contact', locale)}>
+          {t.nav.getInTouch}
+          <span class="btn__icon" aria-hidden="true"><Icon name="arrow" /></span>
+        </a>
+
+        <button class="nav-toggle" id="navToggle" aria-expanded="false" aria-controls="primaryNav" aria-label={t.nav.menu}>
+          <span></span><span></span><span></span>
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<style>
+  .lang-btn {
+    padding: .35rem .7rem;
+    border-radius: 999px;
+    font-family: var(--font-display);
+    font-size: .8rem;
+    font-weight: 600;
+    color: var(--ink-soft);
+    transition: all .2s ease;
+    display: inline-block;
+  }
+  .lang-btn.is-active {
+    background: var(--burgundy);
+    color: var(--white);
+  }
+</style>

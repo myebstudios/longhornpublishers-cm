@@ -1,0 +1,113 @@
+---
+import Icon from './Icon.astro';
+import Button from './Button.astro';
+import type { Titled } from '../i18n/types';
+
+interface Stat {
+  num: string;
+  label: string;
+}
+
+interface Props {
+  content?: Titled;
+  eyebrow?: string;
+  titleLead?: string;
+  titleAccent?: string;
+  lede?: string;
+  eyebrowStat?: string;
+  eyebrowStatSuffix?: string;
+  badgeNumber?: string;
+  tags?: string[];
+  stats?: Stat[];
+  img?: string;
+  compact?: boolean;
+  primaryCtaText?: string;
+  primaryCtaHref?: string;
+  secondaryCtaText?: string;
+  secondaryCtaHref?: string;
+}
+
+const {
+  content,
+  eyebrow = content?.eyebrow,
+  titleLead = content?.titleLead || '',
+  titleAccent = content?.titleAccent || '',
+  lede = content?.lede,
+  eyebrowStat,
+  eyebrowStatSuffix,
+  badgeNumber,
+  tags = [],
+  stats = [],
+  img = 'hero',
+  compact = false,
+  primaryCtaText,
+  primaryCtaHref,
+  secondaryCtaText,
+  secondaryCtaHref,
+} = Astro.props;
+---
+
+<section class:list={['hero', compact && 'hero--compact']}>
+  <div class="hero__bg"><img src={`/img/${img}.svg`} alt="" /></div>
+  <div class="wrap">
+    <div class="hero__inner">
+      <div>
+        {eyebrow && <span class="eyebrow">{eyebrow}</span>}
+
+        {badgeNumber && (
+          <div class="badge-row" style="margin-bottom:1.5rem">
+            <div class="badge">
+              <span class="badge__icon">{badgeNumber}</span>
+              <span>
+                {eyebrowStat && <strong>{eyebrowStat} </strong>}
+                {eyebrowStatSuffix}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {tags && tags.length > 0 && (
+          <div class="pill-row mb-4">
+            {tags.map((tag) => (
+              <span class="pill pill--glass">{tag}</span>
+            ))}
+          </div>
+        )}
+
+        <h1>
+          {titleLead} {titleAccent && <em class="accent">{titleAccent}</em>}
+        </h1>
+
+        {lede && <p class="hero__lede">{lede}</p>}
+
+        <div class="hero__cta">
+          {primaryCtaText && primaryCtaHref && (
+            <Button href={primaryCtaHref} variant="primary">
+              {primaryCtaText}
+            </Button>
+          )}
+          {secondaryCtaText && secondaryCtaHref && (
+            <a href={secondaryCtaHref} class="link-arrow">
+              {secondaryCtaText}
+            </a>
+          )}
+          <slot />
+        </div>
+      </div>
+
+      {stats && stats.length > 0 && (
+        <div>
+          <div class="stat-card">
+            {stats.map((s) => (
+              <div>
+                <div class="stat-card__num">{s.num}</div>
+                <div class="stat-card__label">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  </div>
+</section>
+

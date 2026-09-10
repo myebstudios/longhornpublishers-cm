@@ -1,0 +1,134 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Icon from '../../components/Icon.astro';
+import { LOCALES, type Locale, useTranslations } from '../../i18n';
+
+export function getStaticPaths() {
+  return LOCALES.map((lang) => ({ params: { lang } }));
+}
+
+const { lang } = Astro.params as { lang: Locale };
+const t = useTranslations(lang);
+---
+
+<Layout
+  title={t.meta.contact.title}
+  description={t.meta.contact.description}
+  locale={lang}
+  routeKey="contact"
+>
+  <section class="hero hero--compact">
+    <div class="hero__bg"><img src="/img/team.svg" alt="" /></div>
+    <div class="wrap">
+      <div class="hero__inner">
+        <div>
+          <span class="eyebrow">{t.contact.hero.eyebrow}</span>
+          <h1>{t.contact.hero.titleLead} <em class="accent">{t.contact.hero.titleAccent}</em></h1>
+          <p class="hero__lede">{t.contact.hero.lede}</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--white reveal">
+    <div class="wrap">
+      <div class="contact-layout">
+        <!-- Direct Contacts -->
+        <div class="contact-info">
+          <SectionHead
+            eyebrow={t.contact.directEyebrow}
+            titleLead={t.contact.directTitleLead}
+            titleAccent={t.contact.directTitleAccent}
+          />
+
+          <div class="contact-detail">
+            <div class="contact-detail__label">{t.contact.labels.office}</div>
+            <p>Total École de police, Tsinga — Yaoundé, Cameroon</p>
+          </div>
+
+          <div class="contact-detail">
+            <div class="contact-detail__label">{t.contact.labels.telephone}</div>
+            <p><a href="tel:+237672491093">+237 672 49 10 93</a></p>
+            <p><a href="tel:+237657519203">+237 657 51 92 03</a></p>
+          </div>
+
+          <div class="contact-detail">
+            <div class="contact-detail__label">{t.contact.labels.email}</div>
+            <p><a href="mailto:info@longhornpublishers-cm.com">info@longhornpublishers-cm.com</a></p>
+            <span class="text-xs text-ink-soft block mt-1">{t.contact.emailNote}</span>
+          </div>
+
+          <div class="contact-detail">
+            <div class="contact-detail__label">{t.contact.labels.hours}</div>
+            <p>{t.contact.hours}</p>
+            <span class="text-xs text-ink-soft block mt-1">{t.contact.hoursNote}</span>
+          </div>
+        </div>
+
+        <!-- B2B Form -->
+        <div class="form-container">
+          <form class="form" name="contact" method="POST" data-netlify="true" action="/success/">
+            <input type="hidden" name="form-name" value="contact" />
+            <h3 class="mb-4">{t.contact.form.title}</h3>
+
+            <div class="form__grid">
+              <div class="field">
+                <label for="name">{t.contact.form.name}</label>
+                <input type="text" id="name" name="name" required />
+              </div>
+
+              <div class="field">
+                <label for="org">{t.contact.form.organisation}</label>
+                <input type="text" id="org" name="organisation" />
+              </div>
+
+              <div class="field">
+                <label for="email">{t.contact.form.email}</label>
+                <input type="email" id="email" name="email" required />
+              </div>
+
+              <div class="field">
+                <label for="phone">{t.contact.form.phone}</label>
+                <input type="tel" id="phone" name="phone" />
+              </div>
+
+              <div class="field field--full">
+                <label for="projectType">{t.contact.form.projectType}</label>
+                <select id="projectType" name="projectType">
+                  <option value="">{t.contact.form.projectTypePlaceholder}</option>
+                  {t.contact.form.projectTypes.map((type) => (
+                    <option value={type}>{type}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div class="field field--full">
+                <label for="message">{t.contact.form.message}</label>
+                <textarea id="message" name="message" rows="4" placeholder={t.contact.form.messagePlaceholder} required></textarea>
+              </div>
+            </div>
+
+            <button type="submit" class="btn btn--primary w-full justify-center mt-6">
+              {t.contact.form.submit}
+              <span class="btn__icon" aria-hidden="true"><Icon name="arrow" /></span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Location Map Placeholder -->
+  <section class="section section--cream reveal">
+    <div class="wrap">
+      <div class="map-embed">
+        <div>
+          <h3 class="text-white text-2xl font-bold font-display mb-2">{t.brand.name} {t.brand.sub}</h3>
+          <p class="text-cream opacity-80">Total École de police, Tsinga — Yaoundé, Cameroon</p>
+          <span class="text-xs text-cream opacity-60 block mt-2">{t.contact.mapNote}</span>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

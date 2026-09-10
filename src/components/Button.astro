@@ -1,0 +1,17 @@
+---
+import Icon from './Icon.astro';
+interface Props {
+  href?: string;
+  variant?: 'primary' | 'dark' | 'ghost';
+  size?: 'sm' | 'md';
+  type?: 'button' | 'submit';
+  class?: string;
+}
+const { href, variant = 'primary', size = 'md', type = 'button', class: cls = '' } = Astro.props;
+const classes = ['btn', `btn--${variant}`, size === 'sm' ? 'btn--sm' : '', cls].filter(Boolean).join(' ');
+const Tag = href ? 'a' : 'button';
+---
+<Tag class={classes} {...(href ? { href } : { type })}>
+  <slot />
+  <span class="btn__icon"><Icon name="arrow" size={size === 'sm' ? 13 : 15} /></span>
+</Tag>
