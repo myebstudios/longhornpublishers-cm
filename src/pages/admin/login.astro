@@ -1,8 +1,45 @@
 ---
 ---
-<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>Longhorn Admin sign in</title><link rel="icon" href="/favicon.svg" /></head><body><main><a href="/en/" class="brand">Longhorn <span>Admin</span></a><h1>Welcome back</h1><p>Use an invitation-approved administrator account.</p><form id="login"><label>Email<input name="email" type="email" autocomplete="email" required /></label><label>Password<input name="password" type="password" autocomplete="current-password" required minlength="8" /></label><button>Sign in</button><p id="status" role="status" aria-live="polite"></p></form></main><script>
-import { AuthError, getUser, handleAuthCallback, login } from '@netlify/identity';
+<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>Longhorn Admin sign in</title><link rel="icon" href="/favicon.svg" /></head><body><main><a href="/en/" class="brand">Longhorn <span>Admin</span></a><h1 id="title">Welcome back</h1><p id="intro">Use an invitation-approved administrator account.</p><form id="activate" hidden><label>Create password<input name="password" type="password" autocomplete="new-password" required minlength="8" /></label><label>Confirm password<input name="confirmation" type="password" autocomplete="new-password" required minlength="8" /></label><button>Activate administrator account</button></form><form id="login"><label>Email<input name="email" type="email" autocomplete="email" required /></label><label>Password<input name="password" type="password" autocomplete="current-password" required minlength="8" /></label><button>Sign in</button></form><p id="status" role="status" aria-live="polite"></p></main><script>
+import { acceptInvite, AuthError, getUser, handleAuthCallback, login } from '@netlify/identity';
 const status = document.querySelector('#status');
-try { await handleAuthCallback(); const user = await getUser(); if (user?.roles?.includes('admin')) location.href = '/admin/'; } catch { if (status) status.textContent = 'Finish accepting your invitation, then sign in.'; }
+const activationForm = document.querySelector('#activate') as HTMLFormElement | null;
+const loginForm = document.querySelector('#login') as HTMLFormElement | null;
+const title = document.querySelector('#title');
+const intro = document.querySelector('#intro');
+try {
+  const invitationToken = new URLSearchParams(window.location.hash.substring(1)).get('invite_token');
+  const callback = await handleAuthCallback();
+  const token = callback?.type === 'invite' ? callback.token : invitationToken;
+  if (token && activationForm && loginForm) {
+    title!.textContent = 'Activate administrator account';
+    intro!.textContent = 'Create a password to finish accepting your invitation.';
+    activationForm.hidden = false;
+    loginForm.hidden = true;
+    activationForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const form = event.currentTarget as HTMLFormElement;
+      const submit = form.querySelector('button') as HTMLButtonElement;
+      const data = new FormData(form);
+      const password = String(data.get('password'));
+      if (password !== String(data.get('confirmation'))) {
+        if (status) status.textContent = 'Passwords do not match.';
+        return;
+      }
+      submit.disabled = true;
+      if (status) status.textContent = 'Activating account…';
+      try {
+        const user = await acceptInvite(token, password);
+        if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
+        location.href = '/admin/';
+      } catch (error) {
+        if (status) status.textContent = error instanceof Error ? error.message : 'Unable to activate this invitation.';
+      } finally { submit.disabled = false; }
+    });
+  } else {
+    const user = await getUser();
+    if (user?.roles?.includes('admin')) location.href = '/admin/';
+  }
+} catch { if (status) status.textContent = 'This invitation link is invalid or has expired. Request a new invitation.'; }
 document.querySelector('#login')?.addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const submit = form.querySelector('button') as HTMLButtonElement; submit.disabled = true; if (status) status.textContent = 'Signing in…'; try { const user = await login(String(new FormData(form).get('email')), String(new FormData(form).get('password'))); if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.'); location.href = '/admin/'; } catch (error) { if (status) status.textContent = error instanceof AuthError && error.status === 401 ? 'Invalid email or password.' : error instanceof Error ? error.message : 'Unable to sign in.'; } finally { submit.disabled = false; } });
-</script><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f7f1e8;color:#241d1d;font:16px Inter,system-ui}main{width:min(420px,calc(100% - 3rem));background:#fff;padding:2.25rem;border-radius:1.2rem;box-shadow:0 20px 50px #40101b1a}.brand{font:700 1.2rem Poppins,system-ui;color:#651d32;text-decoration:none}.brand span{color:#b47a15}h1{font:700 2.25rem Poppins,system-ui;margin:2rem 0 .25rem;color:#651d32}p{color:#695b5b}form{display:grid;gap:1rem;margin-top:1.75rem}label{display:grid;gap:.35rem;font-weight:600}input{padding:.8rem;border:1px solid #cdbebe;border-radius:.45rem;font:inherit}button{margin-top:.5rem;background:#651d32;color:#fff;border:0;border-radius:.45rem;padding:.85rem;font:600 1rem Poppins,system-ui;cursor:pointer}button:disabled{opacity:.6}#status{min-height:1.4rem;margin:0}</style></body></html>
+</script><style>body{margin:0;min-height:100vh;display:grid;place-items:center;background:#f7f1e8;color:#241d1d;font:16px Inter,system-ui}main{width:min(420px,calc(100% - 3rem));background:#fff;padding:2.25rem;border-radius:1.2rem;box-shadow:0 20px 50px #40101b1a}.brand{font:700 1.2rem Poppins,system-ui;color:#651d32;text-decoration:none}.brand span{color:#b47a15}h1{font:700 2.25rem Poppins,system-ui;margin:2rem 0 .25rem;color:#651d32}p{color:#695b5b}form{display:grid;gap:1rem;margin-top:1.75rem}form[hidden]{display:none}label{display:grid;gap:.35rem;font-weight:600}input{padding:.8rem;border:1px solid #cdbebe;border-radius:.45rem;font:inherit}button{margin-top:.5rem;background:#651d32;color:#fff;border:0;border-radius:.45rem;padding:.85rem;font:600 1rem Poppins,system-ui;cursor:pointer}button:disabled{opacity:.6}#status{min-height:1.4rem;margin:1rem 0 0}</style></body></html>

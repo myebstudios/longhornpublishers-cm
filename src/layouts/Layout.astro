@@ -61,6 +61,12 @@ const organizationSchema = {
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
+    <script>
+      const authHash = window.location.hash;
+      if (/(?:^#|&)invite_token=/.test(authHash) || /(?:^#|&)recovery_token=/.test(authHash)) {
+        window.location.replace(`/admin/login/${authHash}`);
+      }
+    </script>
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
