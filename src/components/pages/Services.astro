@@ -1,0 +1,91 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../Hero.astro';
+import Split from '../Split.astro';
+import SectionHead from '../SectionHead.astro';
+import CtaBand from '../CtaBand.astro';
+import Icon from '../Icon.astro';
+import Button from '../Button.astro';
+import { type Locale, useTranslations, path, LOCALES } from '../../i18n';
+import { SERVICES, PROCESS } from '../../data/site';
+import { SERVICE_DETAIL_IMG, disciplineLabel, DISCIPLINE_ACCENT } from '../../data/presentation';
+
+interface Props { locale: Locale }
+const { locale: lang } = Astro.props;
+const t = useTranslations(lang);
+const contactHref = path('contact', lang);
+---
+
+<Layout title={t.meta.services.title} description={t.meta.services.description} locale={lang} routeKey="services">
+  <Hero
+    content={t.services.hero}
+    img="lh-library-reading.jpg"
+    compact
+    primaryCtaText={t.services.hero.button}
+    primaryCtaHref={contactHref}
+    secondaryCtaText={t.services.hero.link}
+    secondaryCtaHref="#process"
+  />
+
+  <section class="section section--white">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.services.overview.eyebrow}
+        titleLead={t.services.overview.titleLead}
+        titleAccent={t.services.overview.titleAccent}
+      />
+      <div class="grid grid--3 reveal">
+        {SERVICES.map((service) => (
+          <a class:list={['card', DISCIPLINE_ACCENT[service.discipline]]} href={`#${service.id}`}>
+            <span class="card__icon"><Icon name={service.icon} /></span>
+            <h3>{service[lang].name}</h3>
+            <p>{service[lang].short}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--cream">
+    <div class="wrap zigzag">
+      {SERVICES.map((service, i) => (
+        <Split
+          id={service.id}
+          img={SERVICE_DETAIL_IMG[service.id]}
+          alt={service[lang].name}
+          reverse={i % 2 === 1}
+        >
+          <span class="eyebrow">{disciplineLabel(service.discipline, lang)}</span>
+          <h2>{service[lang].name}</h2>
+          {service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
+          <a class="link-arrow" href={contactHref}>{t.services.discussPrefix} {service[lang].name.toLowerCase()}</a>
+        </Split>
+      ))}
+    </div>
+  </section>
+
+  <section class="section section--white" id="process" style="scroll-margin-top:120px">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.services.process.eyebrow}
+        titleLead={t.services.process.titleLead}
+        titleAccent={t.services.process.titleAccent}
+        lede={t.services.process.lede}
+      />
+      <div class="steps reveal">
+        {PROCESS.map((step, i) => (
+          <article class:list={['step', i === 0 && 'step--active']}>
+            <div class="step__num">{lang === 'fr' ? 'Étape' : 'Step'} {step.num}</div>
+            <h3>{step[lang].title}</h3>
+            <p>{step[lang].body}</p>
+          </article>
+        ))}
+      </div>
+      <div class="mt-lg">
+        <Button href={contactHref} variant="dark">{t.common.startConversation}</Button>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand content={t.services.cta} buttonHref={contactHref} />
+</Layout>

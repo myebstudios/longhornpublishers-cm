@@ -1,0 +1,31 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../Hero.astro';
+import Button from '../Button.astro';
+import { type Locale, useTranslations, path } from '../../i18n';
+
+interface Props { locale: Locale }
+const { locale: lang } = Astro.props;
+const t = useTranslations(lang);
+
+/**
+ * Deliberately an empty state. Articles are authored in the admin panel and
+ * stored in Netlify DB; until the first one is published there is nothing
+ * truthful to list here. Wiring this page to the CMS is its own task.
+ */
+---
+
+<Layout title={t.meta.news.title} description={t.meta.news.description} locale={lang} routeKey="news">
+  <Hero content={t.news.hero} img="lh-book-delivery.jpg" compact />
+
+  <section class="section section--cream">
+    <div class="wrap">
+      <div class="empty-state reveal">
+        <span class="eyebrow">{t.news.hero.eyebrow}</span>
+        <h2>{t.news.empty.heading}</h2>
+        <p>{t.news.empty.body}</p>
+        <Button href={path('contact', lang)} variant="primary">{t.news.empty.cta}</Button>
+      </div>
+    </div>
+  </section>
+</Layout>

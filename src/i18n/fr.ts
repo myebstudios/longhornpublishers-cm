@@ -206,6 +206,7 @@ export const fr: Content = {
         'Nous nous définissons comme créateurs de contenus et fournisseurs de solutions éditoriales — nous produisons le contenu et nous pilotons le processus qui le met entre les mains des élèves.',
       ],
       link: 'Pourquoi nos partenaires nous choisissent',
+      imgAlt: 'Longhorn Publishers Cameroun en consultation client, Yaoundé',
     },
     identity: {
       eyebrow: 'Notre identité',
@@ -253,6 +254,7 @@ export const fr: Content = {
         'La pertinence culturelle fait partie de ce contrôle, et non d’une attention accessoire : illustrations, noms, exemples et contextes sont revus afin que les élèves se reconnaissent dans le matériel.',
       ],
       button: 'Voir notre processus',
+      imgAlt: 'Ouvrages finis préparés pour la distribution',
     },
     cta: {
       eyebrow: 'Travaillons ensemble',
@@ -310,7 +312,6 @@ export const fr: Content = {
       social: 'Sciences sociales',
     },
     languages: { en: 'Anglais', fr: 'Français' },
-    note: 'Données d’exemple — le catalogue en ligne sera alimenté depuis Netlify Database via le panneau d’administration. La liste des titres du client reste à fournir (point ouvert 4, Docs/README.md).',
     cta: {
       eyebrow: 'Vous ne trouvez pas ?',
       titleLead: 'Besoin d’un titre',
@@ -336,7 +337,7 @@ export const fr: Content = {
           'Notre équipe est à Tsinga, Yaoundé. Cela signifie des visites sur site, des relectures en personne et un calendrier qui suit les réalités locales plutôt que l’agenda d’un siège lointain.',
           'Cela signifie aussi une connaissance pratique des programmes nationaux camerounais et congolais — leur structure, leur terminologie et les attentes en matière d’agrément — plutôt qu’un modèle éducatif africain générique.',
         ],
-        img: 'hero',
+        imgAlt: 'Des lecteurs échangeant autour d’un ouvrage Longhorn',
       },
       {
         eyebrow: '02 — Engagement qualité',
@@ -346,7 +347,7 @@ export const fr: Content = {
           'Le contrôle qualité est la quatrième des cinq étapes, et il a autorité pour empêcher un projet de partir à l’impression. Correction d’épreuves, vérification des faits et conformité au programme sont contrôlées au regard du cahier des charges initial.',
           'Adossé à six décennies d’exigences éditoriales de groupe — un processus hérité, non improvisé.',
         ],
-        img: 'press',
+        imgAlt: 'Contrôle final d’un tirage imprimé',
         tags: ['Révision structurelle', 'Révision de style', 'Correction', 'Contrôle programme', 'Bon à tirer'],
       },
       {
@@ -357,7 +358,7 @@ export const fr: Content = {
           'Dans un pays bilingue, une édition française qui sent la traduction est un handicap. Nos traducteurs évoluent quotidiennement dans le contexte éducatif et localisent plutôt qu’ils ne transposent — exemples, noms, monnaie, expressions et registre de classe sont tous adaptés.',
           'Les deux versions linguistiques sont planifiées ensemble dès le premier jour : aucune ne devient l’édition secondaire livrée en retard.',
         ],
-        img: 'creative',
+        imgAlt: 'Les éditions anglaise et française d’un même titre côte à côte',
       },
     ],
     compare: {
@@ -399,8 +400,6 @@ export const fr: Content = {
       hours: 'Horaires',
     },
     hours: 'Du lundi au vendredi',
-    hoursNote: 'Horaires d’ouverture à confirmer.',
-    emailNote: 'Adresse provisoire — à confirmer avec le client.',
     form: {
       eyebrow: 'Demande de projet',
       title: 'Démarrer la conversation',
@@ -435,7 +434,8 @@ export const fr: Content = {
       success: 'Merci — votre demande a bien été reçue. Nous vous répondrons sous peu.',
       error: 'Une erreur est survenue. Merci de réessayer ou de nous écrire directement.',
     },
-    mapNote: 'Emplacement réservé pour la carte — une intégration aux couleurs de la marque la remplacera avant le lancement.',
+    addressLine: 'Longhorn Publishers Cameroun Ltd — Yaoundé, Cameroun',
+    directions: 'Obtenir l’itinéraire',
   },
 
   news: {
@@ -452,9 +452,11 @@ export const fr: Content = {
       partnerships: 'Partenariats',
       events: 'Événements',
     },
-    note: 'Articles fictifs. La mise en ligne des actualités au lancement — et la personne qui en assurera la publication au Cameroun — constituent le point ouvert 5 du Docs/README.md.',
-    placeholderDate: 'Date à confirmer',
-    placeholderExcerpt: 'Extrait d’exemple tenant lieu de contenu éditorial rédigé via le panneau d’administration.',
+    empty: {
+      heading: 'Restez informé',
+      body: 'Nous préparons les prochaines actualités, parutions et informations de partenariat. Pour toute demande immédiate, notre équipe est à votre écoute.',
+      cta: 'Nous contacter',
+    },
   },
 
   footer: {

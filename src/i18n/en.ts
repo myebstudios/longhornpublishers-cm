@@ -201,6 +201,7 @@ export const en: Content = {
         'We describe ourselves as content creators and platform business providers — we make the content, and we run the process that gets it into learners’ hands.',
       ],
       link: 'Why partners choose us',
+      imgAlt: 'Longhorn Publishers Cameroon in client consultation, Yaoundé',
     },
     identity: {
       eyebrow: 'Core identity',
@@ -248,6 +249,7 @@ export const en: Content = {
         'Cultural relevance is part of that check, not a separate courtesy: illustrations, names, examples and contexts are reviewed so that learners recognise themselves in the material.',
       ],
       button: 'See our process',
+      imgAlt: 'Finished titles being prepared for distribution',
     },
     cta: {
       eyebrow: "Let's work together",
@@ -305,7 +307,6 @@ export const en: Content = {
       social: 'Social Studies',
     },
     languages: { en: 'English', fr: 'Français' },
-    note: 'Sample data — the live catalogue is populated from Netlify Database via the admin panel. A title list from the client is still outstanding (open item 4, Docs/README.md).',
     cta: {
       eyebrow: "Can't find it?",
       titleLead: 'Need a title',
@@ -331,7 +332,7 @@ export const en: Content = {
           'Our team is in Tsinga, Yaoundé. That means site visits, in-person reviews and a schedule that runs on local realities rather than a distant head office calendar.',
           'It also means working knowledge of both the Cameroonian and DRC national curricula — the structure, the terminology and the approval expectations — rather than a generic African education template.',
         ],
-        img: 'hero',
+        imgAlt: 'Readers in discussion with a Longhorn title',
       },
       {
         eyebrow: '02 — Quality commitment',
@@ -341,7 +342,7 @@ export const en: Content = {
           'Quality Review is step four of five, and it has the authority to stop a project going to print. Proofreading, factual checks and curriculum alignment are verified against the original brief.',
           'Backed by six decades of group publishing standards — inherited process, not improvised.',
         ],
-        img: 'press',
+        imgAlt: 'Final inspection of a printed run',
         tags: ['Structural edit', 'Line edit', 'Proofread', 'Curriculum check', 'Print proof'],
       },
       {
@@ -352,7 +353,7 @@ export const en: Content = {
           'In a bilingual country, a French edition that reads like a translation is a liability. Our translators work in the education context daily and localise rather than transpose — examples, names, currency, idiom and classroom register all adjusted.',
           'Both language tracks are planned and scheduled together from day one, so neither edition becomes the afterthought that ships late.',
         ],
-        img: 'creative',
+        imgAlt: 'English and French editions of the same title side by side',
       },
     ],
     compare: {
@@ -394,8 +395,6 @@ export const en: Content = {
       hours: 'Hours',
     },
     hours: 'Monday – Friday',
-    hoursNote: 'Opening hours to be confirmed.',
-    emailNote: 'Placeholder address — to be confirmed with the client.',
     form: {
       eyebrow: 'Project inquiry',
       title: 'Start a conversation',
@@ -430,7 +429,8 @@ export const en: Content = {
       success: 'Thank you — your inquiry has been received. We will be in touch shortly.',
       error: 'Something went wrong. Please try again, or email us directly.',
     },
-    mapNote: 'Map placeholder — a branded embed replaces this before launch.',
+    addressLine: 'Longhorn Publishers Cameroon Ltd — Yaoundé, Cameroon',
+    directions: 'Get directions',
   },
 
   news: {
@@ -447,9 +447,11 @@ export const en: Content = {
       partnerships: 'Partnerships',
       events: 'Events',
     },
-    note: 'Placeholder articles. Whether News ships at launch — and who on the Cameroon team owns posting — is open item 5 in Docs/README.md.',
-    placeholderDate: 'Placeholder date',
-    placeholderExcerpt: 'Sample excerpt standing in for real editorial copy authored through the admin panel.',
+    empty: {
+      heading: 'Stay informed',
+      body: 'We are preparing upcoming news, title releases and partnership updates. For an immediate enquiry, our team is ready to help.',
+      cta: 'Contact us',
+    },
   },
 
   footer: {

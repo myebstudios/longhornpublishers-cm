@@ -1,8 +1,8 @@
 ---
-interface Props { img: string; alt?: string; reverse?: boolean; }
-const { img, alt = '', reverse = false } = Astro.props;
+interface Props { img: string; alt?: string; reverse?: boolean; id?: string; }
+const { img, alt = '', reverse = false, id } = Astro.props;
 ---
-<div class:list={['split', reverse && 'split--reverse', 'reveal']}>
+<div class:list={['split', reverse && 'split--reverse', 'reveal']} id={id}>
   <div class="split__media"><img src={img.includes('.') ? `/img/${img}` : `/img/${img}.svg`} alt={alt} /></div>
   <div><slot /></div>
 </div>

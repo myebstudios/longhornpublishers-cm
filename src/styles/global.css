@@ -599,6 +599,7 @@ em.accent, .accent {
 .form__note { margin-top: 1rem; font-size: var(--step--1); color: var(--ink-soft); }
 
 .map-embed { border-radius: var(--radius-lg); overflow: hidden; aspect-ratio: 21 / 8; background: var(--burgundy-deep); display: grid; place-items: center; text-align: center; color: var(--white); padding: 2rem; }
+.map-embed__pin { margin: 0 auto .75rem; color: var(--green); }
 .map-embed__meta { margin-top: .5rem; font-size: var(--step--1); color: rgba(255,255,255,.72); }
 .map-embed__link {
   display: inline-flex; align-items: center; gap: .4rem; margin-top: 1.25rem;
@@ -660,7 +661,6 @@ em.accent, .accent {
   outline-offset: 3px;
   border-radius: 4px;
 }
-.prototype-flag { background: var(--mustard); color: #3B2A05; text-align: center; font-size: .8rem; font-weight: 600; padding: .4rem 1rem; font-family: var(--font-display); }
 
 /* ==========================================================================
    Component-facing aliases — keeps the ported component CSS readable and

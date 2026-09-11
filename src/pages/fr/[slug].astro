@@ -1,17 +1,31 @@
 ---
-import Layout from '../../layouts/Layout.astro';
-import PrototypePage from '../../components/PrototypePage.astro';
-import { ROUTES, useTranslations, type RouteKey } from '../../i18n';
-type PageProps = { routeKey: Exclude<RouteKey, 'home'>; file: 'about' | 'services' | 'catalogue' | 'why-choose-us' | 'contact' | 'news' };
+import About from '../../components/pages/About.astro';
+import Services from '../../components/pages/Services.astro';
+import Catalogue from '../../components/pages/Catalogue.astro';
+import Why from '../../components/pages/Why.astro';
+import Contact from '../../components/pages/Contact.astro';
+import News from '../../components/pages/News.astro';
+import { ROUTES, type RouteKey } from '../../i18n';
+
+/**
+ * French pages live at localized slugs (/fr/a-propos/, /fr/services-edition/ ...),
+ * so they cannot share the [lang] route. They render the identical page
+ * components as the English routes — only the locale prop differs.
+ */
+type PageKey = Exclude<RouteKey, 'home'>;
+
 export function getStaticPaths() {
-  const pages: PageProps[] = [
-    { routeKey: 'about', file: 'about' }, { routeKey: 'services', file: 'services' },
-    { routeKey: 'catalogue', file: 'catalogue' }, { routeKey: 'why', file: 'why-choose-us' },
-    { routeKey: 'contact', file: 'contact' }, { routeKey: 'news', file: 'news' },
-  ];
-  return pages.map((page) => ({ params: { slug: ROUTES[page.routeKey].fr }, props: page }));
+  const keys: PageKey[] = ['about', 'services', 'catalogue', 'why', 'contact', 'news'];
+  return keys.map((routeKey) => ({ params: { slug: ROUTES[routeKey].fr }, props: { routeKey } }));
 }
-const { routeKey, file } = Astro.props as PageProps;
-const t = useTranslations('fr'); const meta = t.meta[routeKey];
+
+const { routeKey } = Astro.props as { routeKey: PageKey };
+
+const PAGES = {
+  about: About, services: Services, catalogue: Catalogue,
+  why: Why, contact: Contact, news: News,
+} as const;
+
+const Page = PAGES[routeKey];
 ---
-<Layout title={meta.title} description={meta.description} locale="fr" routeKey={routeKey}><PrototypePage file={file} locale="fr" /></Layout>
+<Page locale="fr" />

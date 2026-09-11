@@ -8,9 +8,10 @@
     "dev": "astro dev",
     "dev:netlify": "netlify dev --offline",
     "start": "astro dev",
-    "build": "astro build",
+    "build": "npm run typecheck && astro build",
     "preview": "astro preview",
-    "astro": "astro"
+    "astro": "astro",
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler src/i18n/en.ts src/i18n/fr.ts src/data/site.ts src/data/presentation.ts"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.5",

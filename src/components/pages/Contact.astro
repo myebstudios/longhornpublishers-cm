@@ -1,0 +1,141 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../Hero.astro';
+import Icon from '../Icon.astro';
+import { type Locale, useTranslations, LOCALES } from '../../i18n';
+import { CONTACT } from '../../data/site';
+
+interface Props { locale: Locale }
+const { locale: lang } = Astro.props;
+const t = useTranslations(lang);
+const f = t.contact.form;
+
+const mapsQuery = encodeURIComponent(`${CONTACT.addressLines.join(', ')}`);
+const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
+---
+
+<Layout title={t.meta.contact.title} description={t.meta.contact.description} locale={lang} routeKey="contact">
+  <Hero content={t.contact.hero} img="lh-reading-nook.jpg" compact />
+
+  <section class="section section--cream">
+    <div class="wrap contact-layout">
+      <div class="reveal">
+        <span class="eyebrow">{t.contact.directEyebrow}</span>
+        <h2>{t.contact.directTitleLead} <em class="accent">{t.contact.directTitleAccent}</em></h2>
+
+        <div class="contact-detail">
+          <div class="contact-detail__label">{t.contact.labels.office}</div>
+          {CONTACT.addressLines.map((line) => <p>{line}</p>)}
+        </div>
+
+        <div class="contact-detail">
+          <div class="contact-detail__label">{t.contact.labels.telephone}</div>
+          {CONTACT.phones.map((phone) => (
+            <p><a href={`tel:${phone.replace(/\s+/g, '')}`}>{phone}</a></p>
+          ))}
+        </div>
+
+        <div class="contact-detail">
+          <div class="contact-detail__label">{t.contact.labels.email}</div>
+          <p><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></p>
+        </div>
+
+        <div class="contact-detail">
+          <div class="contact-detail__label">{t.contact.labels.hours}</div>
+          <p>{t.contact.hours}</p>
+        </div>
+      </div>
+
+      <div class="reveal">
+        <form
+          class="form"
+          name="contact"
+          method="POST"
+          action="/__forms.html"
+          data-netlify="true"
+          netlify-honeypot="bot-field"
+          data-success={f.success}
+          data-error={f.error}
+        >
+          <input type="hidden" name="form-name" value="contact" />
+          <p class="visually-hidden">
+            <label>{lang === 'fr' ? 'Ne remplissez pas ce champ :' : 'Do not fill this out:'}
+              <input name="bot-field" />
+            </label>
+          </p>
+
+          <span class="eyebrow">{f.eyebrow}</span>
+          <h2>{f.title}</h2>
+
+          <div class="form__grid">
+            <div class="field">
+              <label for="name">{f.name}</label>
+              <input id="name" name="name" type="text" required autocomplete="name" />
+            </div>
+            <div class="field">
+              <label for="organisation">{f.organisation}</label>
+              <input id="organisation" name="organisation" type="text" autocomplete="organization" />
+            </div>
+            <div class="field">
+              <label for="email">{f.email}</label>
+              <input id="email" name="email" type="email" required autocomplete="email" />
+            </div>
+            <div class="field">
+              <label for="phone">{f.phone}</label>
+              <input id="phone" name="phone" type="tel" autocomplete="tel" />
+            </div>
+
+            <div class="field field--full">
+              <label for="projectType">{f.projectType}</label>
+              <select id="projectType" name="projectType">
+                <option value="">{f.projectTypePlaceholder}</option>
+                {f.projectTypes.map((option) => <option>{option}</option>)}
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="languages">{f.languages}</label>
+              <select id="languages" name="languages">
+                <option value="">{f.languagesPlaceholder}</option>
+                {f.languageOptions.map((option) => <option>{option}</option>)}
+              </select>
+            </div>
+
+            <div class="field">
+              <label for="stage">{f.stage}</label>
+              <select id="stage" name="stage">
+                <option value="">{f.languagesPlaceholder}</option>
+                {f.stageOptions.map((option) => <option>{option}</option>)}
+              </select>
+            </div>
+
+            <div class="field field--full">
+              <label for="message">{f.message}</label>
+              <textarea id="message" name="message" required placeholder={f.messagePlaceholder}></textarea>
+            </div>
+          </div>
+
+          <button class="btn btn--primary" type="submit">
+            {f.submit}<span class="btn__icon" aria-hidden="true"><Icon name="arrow" size={15} /></span>
+          </button>
+          <p class="form__status" aria-live="polite"></p>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="section section--white">
+    <div class="wrap">
+      <div class="map-embed reveal">
+        <div>
+          <Icon name="pin" size={30} class="map-embed__pin" />
+          <h3>{CONTACT.addressLines.join(' — ')}</h3>
+          <p class="map-embed__meta">{t.contact.addressLine}</p>
+          <a class="map-embed__link" href={mapsHref} target="_blank" rel="noopener noreferrer">
+            {t.contact.directions}
+          </a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Layout>

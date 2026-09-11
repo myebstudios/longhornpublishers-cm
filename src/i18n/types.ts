@@ -62,10 +62,10 @@ export interface Content {
 
   about: {
     hero: Titled;
-    heritage: Titled & { body: string[] };
+    heritage: Titled & { body: string[]; imgAlt: string };
     identity: Titled & { items: Card[] };
     team: Titled & { items: Card[] };
-    quality: Titled & { body: string[] };
+    quality: Titled & { body: string[]; imgAlt: string };
     cta: Titled;
   };
 
@@ -83,13 +83,12 @@ export interface Content {
     levels: { primary: string; secondary: string };
     subjects: Record<'maths' | 'english' | 'french' | 'science' | 'social', string>;
     languages: { en: string; fr: string };
-    note: string;
     cta: Titled;
   };
 
   why: {
     hero: Titled;
-    pillars: (Titled & { body: string[]; img: string; tags?: string[] })[];
+    pillars: (Titled & { body: string[]; imgAlt: string; tags?: string[] })[];
     compare: Titled & {
       bad: { title: string; body: string };
       good: { title: string; body: string };
@@ -101,7 +100,7 @@ export interface Content {
     hero: Titled;
     directEyebrow: string; directTitleLead: string; directTitleAccent: string;
     labels: { office: string; telephone: string; email: string; hours: string };
-    hours: string; hoursNote: string; emailNote: string;
+    hours: string;
     form: {
       eyebrow: string; title: string;
       name: string; organisation: string; email: string; phone: string;
@@ -111,16 +110,16 @@ export interface Content {
       message: string; messagePlaceholder: string;
       submit: string; success: string; error: string;
     };
-    mapNote: string;
+    addressLine: string;
+    directions: string;
   };
 
   news: {
     hero: Titled;
     filterLabel: string;
     categories: Record<'company' | 'titles' | 'partnerships' | 'events', string>;
-    note: string;
-    placeholderDate: string;
-    placeholderExcerpt: string;
+    /** Shown until the admin panel has published its first article. */
+    empty: { heading: string; body: string; cta: string };
   };
 
   footer: {

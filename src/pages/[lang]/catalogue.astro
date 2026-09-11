@@ -1,7 +1,7 @@
 ---
-import Layout from '../../layouts/Layout.astro'; import PrototypePage from '../../components/PrototypePage.astro';
-import { type Locale, useTranslations } from '../../i18n';
+import Catalogue from '../../components/pages/Catalogue.astro';
+
+/** English routes only. French uses localized slugs via src/pages/fr/[slug].astro. */
 export function getStaticPaths() { return [{ params: { lang: 'en' } }]; }
-const { lang } = Astro.params as { lang: Locale }; const t = useTranslations(lang);
 ---
-<Layout title={t.meta.catalogue.title} description={t.meta.catalogue.description} locale={lang} routeKey="catalogue"><PrototypePage file="catalogue" locale={lang} /></Layout>
+<Catalogue locale="en" />

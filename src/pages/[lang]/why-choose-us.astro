@@ -1,7 +1,7 @@
 ---
-import Layout from '../../layouts/Layout.astro'; import PrototypePage from '../../components/PrototypePage.astro';
-import { type Locale, useTranslations } from '../../i18n';
+import Why from '../../components/pages/Why.astro';
+
+/** English routes only. French uses localized slugs via src/pages/fr/[slug].astro. */
 export function getStaticPaths() { return [{ params: { lang: 'en' } }]; }
-const { lang } = Astro.params as { lang: Locale }; const t = useTranslations(lang);
 ---
-<Layout title={t.meta.why.title} description={t.meta.why.description} locale={lang} routeKey="why"><PrototypePage file="why-choose-us" locale={lang} /></Layout>
+<Why locale="en" />

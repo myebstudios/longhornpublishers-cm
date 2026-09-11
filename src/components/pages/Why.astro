@@ -1,0 +1,60 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../Hero.astro';
+import Split from '../Split.astro';
+import SectionHead from '../SectionHead.astro';
+import CtaBand from '../CtaBand.astro';
+import { type Locale, useTranslations, path } from '../../i18n';
+
+interface Props { locale: Locale }
+const { locale: lang } = Astro.props;
+const t = useTranslations(lang);
+
+/** Photograph per pillar, in order. */
+const PILLAR_IMG = ['lh-catalogue-shelves.jpg', 'lh-final-inspection.jpg', 'lh-textbook-library.jpg'];
+const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
+---
+
+<Layout title={t.meta.why.title} description={t.meta.why.description} locale={lang} routeKey="why">
+  <Hero content={t.why.hero} img="lh-reading-discussion.jpg" compact />
+
+  {t.why.pillars.map((pillar, i) => (
+    <section class:list={['section', PILLAR_TONE[i]]}>
+      <div class="wrap">
+        <Split img={PILLAR_IMG[i]} alt={pillar.imgAlt} reverse={i % 2 === 1}>
+          <span class="eyebrow">{pillar.eyebrow}</span>
+          <h2>{pillar.titleLead} <em class="accent">{pillar.titleAccent}</em></h2>
+          {pillar.body.map((paragraph) => <p>{paragraph}</p>)}
+          {pillar.tags && (
+            <div class="pill-row mt-lg">
+              {pillar.tags.map((tag) => <span class="pill pill--green">{tag}</span>)}
+            </div>
+          )}
+        </Split>
+      </div>
+    </section>
+  ))}
+
+  <section class="section section--dark">
+    <div class="wrap">
+      <SectionHead
+        center
+        eyebrow={t.why.compare.eyebrow}
+        titleLead={t.why.compare.titleLead}
+        titleAccent={t.why.compare.titleAccent}
+      />
+      <div class="grid grid--2 reveal">
+        <article class="card card--dark">
+          <h3>{t.why.compare.bad.title}</h3>
+          <p class="stack">{t.why.compare.bad.body}</p>
+        </article>
+        <article class="card">
+          <h3>{t.why.compare.good.title}</h3>
+          <p class="stack">{t.why.compare.good.body}</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand content={t.why.cta} buttonHref={path('contact', lang)} />
+</Layout>

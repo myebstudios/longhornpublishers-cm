@@ -1,0 +1,84 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import Hero from '../Hero.astro';
+import CtaBand from '../CtaBand.astro';
+import { type Locale, useTranslations, path, LOCALES } from '../../i18n';
+import { TITLES, titleSlug } from '../../data/site';
+
+interface Props { locale: Locale }
+const { locale: lang } = Astro.props;
+const t = useTranslations(lang);
+const cataloguePath = path('catalogue', lang);
+
+const levelFilters = [
+  { value: 'all', label: t.common.all },
+  { value: 'primary', label: t.catalogue.levels.primary },
+  { value: 'secondary', label: t.catalogue.levels.secondary },
+];
+const subjectFilters = [
+  { value: 'all', label: t.common.all },
+  ...(Object.keys(t.catalogue.subjects) as (keyof typeof t.catalogue.subjects)[])
+    .map((key) => ({ value: key, label: t.catalogue.subjects[key] })),
+];
+const languageFilters = [
+  { value: 'all', label: t.common.all },
+  { value: 'en', label: t.catalogue.languages.en },
+  { value: 'fr', label: t.catalogue.languages.fr },
+];
+---
+
+<Layout title={t.meta.catalogue.title} description={t.meta.catalogue.description} locale={lang} routeKey="catalogue">
+  <Hero content={t.catalogue.hero} img="lh-maths-classroom.jpg" compact />
+
+  <section class="section section--cream">
+    <div class="wrap" data-filter-scope>
+      <div class="filter-bar">
+        {[
+          { label: t.catalogue.filters.level, options: levelFilters },
+          { label: t.catalogue.filters.subject, options: subjectFilters },
+          { label: t.catalogue.filters.language, options: languageFilters },
+        ].map((group) => (
+          <div class="filter-group">
+            <span class="filter-group__label">{group.label}</span>
+            {group.options.map((option, i) => (
+              <button
+                class:list={['chip', i === 0 && 'is-active']}
+                type="button"
+                data-value={option.value}
+              >{option.label}</button>
+            ))}
+          </div>
+        ))}
+        <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)">
+          <strong data-filter-count>{TITLES.length}</strong> {t.common.titles}
+        </p>
+      </div>
+
+      <div class="grid grid--4 reveal">
+        {TITLES.map((title) => (
+          <article class="book-card" data-tags={`${title.level} ${title.subject} ${title.lang}`}>
+            <div class="book-card__cover">
+              <span set:html={title.cover.split('|').join('<br />')} />
+            </div>
+            <div class="book-card__body">
+              <div class="pill-row">
+                <span class="pill pill--green">{t.catalogue.levels[title.level]}</span>
+                <span class="pill">{t.catalogue.subjects[title.subject]}</span>
+                <span class="pill">{t.catalogue.languages[title.lang]}</span>
+              </div>
+              <h3>{title[lang].title}</h3>
+              <p style="color:var(--ink-soft);font-size:var(--step--1)">{title[lang].note}</p>
+              <a
+                class="link-arrow"
+                style="font-size:var(--step--1)"
+                href={`${cataloguePath}${titleSlug(title, lang)}/`}
+              >{t.common.requestTitle}</a>
+            </div>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <CtaBand content={t.catalogue.cta} buttonHref={path('contact', lang)} />
+</Layout>
