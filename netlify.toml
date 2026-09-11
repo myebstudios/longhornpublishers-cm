@@ -8,6 +8,10 @@
 [build.environment]
   NODE_VERSION = "22"
 
+[functions]
+  directory = "netlify/functions"
+  node_bundler = "esbuild"
+
 # Deploy Previews and branch deploys build exactly like production.
 [context.deploy-preview]
   command = "npm run build"
@@ -31,6 +35,24 @@
   to = "/en/"
   status = 302
   force = false
+
+# Netlify Identity must be enabled and configured as invite-only in the site
+# dashboard before administrator accounts are invited.
+[[redirects]]
+  from = "/admin/login"
+  to = "/admin/login"
+  status = 200
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/:splat"
+  status = 200
+  conditions = { Role = ["admin"] }
+
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/login"
+  status = 302
 
 # ---------------------------------------------------------------------------
 # Security headers

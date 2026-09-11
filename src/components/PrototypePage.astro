@@ -19,6 +19,15 @@ if (!bodyMatch) throw new Error(`Prototype page ${file}.html has no body element
 
 let markup = bodyMatch[1]
   .replaceAll('assets/img/', '/img/')
+  // The original prototype used illustration placeholders. Keep its stable
+  // markup, but route every public media slot to the project-owned imagery.
+  .replaceAll('hero.svg', 'lh-hero.jpg')
+  .replaceAll('team.svg', 'lh-hero.jpg')
+  .replaceAll('editorial.svg', 'lh-editorial.jpg')
+  .replaceAll('creative.svg', 'lh-editorial.jpg')
+  .replaceAll('catalogue.svg', 'lh-production.jpg')
+  .replaceAll('production.svg', 'lh-production.jpg')
+  .replaceAll('press.svg', 'lh-production.jpg')
   .replace('Prototype only — no data is submitted or stored. In production this posts to a Netlify Function.', 'Your details are submitted securely to the Longhorn Cameroon team.')
   .replace(
     '<form class="form" data-prototype-form>',

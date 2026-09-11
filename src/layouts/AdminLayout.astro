@@ -1,0 +1,21 @@
+---
+interface Props { title: string; section?: 'dashboard' | 'catalogue' | 'news'; }
+const { title, section = 'dashboard' } = Astro.props;
+const items = [
+  ['dashboard', 'Overview', '/admin/'],
+  ['catalogue', 'Catalogue', '/admin/catalogue/'],
+  ['news', 'News & updates', '/admin/news/'],
+] as const;
+---
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>{title} — Longhorn Admin</title><link rel="icon" href="/favicon.svg" /></head>
+<body><aside><a class="brand" href="/admin/">Longhorn<br /><span>Admin</span></a><nav>{items.map(([id, label, href]) => <a class:list={{ active: section === id }} href={href}>{label}</a>)}</nav><button id="logout" type="button">Sign out</button></aside><main><header><p>Content management</p><div id="adminUser">Checking session…</div></header><slot /></main>
+<script>
+  import { getUser, logout } from '@netlify/identity';
+  const target = document.querySelector('#adminUser');
+  const user = await getUser();
+  if (!user?.roles?.includes('admin')) window.location.href = '/admin/login/';
+  else if (target) target.textContent = user.email ?? 'Administrator';
+  document.querySelector('#logout')?.addEventListener('click', async () => { await logout(); window.location.href = '/admin/login/'; });
+</script>
+<style>body{margin:0;min-height:100vh;background:#f7f1e8;color:#241d1d;font:16px Inter,system-ui,sans-serif;display:grid;grid-template-columns:240px 1fr}aside{background:#651d32;color:#fff;padding:2rem 1.25rem;display:flex;flex-direction:column;gap:2rem}.brand{color:#fff;text-decoration:none;font:700 1.35rem Poppins,system-ui}.brand span{color:#f4b942}nav{display:grid;gap:.4rem}nav a,#logout{color:#f7e8ea;text-decoration:none;padding:.75rem .85rem;border-radius:.5rem;border:0;background:none;text-align:left;font:inherit;cursor:pointer}nav a.active,nav a:hover,#logout:hover{background:#8d3a52;color:#fff}#logout{margin-top:auto}main{padding:2rem;max-width:1180px;width:100%;box-sizing:border-box}header{display:flex;justify-content:space-between;gap:1rem;align-items:center;margin-bottom:2.25rem;color:#695b5b}h1{font:700 clamp(2rem,4vw,3rem) Poppins,system-ui;margin:0 0 .6rem;color:#651d32}.card{background:#fff;border:1px solid #eadede;border-radius:1rem;padding:1.3rem;box-shadow:0 8px 24px #40101b0d}.grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}.metric b{display:block;font-size:2rem;color:#651d32;margin-top:.45rem}.button{display:inline-block;background:#651d32;color:#fff;padding:.7rem 1rem;border-radius:.5rem;text-decoration:none;border:0;font:inherit;cursor:pointer}@media(max-width:720px){body{display:block}aside{padding:1rem;gap:1rem}.brand{display:inline-block}nav{display:flex;overflow:auto}#logout{position:absolute;right:1rem;top:1rem}main{padding:1.25rem}.grid{grid-template-columns:1fr}}</style></body></html>
