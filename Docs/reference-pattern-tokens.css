@@ -1,0 +1,17 @@
+/*
+ * Reference-pattern handoff only — not a production import.
+ * Longhorn production tokens remain in src/styles/global.css and are governed
+ * by Docs/ui_ux_structure.md. These semantic cues record reusable layout rules
+ * without transferring a third-party brand palette or exact source styling.
+ */
+:root {
+  --pattern-content-max: 1240px;
+  --pattern-hero-radius: 28px;
+  --pattern-card-radius: 18px;
+  --pattern-section-space: clamp(3.75rem, 2.6rem + 5.2vw, 7.5rem);
+  --pattern-gutter: clamp(1.15rem, .8rem + 1.8vw, 2.5rem);
+  --pattern-motion-fast: 160ms;
+  --pattern-motion-standard: 250ms;
+  --pattern-breakpoint-tablet: 1024px;
+  --pattern-breakpoint-mobile: 768px;
+}

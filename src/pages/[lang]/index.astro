@@ -1,11 +1,203 @@
 ---
 import Layout from '../../layouts/Layout.astro';
-import PrototypePage from '../../components/PrototypePage.astro';
-import { LOCALES, type Locale, useTranslations } from '../../i18n';
+import Hero from '../../components/Hero.astro';
+import Split from '../../components/Split.astro';
+import SectionHead from '../../components/SectionHead.astro';
+import Carousel from '../../components/Carousel.astro';
+import CtaBand from '../../components/CtaBand.astro';
+import Icon from '../../components/Icon.astro';
+import Button from '../../components/Button.astro';
+import { LOCALES, path, type Locale, useTranslations } from '../../i18n';
+import { SERVICES, TITLES, PROCESS, titleSlug } from '../../data/site';
+
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
 const t = useTranslations(lang);
+
+const previewTitles = TITLES.slice(0, 4);
+const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level];
+const SERVICE_IMG: Record<string, string> = {
+  editing: 'lh-production-planning.jpg',
+  proofreading: 'lh-proofreading.jpg',
+  translation: 'lh-bilingual-review.jpg',
+  designing: 'lh-book-design.jpg',
+  illustration: 'lh-science-workbook.jpg',
+  printing: 'lh-print-workshop.jpg',
+};
+const COVER_GRADIENTS: Record<string, string> = {
+  maths: 'linear-gradient(140deg, #184e38 0%, #0d281d 100%)',
+  science: 'linear-gradient(140deg, #37184e 0%, #1c0d28 100%)',
+  french: 'linear-gradient(140deg, #571728 0%, #2b0b14 100%)',
+  english: 'linear-gradient(140deg, #173757 0%, #0b1c2b 100%)',
+  social: 'linear-gradient(140deg, #573e17 0%, #2b1f0b 100%)',
+};
+const SUBJECT_ICON: Record<string, string> = {
+  maths: 'book',
+  science: 'target',
+  french: 'pen',
+  english: 'globe',
+  social: 'shield',
+};
+const disciplineLabel: Record<string, { en: string; fr: string }> = {
+  editorial: { en: 'Editorial', fr: 'Éditorial' },
+  creative: { en: 'Creative', fr: 'Créatif' },
+  production: { en: 'Production', fr: 'Production' },
+};
 ---
+
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
-  <PrototypePage file="index" locale={lang} />
+  <Hero
+    content={t.home.hero}
+    img="lh-hero.jpg"
+    eyebrowStat={t.home.hero.eyebrowStat}
+    eyebrowStatSuffix={t.home.hero.eyebrowStatSuffix}
+    badgeNumber={t.home.hero.badgeNumber}
+    tags={t.home.hero.tags}
+    stats={t.home.hero.stats}
+    primaryCtaText={t.common.partnerWithUs}
+    primaryCtaHref={path('contact', lang)}
+    secondaryCtaText={t.common.exploreServices}
+    secondaryCtaHref={path('services', lang)}
+  />
+
+  <!-- Trust bar -->
+  <section class="trust-bar">
+    <div class="wrap trust-bar__inner">
+      {t.home.trust.map((item) => (
+        <div class="trust-item"><Icon name="check" size={18} /> {item}</div>
+      ))}
+    </div>
+  </section>
+
+  <!-- Marquee -->
+  <div class="marquee" aria-hidden="true">
+    <div class="marquee__track">
+      {Array.from({ length: 2 }).flatMap(() =>
+        SERVICES.flatMap((service) => [
+          <span class="marquee__item">{service[lang].name}</span>,
+          <span class="marquee__item">•</span>,
+        ]),
+      )}
+    </div>
+  </div>
+
+  <!-- Who we are -->
+  <section class="section section--cream">
+    <div class="wrap">
+      <Split img="lh-editorial-collaboration.jpg" alt="The Longhorn Publishers Cameroon team">
+        <span class="eyebrow">{t.home.whoWeAre.eyebrow}</span>
+        <h2>{t.home.whoWeAre.titleLead} <em class="accent">{t.home.whoWeAre.titleAccent}</em></h2>
+        {t.home.whoWeAre.body.map((p) => <p>{p}</p>)}
+        <a class="link-arrow" href={path('about', lang)}>{t.home.whoWeAre.link}</a>
+      </Split>
+    </div>
+  </section>
+
+  <!-- Learning Materials / Catalogue Showcase Carousel (Lawnbuster Central Style with Book Covers) -->
+  <section class="section section--cream">
+    <div class="wrap">
+      <Carousel prevLabel={t.common.prev} nextLabel={t.common.next}>
+        <div slot="header">
+          <SectionHead
+            eyebrow={t.home.cataloguePreview.eyebrow}
+            titleLead={t.home.cataloguePreview.titleLead}
+            titleAccent={t.home.cataloguePreview.titleAccent}
+            lede={t.home.cataloguePreview.lede}
+          />
+        </div>
+        {TITLES.map((title) => (
+          <article class="media-card media-card--cover">
+            <div class="media-card__cover-art" style={`background: ${COVER_GRADIENTS[title.subject] ?? 'linear-gradient(140deg, #571728 0%, #2b0b14 100%)'}`}>
+              <div class="media-card__cover-title">
+                <span set:html={title.cover.split('|')[0]} />
+                <span class="media-card__cover-subtitle" set:html={title.cover.split('|')[1] ?? ''} />
+              </div>
+            </div>
+            <span class="pill pill--glass media-card__tag">{levelLabel(title.level)} • {t.catalogue.languages[title.lang]}</span>
+            <div class="media-card__badge"><Icon name={SUBJECT_ICON[title.subject] ?? 'book'} size={18} /></div>
+            <h3>{title[lang].title}</h3>
+            <p>{title[lang].note}</p>
+            <Button href={`${path('catalogue', lang)}/${titleSlug(title, lang)}`} variant="white" size="sm">{t.common.requestTitle}</Button>
+          </article>
+        ))}
+      </Carousel>
+      <div class="mt-lg">
+        <Button href={path('catalogue', lang)} variant="dark">{t.common.browseCatalogue}</Button>
+      </div>
+    </div>
+  </section>
+
+  <!-- Services carousel -->
+  <section class="section section--white">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.home.services.eyebrow}
+        titleLead={t.home.services.titleLead}
+        titleAccent={t.home.services.titleAccent}
+        lede={t.home.services.lede}
+      />
+      <Carousel prevLabel={t.common.prev} nextLabel={t.common.next}>
+        {SERVICES.map((service) => (
+          <article class="media-card">
+            <img src={`/img/${SERVICE_IMG[service.id]}`} alt="" />
+            <span class="pill pill--glass media-card__tag">{disciplineLabel[service.discipline][lang]}</span>
+            <h3>{service[lang].name}</h3>
+            <p>{service[lang].short}</p>
+            <Button href={`${path('services', lang)}#${service.id}`} variant="primary" size="sm">{t.common.learnMore}</Button>
+          </article>
+        ))}
+      </Carousel>
+    </div>
+  </section>
+
+  <!-- End-to-end banner -->
+  <section class="section section--dark">
+    <div class="wrap">
+      <SectionHead
+        center
+        eyebrow={t.home.endToEnd.eyebrow}
+        titleLead={t.home.endToEnd.titleLead}
+        titleAccent={t.home.endToEnd.titleAccent}
+        lede={t.home.endToEnd.lede}
+      />
+      <div class="grid grid--3 reveal">
+        {t.home.endToEnd.cards.map((card, i) => (
+          <article class="card card--dark">
+            <span class="card__icon"><Icon name={['shield', 'globe', 'check'][i] ?? 'check'} size={22} /></span>
+            <h3>{card.title}</h3>
+            <p>{card.body}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Process -->
+  <section class="section section--white">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.home.process.eyebrow}
+        titleLead={t.home.process.titleLead}
+        titleAccent={t.home.process.titleAccent}
+        lede={t.home.process.lede}
+      />
+      <div class="steps reveal">
+        {PROCESS.map((step, i) => (
+          <article class:list={['step', i === 0 && 'step--active']}>
+            <div class="step__num">{lang === 'fr' ? 'Étape' : 'Step'} {step.num}</div>
+            <h3>{step[lang].title}</h3>
+            <p>{step[lang].body}</p>
+          </article>
+        ))}
+      </div>
+      <div class="mt-lg">
+        <Button href={path('services', lang)} variant="dark">{t.home.process.link}</Button>
+      </div>
+    </div>
+  </section>
+
+  <CtaBand
+    content={t.home.cta}
+    buttonHref={path('contact', lang)}
+  />
 </Layout>

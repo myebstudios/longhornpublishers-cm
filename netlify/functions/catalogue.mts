@@ -6,15 +6,30 @@ import { json, methodNotAllowed } from './_shared/http';
 const db = getDatabase();
 
 export default async function handler(req: Request) {
+  const denied = await requireAdmin(); if (denied) return denied;
+  const id = new URL(req.url).searchParams.get('id');
   if (req.method === 'GET') {
-    const rows = await db.sql`SELECT id, title_en, title_fr, slug, level, subject_id, languages, cover_image_id, description_en, description_fr, curriculum_alignment_en, curriculum_alignment_fr, featured, published FROM catalogue_titles WHERE published = true ORDER BY created_at DESC`;
+    const rows = await db.sql`SELECT id, title_en, title_fr, slug, level, subject_id, languages, cover_image_id, description_en, description_fr, curriculum_alignment_en, curriculum_alignment_fr, featured, published, created_at, updated_at FROM catalogue_titles ORDER BY updated_at DESC`;
     return json(rows);
   }
-  if (req.method !== 'POST') return methodNotAllowed();
-  const denied = await requireAdmin(); if (denied) return denied;
+  if (!['POST', 'PUT', 'DELETE'].includes(req.method)) return methodNotAllowed();
+  if (req.method !== 'POST' && !id) return json({ error: 'A catalogue id is required.' }, { status: 400 });
+  if (req.method === 'DELETE') {
+    const result = await db.sql`DELETE FROM catalogue_titles WHERE id = ${id} RETURNING id`;
+    return result.length ? json({ deleted: id }) : json({ error: 'Catalogue title not found.' }, { status: 404 });
+  }
   const body = await req.json();
-  if (!body.title_en || !body.title_fr || !body.slug || !body.level || !body.description_en || !body.description_fr) return json({ error: 'Missing required bilingual title fields.' }, { status: 400 });
-  const [created] = await db.sql`INSERT INTO catalogue_titles (title_en, title_fr, slug, level, subject_id, languages, cover_image_id, description_en, description_fr, curriculum_alignment_en, curriculum_alignment_fr, featured, published) VALUES (${body.title_en}, ${body.title_fr}, ${body.slug}, ${body.level}, ${body.subject_id ?? null}, ${JSON.stringify(body.languages ?? [])}, ${body.cover_image_id ?? null}, ${body.description_en}, ${body.description_fr}, ${body.curriculum_alignment_en ?? null}, ${body.curriculum_alignment_fr ?? null}, ${Boolean(body.featured)}, ${Boolean(body.published)}) RETURNING *`;
+  if (!body.title_en || !body.title_fr || !body.slug || !['primary', 'secondary'].includes(body.level) || !body.description_en || !body.description_fr) return json({ error: 'Provide title, slug, level, and description in both languages.' }, { status: 400 });
+  const languages = Array.isArray(body.languages) ? body.languages.filter((value: unknown) => value === 'en' || value === 'fr') : [];
+  const subjectId = body.subject_id || null;
+  const coverImageId = body.cover_image_id || null;
+  const curriculumEn = body.curriculum_alignment_en || null;
+  const curriculumFr = body.curriculum_alignment_fr || null;
+  if (req.method === 'PUT') {
+    const [updated] = await db.sql`UPDATE catalogue_titles SET title_en = ${body.title_en}, title_fr = ${body.title_fr}, slug = ${body.slug}, level = ${body.level}, subject_id = ${subjectId}, languages = ${JSON.stringify(languages)}, cover_image_id = ${coverImageId}, description_en = ${body.description_en}, description_fr = ${body.description_fr}, curriculum_alignment_en = ${curriculumEn}, curriculum_alignment_fr = ${curriculumFr}, featured = ${Boolean(body.featured)}, published = ${Boolean(body.published)}, updated_at = now() WHERE id = ${id} RETURNING *`;
+    return updated ? json(updated) : json({ error: 'Catalogue title not found.' }, { status: 404 });
+  }
+  const [created] = await db.sql`INSERT INTO catalogue_titles (title_en, title_fr, slug, level, subject_id, languages, cover_image_id, description_en, description_fr, curriculum_alignment_en, curriculum_alignment_fr, featured, published) VALUES (${body.title_en}, ${body.title_fr}, ${body.slug}, ${body.level}, ${subjectId}, ${JSON.stringify(languages)}, ${coverImageId}, ${body.description_en}, ${body.description_fr}, ${curriculumEn}, ${curriculumFr}, ${Boolean(body.featured)}, ${Boolean(body.published)}) RETURNING *`;
   return json(created, { status: 201 });
 }
 

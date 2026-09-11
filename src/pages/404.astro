@@ -1,0 +1,88 @@
+---
+/**
+ * Bilingual 404. Netlify serves a single /404.html for every unmatched URL, so
+ * this page cannot assume a locale — it presents both languages side by side
+ * and passes routeKey={null} to skip canonical/hreflang and mark itself noindex.
+ */
+import Layout from '../layouts/Layout.astro';
+import Button from '../components/Button.astro';
+import { path } from '../i18n';
+
+const columns = [
+  {
+    lang: 'en' as const,
+    heading: 'This page could not be found',
+    body: 'The link may be out of date, or the address mistyped. Everything below is one click away.',
+    links: [
+      { label: 'Go to the homepage', href: path('home', 'en'), variant: 'primary' as const },
+      { label: 'Browse the catalogue', href: path('catalogue', 'en'), variant: 'ghost' as const },
+      { label: 'Contact us', href: path('contact', 'en'), variant: 'ghost' as const },
+    ],
+  },
+  {
+    lang: 'fr' as const,
+    heading: 'Cette page est introuvable',
+    body: 'Le lien est peut-être obsolète ou l’adresse mal saisie. Tout ce qui suit est à un clic.',
+    links: [
+      { label: 'Aller à l’accueil', href: path('home', 'fr'), variant: 'primary' as const },
+      { label: 'Parcourir le catalogue', href: path('catalogue', 'fr'), variant: 'ghost' as const },
+      { label: 'Nous contacter', href: path('contact', 'fr'), variant: 'ghost' as const },
+    ],
+  },
+];
+---
+
+<Layout
+  title="Page not found — Page introuvable | Longhorn Publishers Cameroon"
+  description="The page you were looking for is not available. La page que vous cherchez n’est pas disponible."
+  locale="en"
+  routeKey={null}
+>
+  <section class="section section--cream error-page">
+    <div class="wrap">
+      <p class="error-page__code" aria-hidden="true">404</p>
+      <div class="error-page__grid">
+        {columns.map((column) => (
+          <div class="error-page__col" lang={column.lang}>
+            <span class="eyebrow">{column.lang === 'en' ? 'English' : 'Français'}</span>
+            <h1 class="error-page__heading">{column.heading}</h1>
+            <p class="error-page__body">{column.body}</p>
+            <div class="error-page__actions">
+              {column.links.map((link) => (
+                <Button href={link.href} variant={link.variant} size="sm">{link.label}</Button>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>
+
+<style>
+  .error-page { padding-top: calc(var(--header-h) + 3rem); }
+  .error-page__code {
+    font-family: var(--font-display); font-weight: 700;
+    font-size: clamp(4.5rem, 3rem + 9vw, 10rem); line-height: .9;
+    letter-spacing: -.05em; color: var(--burgundy); opacity: .14;
+    margin-bottom: clamp(1rem, .5rem + 2vw, 2rem);
+  }
+  .error-page__grid {
+    display: grid; grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: clamp(2rem, 1rem + 5vw, 5rem);
+  }
+  .error-page__col + .error-page__col {
+    border-left: 1px solid var(--line); padding-left: clamp(2rem, 1rem + 5vw, 5rem);
+  }
+  .error-page__heading { font-size: var(--step-3); margin: .75rem 0 1rem; }
+  .error-page__body { color: var(--ink-soft); max-width: 42ch; }
+  .error-page__actions { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 2rem; }
+
+  @media (max-width: 800px) {
+    .error-page__grid { grid-template-columns: 1fr; }
+    .error-page__col + .error-page__col {
+      border-left: 0; border-top: 1px solid var(--line);
+      padding-left: 0; padding-top: clamp(2rem, 1rem + 4vw, 3rem);
+    }
+  }
+</style>

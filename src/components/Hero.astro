@@ -48,7 +48,7 @@ const {
 ---
 
 <section class:list={['hero', compact && 'hero--compact']}>
-  <div class="hero__bg"><img src={`/img/${img}.svg`} alt="" /></div>
+  <div class="hero__bg"><img src={img.includes('.') ? `/img/${img}` : `/img/${img}.svg`} alt="" /></div>
   <div class="wrap">
     <div class="hero__inner">
       <div>

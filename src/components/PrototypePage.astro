@@ -17,22 +17,62 @@ const source = readFileSync(resolve(process.cwd(), 'prototype', `${file}.html`),
 const bodyMatch = source.match(/<body[^>]*>([\s\S]*?)<\/body>/i);
 if (!bodyMatch) throw new Error(`Prototype page ${file}.html has no body element`);
 
+const pageImages: Record<Props['file'], string[]> = {
+  index: [],
+  about: ['lh-editorial-team-wide.png', 'lh-client-consultation.jpg', 'lh-distribution.jpg'],
+  'why-choose-us': ['lh-reading-discussion.jpg', 'lh-catalogue-shelves.jpg', 'lh-final-inspection.jpg', 'lh-textbook-library.jpg'],
+  catalogue: ['lh-maths-classroom.jpg'],
+  contact: ['lh-reading-nook.jpg'],
+  services: ['lh-library-reading.jpg', 'lh-student-reading.jpg', 'lh-print-quality.jpg', 'lh-bilingual-editor-wide.png', 'lh-creative-wall.jpg', 'lh-illustration-studio.jpg', 'lh-print-inspection-wide.png'],
+  news: ['lh-book-delivery.jpg'],
+};
+
+let imageIndex = 0;
 let markup = bodyMatch[1]
   .replaceAll('assets/img/', '/img/')
-  // The original prototype used illustration placeholders. Keep its stable
-  // markup, but route every public media slot to the project-owned imagery.
-  .replaceAll('hero.svg', 'lh-hero.jpg')
-  .replaceAll('team.svg', 'lh-hero.jpg')
-  .replaceAll('editorial.svg', 'lh-editorial.jpg')
-  .replaceAll('creative.svg', 'lh-editorial.jpg')
-  .replaceAll('catalogue.svg', 'lh-production.jpg')
-  .replaceAll('production.svg', 'lh-production.jpg')
-  .replaceAll('press.svg', 'lh-production.jpg')
+  // Every active visual slot receives a distinct local photograph. The old
+  // SVG filenames are retained only inside the archived prototype source.
+  .replace(/\/img\/(?:hero|team|editorial|creative|catalogue|production|press)\.svg/g, (placeholder) =>
+    pageImages[file][imageIndex++] ? `/img/${pageImages[file][imageIndex - 1]}` : placeholder,
+  )
   .replace('Prototype only — no data is submitted or stored. In production this posts to a Netlify Function.', 'Your details are submitted securely to the Longhorn Cameroon team.')
   .replace(
     '<form class="form" data-prototype-form>',
     '<form class="form" name="contact" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field"><input type="hidden" name="form-name" value="contact"><p class="visually-hidden"><label>Do not fill this out: <input name="bot-field"></label></p>',
   );
+
+if (file === 'news') {
+  const copy = locale === 'fr'
+    ? {
+        eyebrow: 'Actualités', title: 'Des nouvelles', accent: 'bientôt disponibles',
+        lede: 'Les annonces de Longhorn Publishers Cameroun seront publiées ici dès leur validation.',
+        heading: 'Restez informé', body: 'Nous préparons les prochaines actualités, parutions et informations de partenariat. Pour toute demande immédiate, notre équipe est à votre écoute.',
+        cta: 'Nous contacter',
+      }
+    : {
+        eyebrow: 'News & updates', title: 'Fresh updates', accent: 'are coming soon',
+        lede: 'Verified announcements from Longhorn Publishers Cameroon will be published here.',
+        heading: 'Stay informed', body: 'We are preparing upcoming news, title releases and partnership updates. For an immediate enquiry, our team is ready to help.',
+        cta: 'Contact us',
+      };
+  markup = `
+    <section class="hero hero--compact">
+      <div class="hero__bg"><img src="/img/lh-book-delivery.jpg" alt="" /></div>
+      <div class="wrap"><div class="hero__inner"><div>
+        <span class="eyebrow">${copy.eyebrow}</span>
+        <h1>${copy.title} <em class="accent">${copy.accent}</em></h1>
+        <p class="hero__lede">${copy.lede}</p>
+      </div></div></div>
+    </section>
+    <section class="section section--cream"><div class="wrap">
+      <div class="empty-state reveal">
+        <span class="eyebrow">${copy.eyebrow}</span>
+        <h2>${copy.heading}</h2>
+        <p>${copy.body}</p>
+        <a class="button button--primary" href="${path('contact', locale)}">${copy.cta}</a>
+      </div>
+    </div></section>`;
+}
 
 if (file === 'contact') {
   markup = markup.replace('</form>', '<p class="form__status" aria-live="polite"></p></form>');
@@ -96,13 +136,11 @@ if (locale === 'fr') {
     ['Placeholder headline for a new title announcement', 'Exemple de titre pour l’annonce d’un nouvel ouvrage'],
     ['Placeholder headline for a partnership update', 'Exemple de titre pour une actualité de partenariat'],
     ["We describe ourselves as content creators and platform business providers — we make the content, and we run the process that gets it into learners' hands.", 'Nous nous définissons comme créateurs de contenus et fournisseurs de solutions éditoriales — nous produisons le contenu et pilotons le processus qui le met entre les mains des élèves.'],
-    ['Sample data — the live catalogue is populated from Netlify Database via the admin panel. A title list from the client is still outstanding (open item 4, Docs/README.md).', 'Données d’exemple — le catalogue final sera alimenté depuis la base de données Netlify via l’espace d’administration. La liste définitive des titres reste attendue du client.'],
     ['Your details are submitted securely to the Longhorn Cameroon team.', 'Vos coordonnées sont transmises de manière sécurisée à l’équipe de Longhorn Cameroun.'],
-    ['Map placeholder — a branded embed replaces this in the Astro build.', 'Emplacement réservé pour la carte — une intégration aux couleurs de la marque la remplacera.'],
     ['Placeholder articles. Whether News ships at launch — and who on the Cameroon team owns posting — is open item 5 in Docs/README.md.', 'Articles d’exemple. La publication des actualités au lancement et leur responsable au sein de l’équipe camerounaise restent à confirmer.'],
     ['Do not fill this out:', 'Ne remplissez pas ce champ :'],
-    ['Sample data — the live catalogue is populated from Netlify Database via the admin panel.', 'Données d’exemple — le catalogue final sera alimenté depuis la base de données Netlify via l’espace d’administration.'],
-    ['A title list from the client is still outstanding (open item 4,', 'La liste définitive des titres reste attendue du client (point 4,'],
+    ['Longhorn Publishers Cameroon Ltd — Yaoundé, Cameroon', 'Longhorn Publishers Cameroun Ltd — Yaoundé, Cameroun'],
+    ['Get directions', 'Obtenir l’itinéraire'],
     ['Placeholder articles. Whether News ships at launch — and who on the Cameroon team owns posting —', 'Articles d’exemple. La publication des actualités au lancement et leur responsable au sein de l’équipe camerounaise'],
     ['is open item 5 in', 'restent à confirmer au point 5 dans'],
   );

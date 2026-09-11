@@ -9,7 +9,8 @@ interface Props {
   title: string;
   description: string;
   locale: Locale;
-  routeKey: RouteKey;
+  /** null for pages that belong to no localized route (e.g. 404) — skips canonical/hreflang and marks noindex. */
+  routeKey: RouteKey | null;
 }
 
 const { title, description, locale, routeKey } = Astro.props;
@@ -54,10 +55,16 @@ const organizationSchema = {
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>{title}</title>
     <meta name="description" content={description} />
-    <link rel="canonical" href={new URL(path(routeKey, locale), Astro.site)} />
-    <link rel="alternate" hreflang="en" href={new URL(path(routeKey, 'en'), Astro.site)} />
-    <link rel="alternate" hreflang="fr" href={new URL(path(routeKey, 'fr'), Astro.site)} />
-    <link rel="alternate" hreflang="x-default" href={new URL(path(routeKey, 'en'), Astro.site)} />
+    {routeKey ? (
+      <Fragment>
+        <link rel="canonical" href={new URL(path(routeKey, locale), Astro.site)} />
+        <link rel="alternate" hreflang="en" href={new URL(path(routeKey, 'en'), Astro.site)} />
+        <link rel="alternate" hreflang="fr" href={new URL(path(routeKey, 'fr'), Astro.site)} />
+        <link rel="alternate" hreflang="x-default" href={new URL(path(routeKey, 'en'), Astro.site)} />
+      </Fragment>
+    ) : (
+      <meta name="robots" content="noindex" />
+    )}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
@@ -100,16 +107,39 @@ const organizationSchema = {
         }
 
         if (toggle && nav) {
+          const navLinks = Array.from(nav.querySelectorAll<HTMLAnchorElement>('a'));
+          const closeNav = (restoreFocus = false) => {
+            toggle.setAttribute('aria-expanded', 'false');
+            nav.classList.remove('is-open');
+            if (restoreFocus) toggle.focus();
+          };
+
           toggle.addEventListener('click', () => {
             const open = toggle.getAttribute('aria-expanded') === 'true';
-            toggle.setAttribute('aria-expanded', String(!open));
-            nav.classList.toggle('is-open', !open);
+            if (open) {
+              closeNav();
+            } else {
+              toggle.setAttribute('aria-expanded', 'true');
+              nav.classList.add('is-open');
+              navLinks[0]?.focus();
+            }
+          });
+
+          navLinks.forEach(link => link.addEventListener('click', () => closeNav()));
+          document.addEventListener('keydown', event => {
+            if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
+              closeNav(true);
+            }
           });
         }
       }
 
       function initReveal() {
         const items = document.querySelectorAll('.reveal');
+        // Content is visible without JavaScript. Only opt into the initial
+        // hidden state once the enhancement has successfully started.
+        if (!items.length) return;
+        document.documentElement.classList.add('has-reveal');
         if (!('IntersectionObserver' in window)) {
           items.forEach(i => i.classList.add('is-visible'));
           return;

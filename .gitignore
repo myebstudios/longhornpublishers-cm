@@ -20,3 +20,8 @@ netlify/functions/manifest.json
 .obsidian/
 *.log
 npm-debug.log*
+
+# local scratch
+output/
+tmp/
+.playwright-cli/

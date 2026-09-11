@@ -6,13 +6,13 @@ import logo from '../../Assets/Longhorn CM logo.svg';
 
 interface Props {
   locale: Locale;
-  currentRouteKey: RouteKey;
+  currentRouteKey: RouteKey | null;
 }
 
 const { locale, currentRouteKey } = Astro.props;
 const t = useTranslations(locale);
 const otherLocale = locale === 'en' ? 'fr' : 'en';
-const switchHref = alternatePath(currentRouteKey, locale);
+const switchHref = alternatePath(currentRouteKey ?? 'home', locale);
 ---
 
 <header class="site-header" id="siteHeader">
@@ -37,21 +37,21 @@ const switchHref = alternatePath(currentRouteKey, locale);
       <div class="header__actions">
         <div class="lang-toggle" role="group" aria-label={t.nav.language}>
           <a
-            href={locale === 'en' ? path(currentRouteKey, 'en') : switchHref}
+            href={locale === 'en' ? path(currentRouteKey ?? 'home', 'en') : switchHref}
             class:list={['lang-btn', { 'is-active': locale === 'en' }]}
           >
             EN
           </a>
           <a
-            href={locale === 'fr' ? path(currentRouteKey, 'fr') : switchHref}
+            href={locale === 'fr' ? path(currentRouteKey ?? 'home', 'fr') : switchHref}
             class:list={['lang-btn', { 'is-active': locale === 'fr' }]}
           >
             FR
           </a>
         </div>
 
-        <a class="btn btn--dark btn--sm" href={path('contact', locale)}>
-          {t.nav.getInTouch}
+        <a class="btn btn--dark btn--sm header__contact" href={path('contact', locale)}>
+          <span class="header__contact-label">{t.nav.getInTouch}</span>
           <span class="btn__icon" aria-hidden="true"><Icon name="arrow" /></span>
         </a>
 
