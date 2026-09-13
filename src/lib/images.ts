@@ -32,6 +32,27 @@ export function imgPath(img: string): string {
   return img.includes('.') ? `/img/${img}` : `/img/${img}.svg`;
 }
 
+/** Open Graph's expected share-card dimensions. */
+export const OG_WIDTH = 1200;
+export const OG_HEIGHT = 630;
+
+/**
+ * Site-wide share image, cropped to 1200x630 by the Image CDN.
+ *
+ * Returns a root-relative path; callers must resolve it against `Astro.site`
+ * because `og:image` requires an absolute URL.
+ *
+ * `fm=jpg` is explicit here, unlike elsewhere: social crawlers do not send the
+ * `Accept` header the CDN negotiates on, and several still fail to render AVIF
+ * or WebP cards. The CDN endpoint only exists on Netlify, so this URL is dead
+ * under `astro dev` — harmless, since only crawlers hitting production read it.
+ */
+export function ogImagePath(img = 'lh-share-card.jpg'): string {
+  const src = imgPath(img);
+  return `/.netlify/images?url=${encodeURIComponent(src)}` +
+    `&w=${OG_WIDTH}&h=${OG_HEIGHT}&fit=cover&position=center&fm=jpg&q=82`;
+}
+
 /** SVG is already resolution-independent; transforming it gains nothing. */
 function isRaster(src: string): boolean {
   return !src.endsWith('.svg');

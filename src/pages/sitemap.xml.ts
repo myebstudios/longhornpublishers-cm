@@ -4,8 +4,11 @@ import { TITLES, titleSlug } from '../data/site';
 export const prerender = true;
 
 /**
- * Includes only public routes that are implemented today. Legal and admin
- * routes deliberately stay out until their respective workstreams ship.
+ * Includes only public routes that are implemented today. Admin routes stay out
+ * deliberately.
+ *
+ * Legal routes remain directly reachable from the footer but deliberately stay
+ * out of the sitemap until approved copy is published.
  */
 export function GET({ site }: { site: URL }) {
   const pages = LOCALES.flatMap((locale) => [
