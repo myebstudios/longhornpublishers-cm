@@ -12,6 +12,7 @@ import { SERVICES, TITLES, PROCESS, titleSlug } from '../../data/site';
 import {
   SERVICE_IMG, COVER_GRADIENTS, DEFAULT_COVER_GRADIENT, SUBJECT_ICON, disciplineLabel,
 } from '../../data/presentation';
+import { responsive } from '../../lib/images';
 
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
@@ -19,6 +20,11 @@ const t = useTranslations(lang);
 
 const previewTitles = TITLES.slice(0, 4);
 const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level];
+
+// Service carousel cards are clamp(290px, 32vw, 390px) wide and below the fold,
+// so they cap out at a 960w source and load lazily.
+const CARD_SIZES = '(max-width: 906px) 290px, (min-width: 1220px) 390px, 32vw';
+const cardImg = (id: string) => responsive(SERVICE_IMG[id], { maxWidth: 960 });
 ---
 
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
@@ -115,7 +121,7 @@ const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level]
       <Carousel prevLabel={t.common.prev} nextLabel={t.common.next}>
         {SERVICES.map((service) => (
           <article class="media-card">
-            <img src={`/img/${SERVICE_IMG[service.id]}`} alt="" />
+            <img {...cardImg(service.id)} sizes={CARD_SIZES} alt="" loading="lazy" decoding="async" />
             <span class="pill pill--glass media-card__tag">{disciplineLabel(service.discipline, lang)}</span>
             <h3>{service[lang].name}</h3>
             <p>{service[lang].short}</p>

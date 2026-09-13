@@ -1,9 +1,22 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import { TITLES, titleSlug } from '../../../data/site';
-import { LOCALES, path, type Locale } from '../../../i18n';
+import { LOCALES, ROUTES, path, type Locale } from '../../../i18n';
 
 export function getStaticPaths() {
+  // This route's directory segment is the literal `catalogue`, so it only lines
+  // up with ROUTES.catalogue while that slug is the same in every locale. If the
+  // French slug is ever localized, the listing and sitemap would emit URLs this
+  // route does not generate — fail the build loudly rather than ship 404s.
+  const segments = new Set(LOCALES.map((lang) => ROUTES.catalogue[lang]));
+  if (segments.size > 1 || !segments.has('catalogue')) {
+    throw new Error(
+      `ROUTES.catalogue must be 'catalogue' in every locale while detail pages live in ` +
+      `src/pages/[lang]/catalogue/. Found: ${JSON.stringify(ROUTES.catalogue)}. ` +
+      `Localizing it means renaming this directory to a dynamic segment too.`,
+    );
+  }
+
   return LOCALES.flatMap((lang) =>
     TITLES.map((title) => ({ params: { lang, slug: titleSlug(title) }, props: { title } })),
   );

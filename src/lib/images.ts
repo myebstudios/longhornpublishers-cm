@@ -10,8 +10,13 @@
  * in development we emit the untransformed source instead of a dead URL.
  */
 
-/** Widths offered in `srcset`, in CSS pixels. */
-export const IMAGE_WIDTHS = [640, 960, 1280, 1600, 2400] as const;
+/**
+ * Widths offered in `srcset`, in CSS pixels.
+ *
+ * Capped at 1920 because that is the widest source in `public/img` — asking the
+ * CDN for more would upscale, costing bytes for no detail.
+ */
+export const IMAGE_WIDTHS = [640, 960, 1280, 1600, 1920] as const;
 
 /** Route through the CDN only for real builds — see module note above. */
 const useCdn = import.meta.env.PROD;
@@ -45,7 +50,7 @@ export function cdnUrl(src: string, width: number, quality = 75): string {
  */
 export function responsive(
   img: string,
-  { maxWidth = 2400, quality = 75 }: { maxWidth?: number; quality?: number } = {},
+  { maxWidth = 1920, quality = 75 }: { maxWidth?: number; quality?: number } = {},
 ): { src: string; srcset?: string } {
   const src = imgPath(img);
   if (!useCdn || !isRaster(src)) return { src };
