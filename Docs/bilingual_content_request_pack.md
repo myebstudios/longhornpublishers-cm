@@ -133,22 +133,22 @@ Use this master checklist during Phase 1 gating reviews. Every item marked **Lau
 
 ## 4. Active Blockers & Gating Review Notes
 
-1. **French Slug Sign-Off (EXTERNAL CLIENT BLOCKER):**
+1. **French Slug Sign-Off (`a-propos`, `services-edition`, `pourquoi-nous-choisir`, `actualites`):**
    - *Status:* 🛑 **EXTERNAL CLIENT BLOCKER**
-   - *Detail:* French localized routes (`/fr/a-propos`, `/fr/services`, `/fr/catalogue`, `/fr/pourquoi-nous-choisir`, `/fr/contact`, `/fr/actualites`, `/fr/politique-de-confidentialite`, `/fr/conditions-utilisation`) are drafted and fully implemented technical-side. However, formal sign-off on localized French URL slugs and terminology requires explicit confirmation from Longhorn Publishers Cameroon executive leadership before public release. Approval must not be claimed until client written sign-off is received.
+   - *Detail:* French localized routes (`/fr/a-propos`, `/fr/services-edition`, `/fr/pourquoi-nous-choisir`, `/fr/actualites`, `/fr/catalogue`, `/fr/contact`, `/fr/politique-de-confidentialite`, `/fr/conditions-utilisation`) are 100% technically implemented. Formal executive sign-off from Longhorn Publishers Cameroon leadership is dispatched via `Docs/client_approval_packet.md`. Approval must not be claimed until client written sign-off is returned.
 
-2. **Legal Content (Privacy Policy & Terms of Use):**
+2. **Social Proof & Testimonials Request (3 Quotes & Logos):**
+   - *Status:* 🛑 **EXTERNAL CLIENT DEPENDENCY (Phase 2)**
+   - *Detail:* Site currently displays authentic corporate credentials (*60+ years parent PLC heritage, 6+ years local Yaoundé presence, dual EN/FR capability*). Request for 3 approved client quotes and high-res logos is included in `Docs/client_approval_packet.md` for Phase 2 cms population.
+
+3. **Legal Content (Privacy Policy & Terms of Use):**
    - *Status:* ✅ **WIRED / FACTUAL COPY COMPLETE**
-   - *Detail:* Suitable bilingual Privacy Policy and Terms of Use content has been authored and wired strictly based on actual website form behavior (Netlify Forms contact & newsletter processing, local language preference storage, zero 3rd-party tracking). Formal sign-off by client legal counsel remains pending.
-
-3. **Trust & Testimonials Alignment:**
-   - *Status:* ✅ **AUTHENTIC TRUST WIRED**
-   - *Detail:* Mock placeholder client quotes and fake client logos have been removed from the live code and replaced with authentic institutional trust indicators (60+ years parent PLC heritage, 6+ years local Yaoundé presence, dual EN/FR capability, national curricula alignment). Formal client testimonials (`TST-02`) remain scheduled for Phase 2 post-launch as client releases are signed.
+   - *Detail:* Factual bilingual Privacy Policy and Terms of Use copy is wired strictly based on actual website form behavior (Netlify Forms contact & newsletter processing, local language preference storage, zero 3rd-party tracking). Formal client legal sign-off remains pending.
 
 ---
 
 ## 5. Next Actions for Content Handover
 
-1. **CEO Sign-Off (@Yv):** Review and sign off on this content request pack and phase gating matrix.
-2. **Client Dispatch:** Transmit Domains 1–4 requirements and French slug confirmation request to Longhorn Publishers Cameroon Ltd.
+1. **CEO Sign-Off (@Yv):** Review and sign off on this content request pack and `Docs/client_approval_packet.md`.
+2. **Client Dispatch:** Transmit `Docs/client_approval_packet.md` to Longhorn Publishers Cameroon Ltd executive leadership.
 3. **Admin Panel Seeding:** As client content arrives, populate catalogue titles and news entries via `/admin`.

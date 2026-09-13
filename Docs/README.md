@@ -17,8 +17,9 @@
 | [`technical_architecture.md`](./technical_architecture.md) | Developer | Tech stack (Astro, Netlify Database, Netlify Blobs, Netlify Identity, Netlify hosting), i18n, SEO, component breakdown |
 | [`admin_panel_spec.md`](./admin_panel_spec.md) | Developer | Admin panel auth, database schema, screens, and API surface |
 | [`implementation_plan.md`](./implementation_plan.md) | CEO / Project team | Delivery sequencing, decision register, dependencies, and progress log |
+| [`client_approval_packet.md`](./client_approval_packet.md) | Marketer / Executive | Client-facing approval request for 3 testimonials/logos & French URL slugs (`a-propos`, `services-edition`, `pourquoi-nous-choisir`, `actualites`) |
 
-**Reading order for a first pass:** `marketing_content_outline.md` → `sitemap.md` → `ui_ux_structure.md` → `wireframes.md` → `technical_architecture.md` → `admin_panel_spec.md`.
+**Reading order for a first pass:** `marketing_content_outline.md` → `sitemap.md` → `ui_ux_structure.md` → `wireframes.md` → `technical_architecture.md` → `admin_panel_spec.md` → `client_approval_packet.md`.
 
 ---
 
