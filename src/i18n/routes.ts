@@ -17,7 +17,9 @@ export type RouteKey =
   | 'catalogue'
   | 'why'
   | 'contact'
-  | 'news';
+  | 'news'
+  | 'privacy'
+  | 'terms';
 
 export const ROUTES: Record<RouteKey, Record<Locale, string>> = {
   home:      { en: '',              fr: '' },
@@ -27,6 +29,8 @@ export const ROUTES: Record<RouteKey, Record<Locale, string>> = {
   why:       { en: 'why-choose-us', fr: 'pourquoi-nous-choisir' },
   contact:   { en: 'contact',       fr: 'contact' },
   news:      { en: 'news',          fr: 'actualites' },
+  privacy:   { en: 'privacy-policy', fr: 'politique-de-confidentialite' },
+  terms:     { en: 'terms-of-use',   fr: 'conditions-utilisation' },
 };
 
 /** Absolute path for a route in a given locale, e.g. ('about','fr') -> '/fr/a-propos/' */
@@ -41,7 +45,7 @@ export function alternatePath(key: RouteKey, locale: Locale): string {
 }
 
 /** Primary header navigation, in order. News lives in the footer only. */
-export const NAV_KEYS: RouteKey[] = [
+export const NAV_KEYS: Array<Exclude<RouteKey, 'privacy' | 'terms'>> = [
   'home',
   'about',
   'services',

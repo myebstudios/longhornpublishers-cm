@@ -1,0 +1,27 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { useTranslations } from '../../i18n';
+const t = useTranslations('fr');
+---
+<Layout title={t.meta.privacy.title} description={t.meta.privacy.description} locale="fr" routeKey="privacy">
+  <section class="section section--cream">
+    <div class="wrap" style="max-width: 72ch;">
+      <div class="section-head">
+        <h1>{t.legal.privacy.heading}</h1>
+        <p class="hero__lede">{t.legal.privacy.intro}</p>
+      </div>
+      <p style="margin-bottom: 2rem; color: var(--ink-soft); font-size: var(--step--1);">
+        <strong>{t.legal.lastUpdatedLabel} :</strong> {t.legal.lastUpdatedValue}
+      </p>
+
+      <div class="legal-content" style="display: grid; gap: 2rem; line-height: 1.7;">
+        {t.legal.privacy.sections.map((section) => (
+          <article>
+            <h2 style="font-size: var(--step-1); margin-bottom: 0.5rem; color: var(--burgundy-deep);">{section.title}</h2>
+            <p>{section.content}</p>
+          </article>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>

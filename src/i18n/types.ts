@@ -30,8 +30,25 @@ export interface Content {
     menu: string; primaryNav: string; getInTouch: string; language: string; skip: string;
   };
 
-  meta: Record<'home' | 'about' | 'services' | 'catalogue' | 'why' | 'contact' | 'news',
+  meta: Record<'home' | 'about' | 'services' | 'catalogue' | 'why' | 'contact' | 'news' | 'privacy' | 'terms',
     { title: string; description: string }>;
+
+  legal: {
+    lastUpdatedLabel: string;
+    lastUpdatedValue: string;
+    privacy: {
+      title: string;
+      heading: string;
+      intro: string;
+      sections: Array<{ title: string; content: string }>;
+    };
+    terms: {
+      title: string;
+      heading: string;
+      intro: string;
+      sections: Array<{ title: string; content: string }>;
+    };
+  };
 
   common: {
     partnerWithUs: string; exploreServices: string; learnMore: string; readArticle: string;

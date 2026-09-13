@@ -60,6 +60,85 @@ export const fr: Content = {
       title: 'Actualités — Longhorn Publishers Cameroun',
       description: 'Actualités de l’entreprise, nouveaux titres, partenariats et événements.',
     },
+    privacy: {
+      title: 'Politique de confidentialité — Longhorn Publishers Cameroun',
+      description: 'Comment Longhorn Publishers Cameroun Ltd collecte, utilise et protège les données personnelles.',
+    },
+    terms: {
+      title: 'Conditions d’utilisation — Longhorn Publishers Cameroun',
+      description: 'Les conditions régissant l’utilisation du site de Longhorn Publishers Cameroun.',
+    },
+  },
+
+  legal: {
+    lastUpdatedLabel: 'Dernière mise à jour',
+    lastUpdatedValue: 'Septembre 2026',
+    privacy: {
+      title: 'Politique de confidentialité — Longhorn Publishers Cameroun',
+      heading: 'Politique de confidentialité',
+      intro:
+        'Cette politique de confidentialité explique comment Longhorn Publishers Cameroun Ltd collecte, utilise et protège les informations personnelles transmises via les formulaires de notre site web.',
+      sections: [
+        {
+          title: '1. Informations collectées',
+          content:
+            'Nous collectons les données personnelles que vous fournissez volontairement en remplissant nos formulaires sur ce site. Cela comprend votre nom, organisation, adresse e-mail, numéro de téléphone et détails de votre projet soumis via notre formulaire de Contact, ainsi que votre adresse e-mail lors de l’inscription à nos actualités éditoriales.',
+        },
+        {
+          title: '2. Utilisation de vos informations',
+          content:
+            'Les données collectées sont utilisées exclusivement pour répondre à vos demandes de renseignements ou de devis d’édition, et pour vous adresser des mises à jour institutionnelles ou actualités. Nous ne vendons, ne louons et ne partageons vos données personnelles avec aucun tiers à des fins commerciales.',
+        },
+        {
+          title: '3. Transmission et conservation des données',
+          content:
+            'Les formulaires sont transmis de manière sécurisée via Netlify Forms et acheminés vers le personnel habilité de Longhorn Publishers Cameroun Ltd à notre bureau de Yaoundé. Les données sont conservées uniquement le temps nécessaire au traitement de votre demande et à la gestion de nos échanges professionnels.',
+        },
+        {
+          title: '4. Cookies et préférences de navigation',
+          content:
+            'Notre site web utilise les fonctionnalités de stockage du navigateur uniquement pour mémoriser votre langue d’affichage préférée (anglais ou français). Aucun cookie publicitaire tiers ou script de suivi comportemental n’est déposé.',
+        },
+        {
+          title: '5. Vos droits et contact',
+          content:
+            'Vous pouvez à tout moment demander l’accès, la rectification ou la suppression de vos données personnelles en contactant notre bureau de Yaoundé à info@longhornpublishers-cm.com ou par téléphone au +(237) 672 49 10 93 / +(237) 657 51 92 03.',
+        },
+      ],
+    },
+    terms: {
+      title: 'Conditions d’utilisation — Longhorn Publishers Cameroun',
+      heading: 'Conditions d’utilisation',
+      intro:
+        'Ces conditions d’utilisation régissent votre accès et votre utilisation du site web de Longhorn Publishers Cameroun Ltd.',
+      sections: [
+        {
+          title: '1. Acceptation des conditions',
+          content:
+            'En accédant à ce site web et en l’utilisant, vous acceptez d’être lié par les présentes conditions d’utilisation. Si vous n’acceptez pas ces conditions, veuillez ne pas utiliser ce site.',
+        },
+        {
+          title: '2. Droits de propriété intellectuelle',
+          content:
+            'L’ensemble des contenus de ce site web (textes, graphismes, couvertures d’ouvrages, mises en page, logos et marques) est la propriété de Longhorn Publishers Cameroun Ltd ou de Longhorn Publishers PLC. Toute reproduction ou distribution non autorisée est strictement interdite.',
+        },
+        {
+          title: '3. Contenus du site et offres de services',
+          content:
+            'Les fiches du catalogue, les descriptions de programmes et les détails des services présentés sur ce site le sont à titre informatif. Les contrats d’édition et commandes d’ouvrages font l’objet de conventions écrites distinctes.',
+        },
+        {
+          title: '4. Utilisation acceptable',
+          content:
+            'Vous vous engagez à utiliser nos formulaires uniquement pour des demandes légitimes. La soumission de fausses informations, de spams commercial non sollicité ou de code malveillant est strictement interdite.',
+        },
+        {
+          title: '5. Loi applicable et contact',
+          content:
+            'Ces conditions sont régies par les lois de la République du Cameroun. Pour toute question concernant ces conditions, contactez Longhorn Publishers Cameroun Ltd, Total École de police, Tsinga, Yaoundé, Cameroun.',
+        },
+      ],
+    },
   },
 
   common: {

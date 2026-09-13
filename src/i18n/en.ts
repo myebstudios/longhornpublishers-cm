@@ -55,6 +55,85 @@ export const en: Content = {
       title: 'News & Updates — Longhorn Publishers Cameroon',
       description: 'Company news, new titles, partnerships and events from Longhorn Publishers Cameroon.',
     },
+    privacy: {
+      title: 'Privacy Policy — Longhorn Publishers Cameroon',
+      description: 'How Longhorn Publishers Cameroon Ltd collects, uses and protects personal information.',
+    },
+    terms: {
+      title: 'Terms of Use — Longhorn Publishers Cameroon',
+      description: 'The terms governing use of the Longhorn Publishers Cameroon website.',
+    },
+  },
+
+  legal: {
+    lastUpdatedLabel: 'Last updated',
+    lastUpdatedValue: 'September 2026',
+    privacy: {
+      title: 'Privacy Policy — Longhorn Publishers Cameroon',
+      heading: 'Privacy Policy',
+      intro:
+        'This Privacy Policy describes how Longhorn Publishers Cameroon Ltd collects, uses, and safeguards personal information submitted through our website forms.',
+      sections: [
+        {
+          title: '1. Information We Collect',
+          content:
+            'We collect personal information that you voluntarily provide when submitting inquiry or subscription forms on this website. This includes your name, organisation, email address, phone number, and project details provided via our Contact form, as well as your email address when subscribing to publishing insights in the footer.',
+        },
+        {
+          title: '2. How We Use Your Information',
+          content:
+            'Information collected through form submissions is used strictly to respond to your publishing or curriculum inquiries, provide requested project proposals, and send institutional updates or publishing insights. We do not sell, rent, or trade your personal information to third parties.',
+        },
+        {
+          title: '3. Data Submission & Storage',
+          content:
+            'Website forms are submitted securely via Netlify Forms and routed to designated Longhorn Publishers Cameroon Ltd personnel at our Yaoundé office. Data is retained only as long as necessary to process your request and manage ongoing professional correspondence.',
+        },
+        {
+          title: '4. Cookies & Browser Preferences',
+          content:
+            'Our website uses essential browser storage solely to remember your preferred display language (English or French). We do not deploy third-party advertising cookies or cross-site tracking scripts.',
+        },
+        {
+          title: '5. Your Rights & Contact Information',
+          content:
+            'You may request access to, correction of, or deletion of your contact details at any time by contacting our Yaoundé office at info@longhornpublishers-cm.com or calling +(237) 672 49 10 93 / +(237) 657 51 92 03.',
+        },
+      ],
+    },
+    terms: {
+      title: 'Terms of Use — Longhorn Publishers Cameroon',
+      heading: 'Terms of Use',
+      intro:
+        'These Terms of Use govern your access to and use of the Longhorn Publishers Cameroon Ltd corporate website.',
+      sections: [
+        {
+          title: '1. Acceptance of Terms',
+          content:
+            'By accessing or using this website, you agree to comply with and be bound by these Terms of Use. If you do not agree, please refrain from using the site.',
+        },
+        {
+          title: '2. Intellectual Property Rights',
+          content:
+            'All content on this website—including text, graphics, book covers, design layouts, logos, and trademarks—is the property of Longhorn Publishers Cameroon Ltd or Longhorn Publishers PLC and is protected by applicable copyright laws. Unauthorized reproduction or distribution is strictly prohibited.',
+        },
+        {
+          title: '3. Website Content & Educational Materials',
+          content:
+            'Catalogue listings, curriculum descriptions, and service details provided on this site are for informational and B2B inquiry purposes. Formal publishing service agreements and book orders are governed by separate written contracts.',
+        },
+        {
+          title: '4. Acceptable Use',
+          content:
+            'You agree to use our contact and subscription forms only for legitimate inquiries. Submitting false details, unsolicited commercial spam, or malicious code is strictly prohibited.',
+        },
+        {
+          title: '5. Governing Law & Location',
+          content:
+            'These terms are governed by the laws of the Republic of Cameroon. For inquiries regarding these terms, contact Longhorn Publishers Cameroon Ltd, Total École de police, Tsinga, Yaoundé, Cameroon.',
+        },
+      ],
+    },
   },
 
   common: {

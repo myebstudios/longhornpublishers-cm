@@ -9,22 +9,19 @@ interface Props {
   title: string;
   description: string;
   locale: Locale;
-  /** null for pages that belong to no localized route (e.g. 404) — skips canonical/hreflang and marks noindex. */
   routeKey: RouteKey | null;
-  /**
-   * Per-locale paths for pages nested under a route, e.g. a catalogue detail
-   * page. Without this a detail page would advertise the *listing* as its
-   * canonical URL — telling search engines the detail pages are duplicates —
-   * and the language switcher would drop the visitor back on the listing.
-   */
   alternates?: Record<Locale, string>;
+  image?: string;
+  type?: 'website' | 'article';
 }
 
-const { title, description, locale, routeKey, alternates } = Astro.props;
-/** Resolve the canonical/alternate path for a locale, honouring `alternates`. */
+const { title, description, locale, routeKey, alternates, image, type } = Astro.props;
 const localePath = (target: Locale) =>
   alternates?.[target] ?? (routeKey ? path(routeKey, target) : '/');
 const t = useTranslations(locale);
+const canonicalUrl = new URL(localePath(locale), Astro.site);
+const ogImageUrl = new URL(image || '/img/longhorn-logo.png', Astro.site).href;
+
 const organizationSchema = {
   '@context': 'https://schema.org',
   '@graph': [
@@ -67,7 +64,7 @@ const organizationSchema = {
     <meta name="description" content={description} />
     {routeKey ? (
       <Fragment>
-        <link rel="canonical" href={new URL(localePath(locale), Astro.site)} />
+        <link rel="canonical" href={canonicalUrl} />
         <link rel="alternate" hreflang="en" href={new URL(localePath('en'), Astro.site)} />
         <link rel="alternate" hreflang="fr" href={new URL(localePath('fr'), Astro.site)} />
         <link rel="alternate" hreflang="x-default" href={new URL(localePath('en'), Astro.site)} />
@@ -84,6 +81,22 @@ const organizationSchema = {
         window.location.replace(`/admin/login/${authHash}`);
       }
     </script>
+
+    <!-- Localized Open Graph / Social Sharing -->
+    <meta property="og:site_name" content="Longhorn Publishers Cameroon" />
+    <meta property="og:type" content={type || 'website'} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonicalUrl} />
+    <meta property="og:locale" content={locale === 'fr' ? 'fr_CM' : 'en_CM'} />
+    <meta property="og:locale:alternate" content={locale === 'fr' ? 'en_CM' : 'fr_CM'} />
+    <meta property="og:image" content={ogImageUrl} />
+
+    <!-- Twitter Card Metadata -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImageUrl} />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
