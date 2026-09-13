@@ -26,5 +26,13 @@ export default defineConfig({
 
   vite: {
     plugins: [tailwindcss()],
+    build: {
+      rollupOptions: {
+        external: ['@netlify/database', '@netlify/blobs', '@netlify/identity', 'netlify-identity-widget'],
+      },
+    },
+    ssr: {
+      external: ['@netlify/database', '@netlify/blobs', '@netlify/identity', 'netlify-identity-widget'],
+    },
   },
 });
