@@ -13,6 +13,9 @@ import {
   SERVICE_IMG, COVER_GRADIENTS, DEFAULT_COVER_GRADIENT, SUBJECT_ICON, disciplineLabel,
 } from '../../data/presentation';
 import { responsive } from '../../lib/images';
+import {
+  categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
+} from '../../lib/news';
 
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
@@ -25,6 +28,11 @@ const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level]
 // so they cap out at a 960w source and load lazily.
 const CARD_SIZES = '(max-width: 906px) 290px, (min-width: 1220px) 390px, 32vw';
 const cardImg = (id: string) => responsive(SERVICE_IMG[id], { maxWidth: 960 });
+
+// Teaser for the three most recent published articles. When nothing is
+// published the whole section is omitted — an empty news band on the homepage
+// would read as neglect rather than as a deliberate blank.
+const latestNews = await getPublishedNews(3);
 ---
 
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
@@ -177,6 +185,42 @@ const cardImg = (id: string) => responsive(SERVICE_IMG[id], { maxWidth: 960 });
       </div>
     </div>
   </section>
+
+  <!-- Latest news — omitted entirely while nothing is published -->
+  {latestNews.length > 0 && (
+    <section class="section section--cream">
+      <div class="wrap">
+        <SectionHead
+          eyebrow={t.home.news.eyebrow}
+          titleLead={t.home.news.titleLead}
+          titleAccent={t.home.news.titleAccent}
+          lede={t.home.news.lede}
+        />
+        <div class="grid grid--3">
+          {latestNews.map((article) => (
+            <article class="article-card reveal">
+              <div class="article-card__thumb" aria-hidden="true">
+                <Icon name={categoryIcon(article.category)} />
+              </div>
+              <div class="article-card__body">
+                <div class="article-card__meta">
+                  <span class="pill pill--green">{t.news.categories[categoryKey(article.category)]}</span>
+                  {publishedOn(article, lang) && (
+                    <time datetime={article.publish_date!}>{publishedOn(article, lang)}</time>
+                  )}
+                </div>
+                <h3>{headline(article, lang)}</h3>
+                <p>{excerpt(article, lang)}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+        <div class="mt-lg">
+          <Button href={path('news', lang)} variant="dark">{t.common.viewAllNews}</Button>
+        </div>
+      </div>
+    </section>
+  )}
 
   <CtaBand
     content={t.home.cta}

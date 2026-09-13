@@ -2,17 +2,23 @@
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Button from '../Button.astro';
+import Icon from '../Icon.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
+import {
+  categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
+} from '../../lib/news';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
 
 /**
- * Deliberately an empty state. Articles are authored in the admin panel and
- * stored in Netlify DB; until the first one is published there is nothing
- * truthful to list here. Wiring this page to the CMS is its own task.
+ * Articles are authored in the admin panel and read from Netlify DB at build
+ * time. Until the first one is published — or if the database is unreachable
+ * during the build — `articles` is empty and the page keeps its honest empty
+ * state rather than showing an empty grid.
  */
+const articles = await getPublishedNews();
 ---
 
 <Layout title={t.meta.news.title} description={t.meta.news.description} locale={lang} routeKey="news">
@@ -20,12 +26,34 @@ const t = useTranslations(lang);
 
   <section class="section section--cream">
     <div class="wrap">
-      <div class="empty-state reveal">
-        <span class="eyebrow">{t.news.hero.eyebrow}</span>
-        <h2>{t.news.empty.heading}</h2>
-        <p>{t.news.empty.body}</p>
-        <Button href={path('contact', lang)} variant="primary">{t.news.empty.cta}</Button>
-      </div>
+      {articles.length === 0 ? (
+        <div class="empty-state reveal">
+          <span class="eyebrow">{t.news.hero.eyebrow}</span>
+          <h2>{t.news.empty.heading}</h2>
+          <p>{t.news.empty.body}</p>
+          <Button href={path('contact', lang)} variant="primary">{t.news.empty.cta}</Button>
+        </div>
+      ) : (
+        <div class="grid grid--3">
+          {articles.map((article) => (
+            <article class="article-card reveal">
+              <div class="article-card__thumb" aria-hidden="true">
+                <Icon name={categoryIcon(article.category)} />
+              </div>
+              <div class="article-card__body">
+                <div class="article-card__meta">
+                  <span class="pill pill--green">{t.news.categories[categoryKey(article.category)]}</span>
+                  {publishedOn(article, lang) && (
+                    <time datetime={article.publish_date!}>{publishedOn(article, lang)}</time>
+                  )}
+                </div>
+                <h3>{headline(article, lang)}</h3>
+                <p>{excerpt(article, lang)}</p>
+              </div>
+            </article>
+          ))}
+        </div>
+      )}
     </div>
   </section>
 </Layout>
