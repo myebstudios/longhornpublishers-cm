@@ -109,6 +109,7 @@ export const fr: Content = {
         'Depuis notre bureau de Tsinga, à Yaoundé, nous sommes créateurs de contenus et fournisseurs de solutions éditoriales : une équipe éditoriale, créative et de production travaillant dans les deux langues officielles, assez proche du marché pour en saisir les nuances culturelles.',
       ],
       link: 'En savoir plus sur nous',
+      imgAlt: 'L’équipe de Longhorn Publishers Cameroun',
     },
     services: {
       eyebrow: 'Nos services',
@@ -312,6 +313,7 @@ export const fr: Content = {
       social: 'Sciences sociales',
     },
     languages: { en: 'Anglais', fr: 'Français' },
+    empty: { message: 'Aucun matériel pédagogique ne correspond aux filtres sélectionnés.', reset: 'Réinitialiser les filtres' },
     cta: {
       eyebrow: 'Vous ne trouvez pas ?',
       titleLead: 'Besoin d’un titre',

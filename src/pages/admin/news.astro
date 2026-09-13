@@ -6,11 +6,151 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   <section class="card"><div class="toolbar"><h2 id="editorTitle">New article</h2><button class="button secondary" type="button" id="reset">New article</button></div><form id="editor"><input type="hidden" name="id" /><div class="two"><label>English headline<input name="headline_en" required /></label><label>French headline<input name="headline_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Category<select name="category"><option value="company_news">Company news</option><option value="new_titles">New titles</option><option value="partnerships">Partnerships</option><option value="events">Events</option></select></label><label>Publish date<input name="publish_date" type="date" /></label><label class="check"><input name="published" type="checkbox" /> Publish now</label><label>English excerpt<textarea name="excerpt_en" required></textarea></label><label>French excerpt<textarea name="excerpt_fr" required></textarea></label></div><label>English article body<textarea name="body_en" required></textarea></label><label>French article body<textarea name="body_fr" required></textarea></label><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section><section class="card"><h2>Articles</h2><p id="empty">Loading articles…</p><div id="items" class="items"></div></section>
 </AdminLayout>
 <script>
-  type CmsRecord = { [key: string]: any }; const form = document.querySelector('#editor') as HTMLFormElement; const items = document.querySelector('#items')!; const empty = document.querySelector('#empty')!; const status = document.querySelector('#status')!; const title = document.querySelector('#editorTitle')!; const setStatus = (message:string, tone:'ok'|'err'='ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
-  const reset = () => { form.reset(); (form.elements.namedItem('id') as HTMLInputElement).value=''; title.textContent='New article'; setStatus(''); };
-  const data = () => Object.fromEntries(new FormData(form).entries()) as CmsRecord;
-  const edit = (entry:CmsRecord) => { for (const [key,value] of Object.entries(entry)) { const input = form.elements.namedItem(key) as HTMLInputElement|HTMLTextAreaElement|null; if (input && typeof value === 'string') input.value = key === 'publish_date' && value ? value.slice(0,10) : value; } (form.elements.namedItem('id') as HTMLInputElement).value=entry.id; (form.elements.namedItem('published') as HTMLInputElement).checked=entry.published; title.textContent=`Editing: ${entry.headline_en}`; window.scrollTo({top:0,behavior:'smooth'}); };
-  async function load() { try { const response=await fetch('/api/news-admin'); if(!response.ok) throw new Error('Unable to load articles.'); const rows:CmsRecord[]=await response.json(); items.replaceChildren(); empty.textContent=rows.length?'':'No articles yet. Create a bilingual draft.'; rows.forEach(entry=>{const article=document.createElement('article');article.className='item';const heading=document.createElement('strong');heading.textContent=entry.headline_en;const meta=document.createElement('span');meta.textContent=`${entry.category.replace('_',' ')} · ${entry.published?'Published':'Draft'}`;const editButton=document.createElement('button');editButton.textContent='Edit';editButton.type='button';editButton.onclick=()=>edit(entry);const deleteButton=document.createElement('button');deleteButton.textContent='Delete';deleteButton.className='danger';deleteButton.type='button';deleteButton.onclick=async()=>{if(!confirm(`Delete “${entry.headline_en}”?`))return;const result=await fetch(`/api/news-admin?id=${encodeURIComponent(entry.id)}`,{method:'DELETE'});if(!result.ok)return setStatus('Unable to delete article.', 'err');reset();await load();};article.append(heading,meta,editButton,deleteButton);items.append(article);});}catch(error){empty.textContent=error instanceof Error?error.message:'Unable to load articles.';}}
-  form.addEventListener('submit',async event=>{event.preventDefault();const record=data();record.published=Boolean((form.elements.namedItem('published') as HTMLInputElement).checked);const response=await fetch(`/api/news-admin${record.id?`?id=${encodeURIComponent(record.id)}`:''}`,{method:record.id?'PUT':'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(record)});const result=await response.json();if(!response.ok)return setStatus(result.error||'Unable to save article.', 'err');setStatus(record.published?'Article published.':'Draft saved.');reset();await load();});document.querySelector('#reset')?.addEventListener('click',reset);load();
+  import { emptyToNull, request, sendJson } from '../../lib/admin-client';
+
+  type CmsRecord = { [key: string]: any };
+
+  const form = document.querySelector('#editor') as HTMLFormElement;
+  const submit = form.querySelector('button:not([type="button"])') as HTMLButtonElement;
+  const items = document.querySelector('#items')!;
+  const empty = document.querySelector('#empty')!;
+  const status = document.querySelector('#status')!;
+  const title = document.querySelector('#editorTitle')!;
+
+  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
+    status.textContent = message;
+    status.className = message ? `status status--${tone}` : '';
+  };
+
+  /** Serialised form state as of the last load/save, for the unsaved-work guard. */
+  let pristine = '';
+  const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
+  const isDirty = () => snapshot() !== pristine;
+  const confirmDiscard = () =>
+    !isDirty() || confirm('This form has unsaved changes. Discard them?');
+
+  const reset = (force = false) => {
+    if (!force && !confirmDiscard()) return false;
+    form.reset();
+    (form.elements.namedItem('id') as HTMLInputElement).value = '';
+    title.textContent = 'New article';
+    setStatus('');
+    pristine = snapshot();
+    return true;
+  };
+
+  const values = () => {
+    const record = Object.fromEntries(new FormData(form).entries()) as CmsRecord;
+    // An unchecked checkbox is absent from FormData, so set it explicitly.
+    record.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
+    // An untouched date input yields '', which Postgres rejects for a date column.
+    return emptyToNull(record, ['publish_date']);
+  };
+
+  const edit = (entry: CmsRecord) => {
+    if (!confirmDiscard()) return;
+    for (const [key, value] of Object.entries(entry)) {
+      const input = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input && typeof value === 'string') {
+        input.value = key === 'publish_date' && value ? value.slice(0, 10) : value;
+      }
+    }
+    (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
+    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
+    title.textContent = `Editing: ${entry.headline_en}`;
+    setStatus('');
+    pristine = snapshot();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  async function load() {
+    const result = await request<CmsRecord[]>('/api/news-admin', {}, 'Unable to load articles.');
+    if (!result.ok) { empty.textContent = result.error!; return; }
+
+    const rows = result.data ?? [];
+    items.replaceChildren();
+    empty.textContent = rows.length ? '' : 'No articles yet. Create a bilingual draft.';
+
+    rows.forEach(entry => {
+      const article = document.createElement('article');
+      article.className = 'item';
+
+      const heading = document.createElement('strong');
+      heading.textContent = entry.headline_en;
+      // Both languages are listed: a French-first editor needs to recognise
+      // their own work without opening each record.
+      const alternate = document.createElement('small');
+      alternate.className = 'alt';
+      alternate.textContent = entry.headline_fr ?? '—';
+      heading.append(alternate);
+
+      const meta = document.createElement('span');
+      meta.textContent = `${String(entry.category ?? '').replace('_', ' ')} · ${entry.published ? 'Published' : 'Draft'}`;
+
+      // Repeated controls are labelled with the headline so a screen reader does
+      // not announce a column of identical "Edit"/"Delete" buttons.
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.textContent = 'Edit';
+      editButton.setAttribute('aria-label', `Edit ${entry.headline_en}`);
+      editButton.onclick = () => edit(entry);
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'danger';
+      deleteButton.textContent = 'Delete';
+      deleteButton.setAttribute('aria-label', `Delete ${entry.headline_en}`);
+      deleteButton.onclick = async () => {
+        if (!confirm(`Delete “${entry.headline_en}”?`)) return;
+        deleteButton.disabled = true;
+        const result = await request(
+          `/api/news-admin?id=${encodeURIComponent(entry.id)}`,
+          { method: 'DELETE' },
+          'Unable to delete article.',
+        );
+        if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
+        // Editing the record that was just deleted would post to a dead id.
+        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) reset(true);
+        setStatus('Article deleted.');
+        await load();
+      };
+
+      article.append(heading, meta, editButton, deleteButton);
+      items.append(article);
+    });
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    // Guards against a double-click creating two records for one POST.
+    if (submit.disabled) return;
+    submit.disabled = true;
+    setStatus('Saving…');
+    try {
+      const record = values();
+      const result = await sendJson(
+        `/api/news-admin${record.id ? `?id=${encodeURIComponent(String(record.id))}` : ''}`,
+        record.id ? 'PUT' : 'POST',
+        record,
+        'Unable to save article.',
+      );
+      if (!result.ok) { setStatus(result.error!, 'err'); return; }
+      setStatus(record.published ? 'Article published.' : 'Draft saved.');
+      reset(true);
+      await load();
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  document.querySelector('#reset')?.addEventListener('click', () => reset());
+
+  // Warn on tab close / navigation while a draft has unsaved edits.
+  window.addEventListener('beforeunload', event => {
+    if (isDirty()) event.preventDefault();
+  });
+
+  pristine = snapshot();
+  load();
 </script>
-<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}form{display:grid;gap:1rem}.two label,form>label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select,form>label textarea{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea,form>label textarea{min-height:5rem;resize:vertical}form>label textarea{min-height:10rem}.check{align-content:end}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
+<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}form{display:grid;gap:1rem}.two label,form>label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select,form>label textarea{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea,form>label textarea{min-height:5rem;resize:vertical}form>label textarea{min-height:10rem}.check{align-content:end}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>

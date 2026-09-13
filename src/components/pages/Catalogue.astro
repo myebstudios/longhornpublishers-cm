@@ -38,20 +38,29 @@ const languageFilters = [
           { label: t.catalogue.filters.subject, options: subjectFilters },
           { label: t.catalogue.filters.language, options: languageFilters },
         ].map((group) => (
-          <div class="filter-group">
+          <div class="filter-group" role="radiogroup" aria-label={group.label}>
             <span class="filter-group__label">{group.label}</span>
             {group.options.map((option, i) => (
               <button
                 class:list={['chip', i === 0 && 'is-active']}
                 type="button"
+                role="radio"
+                tabindex={i === 0 ? '0' : '-1'}
+                aria-checked={i === 0 ? 'true' : 'false'}
+                aria-pressed={i === 0 ? 'true' : 'false'}
                 data-value={option.value}
               >{option.label}</button>
             ))}
           </div>
         ))}
-        <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)">
+        <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)" aria-live="polite">
           <strong data-filter-count>{TITLES.length}</strong> {t.common.titles}
         </p>
+      </div>
+
+      <div class="filter-empty-state is-hidden" data-filter-empty hidden aria-hidden="true" style="text-align:center;padding:3rem 1.5rem;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--line);margin-top:1rem;">
+        <p style="font-size:var(--step-0);color:var(--ink-soft);margin-bottom:1.25rem;">{t.catalogue.empty.message}</p>
+        <button class="btn btn--ghost btn--sm" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
       </div>
 
       <div class="grid grid--4 reveal">
@@ -71,7 +80,7 @@ const languageFilters = [
               <a
                 class="link-arrow"
                 style="font-size:var(--step--1)"
-                href={`${cataloguePath}${titleSlug(title, lang)}/`}
+                href={`${cataloguePath}${titleSlug(title)}/`}
               >{t.common.requestTitle}</a>
             </div>
           </article>

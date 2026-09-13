@@ -1,6 +1,7 @@
 ---
 import Icon from './Icon.astro';
 import Button from './Button.astro';
+import { responsive } from '../lib/images';
 import type { Titled } from '../i18n/types';
 
 interface Stat {
@@ -45,10 +46,13 @@ const {
   secondaryCtaText,
   secondaryCtaHref,
 } = Astro.props;
+
+// The hero is the LCP element on every page: full-bleed, eager, high priority.
+const { src, srcset } = responsive(img);
 ---
 
 <section class:list={['hero', compact && 'hero--compact']}>
-  <div class="hero__bg"><img src={img.includes('.') ? `/img/${img}` : `/img/${img}.svg`} alt="" /></div>
+  <div class="hero__bg"><img src={src} srcset={srcset} sizes={srcset ? '100vw' : undefined} alt="" loading="eager" fetchpriority="high" decoding="async" /></div>
   <div class="wrap">
     <div class="hero__inner">
       <div>

@@ -60,7 +60,7 @@ const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level]
   <!-- Who we are -->
   <section class="section section--cream">
     <div class="wrap">
-      <Split img="lh-editorial-collaboration.jpg" alt="The Longhorn Publishers Cameroon team">
+      <Split img="lh-editorial-collaboration.jpg" alt={t.home.whoWeAre.imgAlt}>
         <span class="eyebrow">{t.home.whoWeAre.eyebrow}</span>
         <h2>{t.home.whoWeAre.titleLead} <em class="accent">{t.home.whoWeAre.titleAccent}</em></h2>
         {t.home.whoWeAre.body.map((p) => <p>{p}</p>)}
@@ -93,7 +93,7 @@ const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level]
             <div class="media-card__badge"><Icon name={SUBJECT_ICON[title.subject] ?? 'book'} size={18} /></div>
             <h3>{title[lang].title}</h3>
             <p>{title[lang].note}</p>
-            <Button href={`${path('catalogue', lang)}/${titleSlug(title, lang)}`} variant="white" size="sm">{t.common.requestTitle}</Button>
+            <Button href={`${path('catalogue', lang)}${titleSlug(title)}/`} variant="white" size="sm">{t.common.requestTitle}</Button>
           </article>
         ))}
       </Carousel>

@@ -1,8 +1,14 @@
 ---
+import { responsive } from '../lib/images';
+
 interface Props { img: string; alt?: string; reverse?: boolean; id?: string; }
 const { img, alt = '', reverse = false, id } = Astro.props;
+
+// .split__media tops out near half of the 1240px wrap; full-width under 860px.
+const { src, srcset } = responsive(img, { maxWidth: 1280 });
+const sizes = '(min-width: 861px) 562px, calc(100vw - 2.5rem)';
 ---
 <div class:list={['split', reverse && 'split--reverse', 'reveal']} id={id}>
-  <div class="split__media"><img src={img.includes('.') ? `/img/${img}` : `/img/${img}.svg`} alt={alt} /></div>
+  <div class="split__media"><img src={src} srcset={srcset} sizes={srcset ? sizes : undefined} alt={alt} loading="lazy" decoding="async" /></div>
   <div><slot /></div>
 </div>

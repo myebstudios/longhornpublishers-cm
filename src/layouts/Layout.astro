@@ -11,9 +11,19 @@ interface Props {
   locale: Locale;
   /** null for pages that belong to no localized route (e.g. 404) — skips canonical/hreflang and marks noindex. */
   routeKey: RouteKey | null;
+  /**
+   * Per-locale paths for pages nested under a route, e.g. a catalogue detail
+   * page. Without this a detail page would advertise the *listing* as its
+   * canonical URL — telling search engines the detail pages are duplicates —
+   * and the language switcher would drop the visitor back on the listing.
+   */
+  alternates?: Record<Locale, string>;
 }
 
-const { title, description, locale, routeKey } = Astro.props;
+const { title, description, locale, routeKey, alternates } = Astro.props;
+/** Resolve the canonical/alternate path for a locale, honouring `alternates`. */
+const localePath = (target: Locale) =>
+  alternates?.[target] ?? (routeKey ? path(routeKey, target) : '/');
 const t = useTranslations(locale);
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -57,10 +67,10 @@ const organizationSchema = {
     <meta name="description" content={description} />
     {routeKey ? (
       <Fragment>
-        <link rel="canonical" href={new URL(path(routeKey, locale), Astro.site)} />
-        <link rel="alternate" hreflang="en" href={new URL(path(routeKey, 'en'), Astro.site)} />
-        <link rel="alternate" hreflang="fr" href={new URL(path(routeKey, 'fr'), Astro.site)} />
-        <link rel="alternate" hreflang="x-default" href={new URL(path(routeKey, 'en'), Astro.site)} />
+        <link rel="canonical" href={new URL(localePath(locale), Astro.site)} />
+        <link rel="alternate" hreflang="en" href={new URL(localePath('en'), Astro.site)} />
+        <link rel="alternate" hreflang="fr" href={new URL(localePath('fr'), Astro.site)} />
+        <link rel="alternate" hreflang="x-default" href={new URL(localePath('en'), Astro.site)} />
       </Fragment>
     ) : (
       <meta name="robots" content="noindex" />
@@ -86,7 +96,7 @@ const organizationSchema = {
   <body>
     <a href="#main-content" class="skip-link">{t.nav.skip}</a>
 
-    <Header locale={locale} currentRouteKey={routeKey} />
+    <Header locale={locale} currentRouteKey={routeKey} alternates={alternates} />
 
     <main id="main-content">
       <slot />
@@ -111,7 +121,15 @@ const organizationSchema = {
           const closeNav = (restoreFocus = false) => {
             toggle.setAttribute('aria-expanded', 'false');
             nav.classList.remove('is-open');
+            document.body.classList.remove('nav-open');
             if (restoreFocus) toggle.focus();
+          };
+
+          const openNav = () => {
+            toggle.setAttribute('aria-expanded', 'true');
+            nav.classList.add('is-open');
+            document.body.classList.add('nav-open');
+            navLinks[0]?.focus();
           };
 
           toggle.addEventListener('click', () => {
@@ -119,18 +137,34 @@ const organizationSchema = {
             if (open) {
               closeNav();
             } else {
-              toggle.setAttribute('aria-expanded', 'true');
-              nav.classList.add('is-open');
-              navLinks[0]?.focus();
+              openNav();
             }
           });
 
           navLinks.forEach(link => link.addEventListener('click', () => closeNav()));
+
           document.addEventListener('keydown', event => {
             if (event.key === 'Escape' && toggle.getAttribute('aria-expanded') === 'true') {
               closeNav(true);
             }
           });
+
+          document.addEventListener('click', event => {
+            if (toggle.getAttribute('aria-expanded') === 'true') {
+              const target = event.target as Node;
+              if (header && !header.contains(target)) {
+                closeNav();
+              }
+            }
+          });
+
+          const mq = window.matchMedia('(min-width: 1081px)');
+          const handleBreakpoint = (e: MediaQueryListEvent | MediaQueryList) => {
+            if (e.matches && toggle.getAttribute('aria-expanded') === 'true') {
+              closeNav();
+            }
+          };
+          mq.addEventListener('change', handleBreakpoint);
         }
       }
 
@@ -157,7 +191,7 @@ const organizationSchema = {
 
       function initCarousels() {
         document.querySelectorAll('.carousel').forEach(car => {
-          const view = car.querySelector('.carousel__viewport');
+          const view = car.querySelector('.carousel__viewport') as HTMLElement | null;
           const prev = car.querySelector('[data-dir="prev"]') as HTMLButtonElement | null;
           const next = car.querySelector('[data-dir="next"]') as HTMLButtonElement | null;
           if (!view || !prev || !next) return;
@@ -166,13 +200,42 @@ const organizationSchema = {
             const first = view.querySelector('.carousel__track > *');
             return first ? first.getBoundingClientRect().width + 24 : view.clientWidth * 0.8;
           };
+
+          const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+          const getBehavior = (): ScrollBehavior => (prefersReducedMotion ? 'auto' : 'smooth');
+
           const sync = () => {
             const max = view.scrollWidth - view.clientWidth - 2;
-            prev.disabled = view.scrollLeft <= 2;
-            next.disabled = view.scrollLeft >= max;
+            const atStart = view.scrollLeft <= 2;
+            const atEnd = view.scrollLeft >= max;
+            prev.setAttribute('aria-disabled', String(atStart));
+            next.setAttribute('aria-disabled', String(atEnd));
           };
-          prev.addEventListener('click', () => view.scrollBy({ left: -step(), behavior: 'smooth' }));
-          next.addEventListener('click', () => view.scrollBy({ left: step(), behavior: 'smooth' }));
+
+          prev.addEventListener('click', () => {
+            if (prev.getAttribute('aria-disabled') === 'true') return;
+            view.scrollBy({ left: -step(), behavior: getBehavior() });
+          });
+
+          next.addEventListener('click', () => {
+            if (next.getAttribute('aria-disabled') === 'true') return;
+            view.scrollBy({ left: step(), behavior: getBehavior() });
+          });
+
+          view.addEventListener('keydown', (event: KeyboardEvent) => {
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault();
+              if (prev.getAttribute('aria-disabled') !== 'true') {
+                view.scrollBy({ left: -step(), behavior: getBehavior() });
+              }
+            } else if (event.key === 'ArrowRight') {
+              event.preventDefault();
+              if (next.getAttribute('aria-disabled') !== 'true') {
+                view.scrollBy({ left: step(), behavior: getBehavior() });
+              }
+            }
+          });
+
           view.addEventListener('scroll', sync, { passive: true });
           window.addEventListener('resize', sync);
           sync();
@@ -184,6 +247,8 @@ const organizationSchema = {
           const targets = scope.querySelectorAll('[data-tags]');
           const groups = scope.querySelectorAll('.filter-group');
           const countEl = scope.querySelector('[data-filter-count]');
+          const emptyStateEl = scope.querySelector('[data-filter-empty]') as HTMLElement | null;
+          const resetBtn = scope.querySelector('[data-filter-reset]') as HTMLButtonElement | null;
 
           const apply = () => {
             const active: string[] = [];
@@ -199,21 +264,81 @@ const organizationSchema = {
               const tags = (el.dataset.tags || '').split(' ');
               const match = active.every(a => tags.includes(a));
               el.classList.toggle('is-hidden', !match);
-              if (match) shown++;
+              if (match) {
+                el.removeAttribute('hidden');
+                el.setAttribute('aria-hidden', 'false');
+                shown++;
+              } else {
+                el.setAttribute('hidden', '');
+                el.setAttribute('aria-hidden', 'true');
+              }
             });
             if (countEl) countEl.textContent = String(shown);
+            if (emptyStateEl) {
+              const isZero = shown === 0;
+              emptyStateEl.classList.toggle('is-hidden', !isZero);
+              if (isZero) {
+                emptyStateEl.removeAttribute('hidden');
+                emptyStateEl.setAttribute('aria-hidden', 'false');
+              } else {
+                emptyStateEl.setAttribute('hidden', '');
+                emptyStateEl.setAttribute('aria-hidden', 'true');
+              }
+            }
           };
 
-          scope.querySelectorAll('.chip').forEach(chip => {
-            chip.addEventListener('click', () => {
-              const parent = chip.closest('.filter-group');
-              if (parent) {
-                parent.querySelectorAll('.chip').forEach(c => c.classList.remove('is-active'));
+          const selectChip = (chip: HTMLButtonElement) => {
+            const parent = chip.closest('.filter-group');
+            if (parent) {
+              parent.querySelectorAll<HTMLButtonElement>('.chip').forEach(c => {
+                c.classList.remove('is-active');
+                c.setAttribute('aria-checked', 'false');
+                c.setAttribute('aria-pressed', 'false');
+                c.setAttribute('tabindex', '-1');
+              });
+            }
+            chip.classList.add('is-active');
+            chip.setAttribute('aria-checked', 'true');
+            chip.setAttribute('aria-pressed', 'true');
+            chip.setAttribute('tabindex', '0');
+            apply();
+          };
+
+          groups.forEach(group => {
+            const chips = Array.from(group.querySelectorAll<HTMLButtonElement>('.chip'));
+            chips.forEach((chip) => {
+              chip.addEventListener('click', () => selectChip(chip));
+            });
+
+            group.addEventListener('keydown', (event: Event) => {
+              const e = event as KeyboardEvent;
+              if (['ArrowRight', 'ArrowDown', 'ArrowLeft', 'ArrowUp'].includes(e.key)) {
+                const currentFocus = document.activeElement as HTMLButtonElement | null;
+                if (!currentFocus || !chips.includes(currentFocus)) return;
+                e.preventDefault();
+                const index = chips.indexOf(currentFocus);
+                let nextIndex = index;
+                if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+                  nextIndex = (index + 1) % chips.length;
+                } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+                  nextIndex = (index - 1 + chips.length) % chips.length;
+                }
+                const nextChip = chips[nextIndex];
+                nextChip.focus();
+                selectChip(nextChip);
               }
-              chip.classList.add('is-active');
-              apply();
             });
           });
+
+          if (resetBtn) {
+            resetBtn.addEventListener('click', () => {
+              groups.forEach(group => {
+                const allChip = group.querySelector<HTMLButtonElement>('.chip[data-value="all"]');
+                if (allChip) selectChip(allChip);
+              });
+            });
+          }
+
           apply();
         });
       }

@@ -121,11 +121,11 @@ _________________________________________________
 Longhorn Publishers Cameroon Ltd
 Total École de police, Tsinga, Yaoundé, Cameroon
 
-| Item | Description | Amount |
-|---|---|---|
-| **Design & Development** | Full bespoke bilingual (EN/FR) corporate website (9 pages) + custom admin panel — UX/UI design, frontend build, database, authentication, deployment | 250,000 XAF |
-| **Hosting Subscription** | Hosting platform subscription, 12 months ($9/mo × 12 = $108, billed as a pass-through cost at prevailing exchange rate) | ≈ 66,000 XAF |
-| **Domain Registration** | `longhornpublishers-cm.com`, 1-year registration ($16, billed as a pass-through cost at prevailing exchange rate) | ≈ 10,000 XAF |
+| Item                     | Description                                                                                                                                          | Amount       |
+| ------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- | ------------ |
+| **Design & Development** | Full bespoke bilingual (EN/FR) corporate website (9 pages) + custom admin panel — UX/UI design, frontend build, database, authentication, deployment | 250,000 XAF  |
+| **Hosting Subscription** | Hosting platform subscription, 12 months ($9/mo × 12 = $108, billed as a pass-through cost at prevailing exchange rate)                              | ≈ 66,000 XAF |
+| **Domain Registration**  | `longhornpublishers-cm.com`, 1-year registration ($16, billed as a pass-through cost at prevailing exchange rate)                                    | ≈ 10,000 XAF |
 
 **Sub Total:** ≈ 326,000 XAF
 **Total Amount Due:** ≈ 326,000 XAF

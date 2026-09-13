@@ -104,6 +104,7 @@ export const en: Content = {
         'From our office in Tsinga, Yaoundé, we operate as content creators and platform business providers: an editorial, creative and production team working in both official languages, close enough to the market to get the cultural detail right.',
       ],
       link: 'More about us',
+      imgAlt: 'The Longhorn Publishers Cameroon team',
     },
     services: {
       eyebrow: 'Our services',
@@ -307,6 +308,7 @@ export const en: Content = {
       social: 'Social Studies',
     },
     languages: { en: 'English', fr: 'Français' },
+    empty: { message: 'No learning materials match your selected filters.', reset: 'Clear filters' },
     cta: {
       eyebrow: "Can't find it?",
       titleLead: 'Need a title',

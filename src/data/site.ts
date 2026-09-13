@@ -193,8 +193,18 @@ export const TITLES: Title[] = [
 ];
 
 /** Stable, readable local routes until catalogue records are supplied by the client CMS. */
-export function titleSlug(title: Title, locale: 'en' | 'fr'): string {
-  return title[locale].title
+/**
+ * Canonical URL slug for a catalogue title — identical in every locale.
+ *
+ * Derived from the English title only. The database models a catalogue entry
+ * with a single `slug` column shared by both language versions (see
+ * netlify/functions/catalogue.mts), so deriving a per-locale slug here would
+ * make the static catalogue contradict the CMS: a title whose French name
+ * differs from its English one would publish at two unrelated URLs with no way
+ * to map one to the other, breaking the language switcher and hreflang pairing.
+ */
+export function titleSlug(title: Title): string {
+  return title.en.title
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()

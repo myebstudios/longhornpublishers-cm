@@ -47,7 +47,7 @@ export interface Content {
       stats: { num: string; label: string }[];
     };
     trust: string[];
-    whoWeAre: Titled & { body: string[] };
+    whoWeAre: Titled & { body: string[]; imgAlt: string };
     services: Titled;
     cataloguePreview: Titled;
     endToEnd: Titled & { cards: Card[] };
@@ -83,6 +83,7 @@ export interface Content {
     levels: { primary: string; secondary: string };
     subjects: Record<'maths' | 'english' | 'french' | 'science' | 'social', string>;
     languages: { en: string; fr: string };
+    empty: { message: string; reset: string };
     cta: Titled;
   };
 

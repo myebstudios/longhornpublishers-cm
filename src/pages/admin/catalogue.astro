@@ -8,13 +8,169 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   <section class="card"><h2>Titles</h2><p id="empty">Loading catalogue…</p><div id="items" class="items"></div></section>
 </AdminLayout>
 <script>
+  import { emptyToNull, request, sendJson } from '../../lib/admin-client';
+
   type CmsRecord = { [key: string]: any };
-  const form = document.querySelector('#editor') as HTMLFormElement; const items = document.querySelector('#items')!; const empty = document.querySelector('#empty')!; const status = document.querySelector('#status')!; const title = document.querySelector('#editorTitle')!;
-  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
-  const reset = () => { form.reset(); (form.elements.namedItem('id') as HTMLInputElement).value = ''; title.textContent = 'New title'; setStatus(''); };
-  const values = () => { const data = new FormData(form); return { id: data.get('id'), title_en: data.get('title_en'), title_fr: data.get('title_fr'), slug: data.get('slug'), level: data.get('level'), description_en: data.get('description_en'), description_fr: data.get('description_fr'), curriculum_alignment_en: data.get('curriculum_alignment_en'), curriculum_alignment_fr: data.get('curriculum_alignment_fr'), languages: ['language_en','language_fr'].filter(key => data.get(key)).map(key => key.replace('language_', '')), featured: Boolean(data.get('featured')), published: Boolean(data.get('published')) }; };
-  const edit = (entry: CmsRecord) => { for (const [key, value] of Object.entries(entry)) { const input = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null; if (input && typeof value === 'string') input.value = value; } (form.elements.namedItem('id') as HTMLInputElement).value = entry.id; (form.elements.namedItem('language_en') as HTMLInputElement).checked = entry.languages?.includes('en'); (form.elements.namedItem('language_fr') as HTMLInputElement).checked = entry.languages?.includes('fr'); (form.elements.namedItem('featured') as HTMLInputElement).checked = entry.featured; (form.elements.namedItem('published') as HTMLInputElement).checked = entry.published; title.textContent = `Editing: ${entry.title_en}`; window.scrollTo({ top: 0, behavior: 'smooth' }); };
-  async function load() { try { const response = await fetch('/api/catalogue-admin'); if (!response.ok) throw new Error('Unable to load catalogue.'); const rows: CmsRecord[] = await response.json(); items.replaceChildren(); empty.textContent = rows.length ? '' : 'No titles yet. Start with a bilingual draft.'; rows.forEach(entry => { const article = document.createElement('article'); article.className = 'item'; const heading = document.createElement('strong'); heading.textContent = entry.title_en; const meta = document.createElement('span'); meta.textContent = `${entry.level} · ${entry.published ? 'Published' : 'Draft'}`; const editButton = document.createElement('button'); editButton.type = 'button'; editButton.textContent = 'Edit'; editButton.onclick = () => edit(entry); const deleteButton = document.createElement('button'); deleteButton.type = 'button'; deleteButton.className = 'danger'; deleteButton.textContent = 'Delete'; deleteButton.onclick = async () => { if (!confirm(`Delete “${entry.title_en}”?`)) return; const result = await fetch(`/api/catalogue-admin?id=${encodeURIComponent(entry.id)}`, { method: 'DELETE' }); if (!result.ok) return setStatus('Unable to delete title.', 'err'); reset(); await load(); }; article.append(heading, meta, editButton, deleteButton); items.append(article); }); } catch (error) { empty.textContent = error instanceof Error ? error.message : 'Unable to load catalogue.'; } }
-  form.addEventListener('submit', async event => { event.preventDefault(); const record = values(); const response = await fetch(`/api/catalogue-admin${record.id ? `?id=${encodeURIComponent(record.id)}` : ''}`, { method: record.id ? 'PUT' : 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(record) }); const result = await response.json(); if (!response.ok) return setStatus(result.error || 'Unable to save title.', 'err'); setStatus(record.published ? 'Title published.' : 'Draft saved.'); reset(); await load(); }); document.querySelector('#reset')?.addEventListener('click', reset); load();
+
+  const form = document.querySelector('#editor') as HTMLFormElement;
+  const submit = form.querySelector('button:not([type="button"])') as HTMLButtonElement;
+  const items = document.querySelector('#items')!;
+  const empty = document.querySelector('#empty')!;
+  const status = document.querySelector('#status')!;
+  const title = document.querySelector('#editorTitle')!;
+
+  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
+    status.textContent = message;
+    status.className = message ? `status status--${tone}` : '';
+  };
+
+  /** Serialised form state as of the last load/save, for the unsaved-work guard. */
+  let pristine = '';
+  const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
+  const isDirty = () => snapshot() !== pristine;
+  const confirmDiscard = () =>
+    !isDirty() || confirm('This form has unsaved changes. Discard them?');
+
+  const reset = (force = false) => {
+    if (!force && !confirmDiscard()) return false;
+    form.reset();
+    (form.elements.namedItem('id') as HTMLInputElement).value = '';
+    title.textContent = 'New title';
+    setStatus('');
+    pristine = snapshot();
+    return true;
+  };
+
+  const values = () => {
+    const data = new FormData(form);
+    return emptyToNull({
+      id: data.get('id'),
+      title_en: data.get('title_en'),
+      title_fr: data.get('title_fr'),
+      slug: data.get('slug'),
+      level: data.get('level'),
+      description_en: data.get('description_en'),
+      description_fr: data.get('description_fr'),
+      curriculum_alignment_en: data.get('curriculum_alignment_en'),
+      curriculum_alignment_fr: data.get('curriculum_alignment_fr'),
+      languages: ['language_en', 'language_fr'].filter(key => data.get(key)).map(key => key.replace('language_', '')),
+      featured: Boolean(data.get('featured')),
+      published: Boolean(data.get('published')),
+    } as CmsRecord, ['curriculum_alignment_en', 'curriculum_alignment_fr']);
+  };
+
+  const edit = (entry: CmsRecord) => {
+    if (!confirmDiscard()) return;
+    for (const [key, value] of Object.entries(entry)) {
+      const input = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null;
+      if (input && typeof value === 'string') input.value = value;
+    }
+    (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
+    // `languages` arrives as a JSON array, or as its string form from some
+    // driver/column combinations — normalise before testing membership.
+    const languages: string[] = Array.isArray(entry.languages)
+      ? entry.languages
+      : typeof entry.languages === 'string'
+        ? (() => { try { return JSON.parse(entry.languages); } catch { return []; } })()
+        : [];
+    (form.elements.namedItem('language_en') as HTMLInputElement).checked = languages.includes('en');
+    (form.elements.namedItem('language_fr') as HTMLInputElement).checked = languages.includes('fr');
+    (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
+    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
+    title.textContent = `Editing: ${entry.title_en}`;
+    setStatus('');
+    pristine = snapshot();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  async function load() {
+    const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
+    if (!result.ok) { empty.textContent = result.error!; return; }
+
+    const rows = result.data ?? [];
+    items.replaceChildren();
+    empty.textContent = rows.length ? '' : 'No titles yet. Start with a bilingual draft.';
+
+    rows.forEach(entry => {
+      const article = document.createElement('article');
+      article.className = 'item';
+
+      const heading = document.createElement('strong');
+      heading.textContent = entry.title_en;
+      // Both languages are listed: a French-first editor needs to recognise
+      // their own work without opening each record.
+      const alternate = document.createElement('small');
+      alternate.className = 'alt';
+      alternate.textContent = entry.title_fr ?? '—';
+      heading.append(alternate);
+
+      const meta = document.createElement('span');
+      meta.textContent = `${entry.level} · ${entry.published ? 'Published' : 'Draft'}`;
+
+      // Repeated controls are labelled with the title so a screen reader does
+      // not announce a column of identical "Edit"/"Delete" buttons.
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.textContent = 'Edit';
+      editButton.setAttribute('aria-label', `Edit ${entry.title_en}`);
+      editButton.onclick = () => edit(entry);
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'danger';
+      deleteButton.textContent = 'Delete';
+      deleteButton.setAttribute('aria-label', `Delete ${entry.title_en}`);
+      deleteButton.onclick = async () => {
+        if (!confirm(`Delete “${entry.title_en}”?`)) return;
+        deleteButton.disabled = true;
+        const result = await request(
+          `/api/catalogue-admin?id=${encodeURIComponent(entry.id)}`,
+          { method: 'DELETE' },
+          'Unable to delete title.',
+        );
+        if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
+        // Editing the record that was just deleted would post to a dead id.
+        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) reset(true);
+        setStatus('Title deleted.');
+        await load();
+      };
+
+      article.append(heading, meta, editButton, deleteButton);
+      items.append(article);
+    });
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    // Guards against a double-click creating two records for one POST.
+    if (submit.disabled) return;
+    submit.disabled = true;
+    setStatus('Saving…');
+    try {
+      const record = values();
+      const result = await sendJson(
+        `/api/catalogue-admin${record.id ? `?id=${encodeURIComponent(String(record.id))}` : ''}`,
+        record.id ? 'PUT' : 'POST',
+        record,
+        'Unable to save title.',
+      );
+      if (!result.ok) { setStatus(result.error!, 'err'); return; }
+      setStatus(record.published ? 'Title published.' : 'Draft saved.');
+      reset(true);
+      await load();
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  document.querySelector('#reset')?.addEventListener('click', () => reset());
+
+  // Warn on tab close / navigation while a draft has unsaved edits.
+  window.addEventListener('beforeunload', event => {
+    if (isDirty()) event.preventDefault();
+  });
+
+  pristine = snapshot();
+  load();
 </script>
-<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea{min-height:5rem;resize:vertical}.checks{display:flex;flex-wrap:wrap;gap:1rem;margin:1rem 0}.checks label{font-weight:600}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
+<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea{min-height:5rem;resize:vertical}.checks{display:flex;flex-wrap:wrap;gap:1rem;margin:1rem 0}.checks label{font-weight:600}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>

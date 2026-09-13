@@ -11,7 +11,7 @@ export function GET({ site }: { site: URL }) {
   const pages = LOCALES.flatMap((locale) => [
     ...NAV_KEYS.map((key) => path(key, locale)),
     path('news', locale),
-    ...TITLES.map((title) => `/${locale}/catalogue/${titleSlug(title, locale)}/`),
+    ...TITLES.map((title) => `${path('catalogue', locale)}${titleSlug(title)}/`),
   ]);
 
   const urls = [...new Set(pages)].map((route) => {

@@ -18,10 +18,10 @@ export const SERVICE_IMG: Record<string, string> = {
 export const SERVICE_DETAIL_IMG: Record<string, string> = {
   editing: 'lh-student-reading.jpg',
   proofreading: 'lh-print-quality.jpg',
-  translation: 'lh-bilingual-editor-wide.png',
+  translation: 'lh-bilingual-editor-wide.jpg',
   designing: 'lh-creative-wall.jpg',
   illustration: 'lh-illustration-studio.jpg',
-  printing: 'lh-print-inspection-wide.png',
+  printing: 'lh-print-inspection-wide.jpg',
 };
 
 /** Stand-in cover art while the catalogue has no supplied artwork. */

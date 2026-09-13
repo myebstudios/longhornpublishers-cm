@@ -1,18 +1,22 @@
 ---
 import type { Locale, RouteKey } from '../i18n';
-import { useTranslations, path, alternatePath, NAV_KEYS } from '../i18n';
+import { useTranslations, path, NAV_KEYS } from '../i18n';
 import Icon from './Icon.astro';
 import logo from '../../Assets/Longhorn CM logo.svg';
 
 interface Props {
   locale: Locale;
   currentRouteKey: RouteKey | null;
+  /** Per-locale paths for pages nested under a route (e.g. a catalogue detail
+   *  page), so switching language keeps the visitor on the same item. */
+  alternates?: Record<Locale, string>;
 }
 
-const { locale, currentRouteKey } = Astro.props;
+const { locale, currentRouteKey, alternates } = Astro.props;
 const t = useTranslations(locale);
-const otherLocale = locale === 'en' ? 'fr' : 'en';
-const switchHref = alternatePath(currentRouteKey ?? 'home', locale);
+/** Where each language button points for the page currently being rendered. */
+const localeHref = (target: Locale) =>
+  alternates?.[target] ?? path(currentRouteKey ?? 'home', target);
 ---
 
 <header class="site-header" id="siteHeader">
@@ -37,14 +41,20 @@ const switchHref = alternatePath(currentRouteKey ?? 'home', locale);
       <div class="header__actions">
         <div class="lang-toggle" role="group" aria-label={t.nav.language}>
           <a
-            href={locale === 'en' ? path(currentRouteKey ?? 'home', 'en') : switchHref}
+            href={localeHref('en')}
             class:list={['lang-btn', { 'is-active': locale === 'en' }]}
+            aria-current={locale === 'en' ? 'true' : undefined}
+            hreflang="en"
+            lang="en"
           >
             EN
           </a>
           <a
-            href={locale === 'fr' ? path(currentRouteKey ?? 'home', 'fr') : switchHref}
+            href={localeHref('fr')}
             class:list={['lang-btn', { 'is-active': locale === 'fr' }]}
+            aria-current={locale === 'fr' ? 'true' : undefined}
+            hreflang="fr"
+            lang="fr"
           >
             FR
           </a>
