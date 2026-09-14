@@ -5,7 +5,7 @@ import Button from '../Button.astro';
 import CtaBand from '../CtaBand.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
-  description, filterTags, getPublishedTitles, subjectFilters, subjectName, titleText,
+  coverImage, description, filterTags, getPublishedTitles, subjectFilters, subjectName, titleText,
 } from '../../lib/catalogue';
 
 interface Props { locale: Locale }
@@ -87,13 +87,16 @@ const filterGroups = [
         <div class="grid grid--4 reveal">
           {titles.map((title) => (
             <article class="book-card" data-tags={filterTags(title)}>
-              {/*
-                cover_image_id is not rendered: netlify/functions/media.mts only
-                accepts uploads and exposes no read route, so there is no URL to
-                point at yet. The title stands in, as it did for placeholders.
-              */}
               <div class="book-card__cover">
-                <span>{titleText(title, lang)}</span>
+                {coverImage(title)
+                  ? <img
+                      {...coverImage(title)!}
+                      sizes="(min-width: 1240px) 280px, (min-width: 640px) 30vw, 45vw"
+                      alt={titleText(title, lang)}
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  : <span>{titleText(title, lang)}</span>}
               </div>
               <div class="book-card__body">
                 <div class="pill-row">

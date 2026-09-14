@@ -560,6 +560,7 @@ em.accent, .accent {
 .book-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
 .book-card__cover { aspect-ratio: 3 / 4; display: grid; place-items: center; padding: 1.5rem; text-align: center; background: var(--cream-deep); }
 .book-card__cover span { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--burgundy); line-height: 1.2; }
+.book-card__cover img { width: 100%; height: 100%; object-fit: cover; }
 .book-card__body { padding: 1.15rem 1.25rem 1.4rem; display: flex; flex-direction: column; gap: .7rem; }
 .book-card__body h3 { font-size: var(--step-0); }
 .book-card.is-hidden { display: none; }

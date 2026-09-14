@@ -25,6 +25,8 @@ export interface CatalogueTitle {
   description_fr: string;
   curriculum_alignment_en: string | null;
   curriculum_alignment_fr: string | null;
+  /** Blob key for the cover image; null when none was uploaded. */
+  cover_image_id: string | null;
   /** Joined from `subjects`; null when the title has no subject assigned. */
   subject_id: string | null;
   subject_en: string | null;
@@ -69,6 +71,29 @@ export function subjectFilters(titles: CatalogueTitle[], locale: Locale) {
     .sort((a, b) => a.label.localeCompare(b.label, locale));
 }
 
+/**
+ * Responsive cover image for a title, or null when it has no upload.
+ *
+ * Covers are served by netlify/functions/media.mts, which only releases a blob
+ * that published content references. Routing that through the Image CDN keeps
+ * the origin function off the hot path for repeat views and gets AVIF/WebP
+ * negotiation for free.
+ */
+export function coverImage(
+  title: CatalogueTitle,
+  widths: number[] = [240, 380, 560],
+): { src: string; srcset: string } | null {
+  if (!title.cover_image_id) return null;
+  const source = `/api/media/${title.cover_image_id}`;
+  // 3:4 portrait, matching .book-card__cover's aspect-ratio.
+  const url = (w: number) =>
+    `/.netlify/images?url=${encodeURIComponent(source)}&w=${w}&h=${Math.round(w * 4 / 3)}&fit=cover&q=78`;
+  return {
+    src: url(widths.at(-1) ?? 560),
+    srcset: widths.map((w) => `${url(w)} ${w}w`).join(', '),
+  };
+}
+
 /** Normalizes the `languages` jsonb column, which may arrive parsed or raw. */
 function toLanguages(value: unknown): Locale[] {
   const raw = typeof value === 'string' ? safeParse(value) : value;
@@ -91,7 +116,7 @@ export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle
   try {
     const db = getDatabase();
     const rows = await db.sql`
-      SELECT c.id, c.slug, c.level, c.languages, c.featured,
+      SELECT c.id, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
              c.title_en, c.title_fr, c.description_en, c.description_fr,
              c.curriculum_alignment_en, c.curriculum_alignment_fr,
              c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr

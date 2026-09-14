@@ -1,7 +1,8 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
 import {
-  curriculum, description, subjectName, titleText, getPublishedTitles, type CatalogueTitle,
+  coverImage, curriculum, description, subjectName, titleText, getPublishedTitles,
+  type CatalogueTitle,
 } from '../../../lib/catalogue';
 import { LOCALES, ROUTES, path, useTranslations, type Locale } from '../../../i18n';
 
@@ -35,6 +36,7 @@ const t = useTranslations(lang);
 const name = titleText(title, lang);
 const subject = subjectName(title, lang);
 const alignment = curriculum(title, lang);
+const cover = coverImage(title, [360, 560, 720]);
 const inquiry = `${path('contact', lang)}?title=${encodeURIComponent(name)}`;
 // The slug is locale-independent, so each locale's detail URL is just the
 // localized catalogue path plus that one slug.
@@ -53,7 +55,11 @@ const alternates = {
 >
   <section class="section section--cream catalogue-detail">
     <div class="wrap catalogue-detail__grid">
-      <div class="book-card__cover catalogue-detail__cover" aria-hidden="true"><span>{name}</span></div>
+      <div class="book-card__cover catalogue-detail__cover">
+        {cover
+          ? <img {...cover} sizes="(min-width: 900px) 360px, 60vw" alt={name} loading="eager" decoding="async" />
+          : <span aria-hidden="true">{name}</span>}
+      </div>
       <div>
         <span class="eyebrow">{lang === 'fr' ? 'Matériel pédagogique' : 'Learning material'}</span>
         <h1>{name}</h1>
