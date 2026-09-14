@@ -23,7 +23,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <label>French subject name<input name="name_fr" required placeholder="e.g. Mathématiques" /></label>
       </div>
       <div class="form-actions">
-        <button class="button">Save Subject</button>
+        <button class="button" type="submit">Save Subject</button>
         <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
       </div>
       <p id="status" role="status" aria-live="polite"></p>
@@ -34,12 +34,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   <section class="card list-card">
     <div class="list-toolbar">
       <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="search" id="searchFilter" placeholder="Search subjects by English or French name..." />
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input type="search" id="searchFilter" placeholder="Search subjects by English or French name..." aria-label="Search subjects" />
       </div>
       <div class="subject-count-chip" id="countChip">0 subjects</div>
     </div>
-    <p id="empty" class="empty-notice">Loading subjects…</p>
+
+    <div id="empty" class="empty-container"></div>
     <div id="items" class="subjects-list"></div>
   </section>
 </AdminLayout>
@@ -50,9 +51,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   type CmsRecord = { [key: string]: any };
 
   const form = document.querySelector('#editor') as HTMLFormElement;
-  const submit = form.querySelector('button:not([type="button"])') as HTMLButtonElement;
+  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   const itemsContainer = document.querySelector('#items') as HTMLDivElement;
-  const empty = document.querySelector('#empty') as HTMLParagraphElement;
+  const empty = document.querySelector('#empty') as HTMLDivElement;
   const status = document.querySelector('#status') as HTMLParagraphElement;
   const editorTitle = document.querySelector('#editorTitle') as HTMLHeadingElement;
   const editorCard = document.querySelector('#editorCard') as HTMLElement;
@@ -128,16 +129,50 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     countChip.textContent = `${filtered.length} of ${allSubjects.length} subject${allSubjects.length === 1 ? '' : 's'}`;
 
     itemsContainer.replaceChildren();
+    empty.replaceChildren();
 
     if (!filtered.length) {
-      empty.hidden = false;
-      empty.textContent = allSubjects.length
-        ? 'No subjects match your search criteria.'
-        : 'No subjects yet. Add your subject taxonomy here to classify catalogue titles.';
+      const card = document.createElement('div');
+      card.className = 'admin-empty-state';
+
+      const icon = document.createElement('div');
+      icon.className = 'admin-empty-icon';
+      icon.textContent = '❖';
+
+      const titleEl = document.createElement('h3');
+      titleEl.className = 'admin-empty-title';
+      titleEl.textContent = allSubjects.length ? 'No Matching Subjects Found' : 'Subject Taxonomy Empty';
+
+      const text = document.createElement('p');
+      text.className = 'admin-empty-text';
+      text.textContent = allSubjects.length
+        ? 'No curriculum subjects match your search. Try clearing your search query.'
+        : 'Define curriculum subjects to classify publication titles across English and French programs.';
+
+      card.append(icon, titleEl, text);
+
+      if (allSubjects.length) {
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'button secondary';
+        resetBtn.textContent = 'Clear Search';
+        resetBtn.onclick = () => {
+          searchFilter.value = '';
+          renderList();
+        };
+        card.append(resetBtn);
+      } else {
+        const createBtn = document.createElement('button');
+        createBtn.type = 'button';
+        createBtn.className = 'button';
+        createBtn.textContent = '+ Create First Subject';
+        createBtn.onclick = openNewEditor;
+        card.append(createBtn);
+      }
+
+      empty.append(card);
       return;
     }
-
-    empty.hidden = true;
 
     filtered.forEach(entry => {
       const article = document.createElement('article');
@@ -207,13 +242,25 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   }
 
   async function load() {
-    empty.hidden = false;
-    empty.textContent = 'Loading subjects…';
+    itemsContainer.replaceChildren();
+    empty.replaceChildren();
+
+    // Render skeleton loaders
+    for (let i = 0; i < 3; i++) {
+      const skel = document.createElement('div');
+      skel.className = 'admin-skeleton-card admin-skeleton';
+      skel.style.height = '64px';
+      itemsContainer.append(skel);
+    }
+
     const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
     if (!result.ok) {
-      empty.textContent = result.error!;
+      itemsContainer.replaceChildren();
+      const errCard = document.createElement('div');
+      errCard.className = 'admin-empty-state';
+      errCard.innerHTML = `<div class="admin-empty-icon">⚠️</div><h3 class="admin-empty-title">Subjects Unavailable</h3><p class="admin-empty-text">${result.error}</p>`;
+      empty.replaceChildren(errCard);
       allSubjects = [];
-      renderList();
       return;
     }
 
@@ -252,52 +299,33 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   cancelEditorBtn.addEventListener('click', async () => {
     if (await resetForm()) hideEditor();
   });
+
   searchFilter.addEventListener('input', renderList);
 
-  window.addEventListener('beforeunload', event => { if (isDirty()) event.preventDefault(); });
+  window.addEventListener('beforeunload', event => {
+    if (isDirty()) event.preventDefault();
+  });
 
   pristine = snapshot();
   load();
 </script>
 
 <style>
-.admin-page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap; margin-bottom: .5rem; }
-.admin-page-head h1 { font: 700 clamp(24px, 3vw, 36px)/1.1 var(--font-display); margin: 0; color: var(--ink); }
-.admin-page-head p { margin: .5rem 0 0; color: var(--muted); font-size: 14px; max-width: 620px; }
+.editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
+.editor-card[hidden] { display: none; }
+.subject-count-chip { font-size: 13px; font-weight: 600; color: var(--muted); font-family: var(--font-display); }
 
-.editor-card { background: #fff; border: 1.5px solid var(--green); border-radius: 20px; padding: 24px 28px; box-shadow: 0 12px 36px rgba(47, 122, 42, 0.08); margin-bottom: 24px; }
-.editor-card .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
-.editor-card h2 { margin: 0; font-size: 18px; color: var(--ink); font-family: var(--font-display); }
+.subjects-list { display: grid; gap: 1rem; }
+.subject-item { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
+.subject-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
+.subject-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: var(--green-pale); color: var(--green-deep); font: 800 18px var(--font-display); flex-shrink: 0; }
+.subject-details { flex: 1; }
+.subject-title { margin: 0; font: 700 16px var(--font-display); color: var(--ink); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.subject-alt { font-size: 13px; font-weight: 400; color: var(--muted); font-family: var(--font-body); }
+.subject-actions { display: flex; gap: .6rem; align-items: center; }
 
-.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-.two label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
-.two input { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
-.two input:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
-
-.form-actions { display: flex; gap: .75rem; align-items: center; margin-top: 1.25rem; }
-
-.list-card { background: var(--paper); }
-.list-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
-.search-box { display: flex; align-items: center; gap: .6rem; background: var(--cream); border: 1.5px solid var(--line); border-radius: 999px; padding: .4rem 1rem; min-width: 280px; flex: 1; transition: all .2s ease; }
-.search-box:focus-within { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.12); }
-.search-box input { border: 0; background: transparent; font: inherit; font-size: 14px; width: 100%; outline: none; }
-.subject-count-chip { font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--muted); background: var(--cream-deep); padding: .4rem .85rem; border-radius: 999px; border: 1px solid var(--line); }
-
-.empty-notice { color: var(--muted); text-align: center; padding: 2rem 1rem; font-size: 14px; background: var(--cream); border-radius: 12px; margin: 0; }
-
-.subjects-list { display: grid; gap: .85rem; }
-.subject-item { display: flex; align-items: center; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
-.subject-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.06); background: #fff; }
-
-.subject-icon { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--burgundy-deep), var(--burgundy)); color: var(--green); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 18px; flex-shrink: 0; }
-.subject-details { flex: 1; min-width: 0; }
-.subject-title { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--ink); display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; }
-.subject-alt { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); }
-.subject-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
-
-@media (max-width: 720px) {
-  .two { grid-template-columns: 1fr; }
-  .subject-item { flex-direction: column; align-items: flex-start; gap: .75rem; }
-  .subject-actions { margin-top: .5rem; width: 100%; justify-content: flex-end; }
+@media (max-width: 760px) {
+  .subject-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .subject-actions { width: 100%; justify-content: flex-end; }
 }
 </style>

@@ -1,103 +1,253 @@
 ---
 ---
-<!doctype html><html lang="en"><head><meta charset="utf-8" /><meta name="viewport" content="width=device-width" /><title>Longhorn Admin sign in</title><link rel="icon" href="/favicon.svg" /></head><body><main><a href="/en/" class="brand"><span class="mark">L</span><span>LONGHORN<small>Publishers Cameroon</small></span></a><p class="eyebrow">Content workspace</p><h1 id="title">Welcome back</h1><p id="intro">Sign in to manage Longhorn’s bilingual catalogue and editorial content.</p><form id="activate" hidden><label>Create password<input name="password" type="password" autocomplete="new-password" required minlength="8" /></label><label>Confirm password<input name="confirmation" type="password" autocomplete="new-password" required minlength="8" /></label><button>Activate administrator account <span>→</span></button></form><form id="login"><label>Email address<input name="email" type="email" autocomplete="email" required placeholder="you@company.com" /></label><label>Password<input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" /></label><button>Sign in <span>→</span></button></form><p id="status" role="status" aria-live="polite"></p></main><aside><div><span class="quote-mark">“</span><h2>Every great book starts with a clear story.</h2><p>The Longhorn content desk keeps every English and French version ready for publication.</p></div><small>Longhorn Publishers Cameroon</small></aside><script>
-import { acceptInvite, AuthError, getUser, handleAuthCallback, login } from '@netlify/identity';
-const status = document.querySelector('#status');
-const activationForm = document.querySelector('#activate') as HTMLFormElement | null;
-const loginForm = document.querySelector('#login') as HTMLFormElement | null;
-const title = document.querySelector('#title');
-const intro = document.querySelector('#intro');
-if (import.meta.env.DEV) {
-  title!.textContent = 'Admin sign-in requires a deploy preview';
-  intro!.textContent = 'Netlify Identity does not run in the local development server. You can test the local database and public CMS APIs here; test administrator login, roles, and protected writes on a Netlify deploy preview.';
-  loginForm!.hidden = true;
-  if (status) status.textContent = 'Local Identity is intentionally unavailable.';
-} else {
-try {
-  const invitationToken = new URLSearchParams(window.location.hash.substring(1)).get('invite_token');
-  const callback = await handleAuthCallback();
-  const token = callback?.type === 'invite' ? callback.token : invitationToken;
-  if (token && activationForm && loginForm) {
-    title!.textContent = 'Activate administrator account';
-    intro!.textContent = 'Create a password to finish accepting your invitation.';
-    activationForm.hidden = false;
-    loginForm.hidden = true;
-    activationForm.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const form = event.currentTarget as HTMLFormElement;
-      const submit = form.querySelector('button') as HTMLButtonElement;
-      const data = new FormData(form);
-      const password = String(data.get('password'));
-      if (password !== String(data.get('confirmation'))) {
-        if (status) status.textContent = 'Passwords do not match.';
-        return;
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Longhorn Admin sign in</title>
+  <link rel="icon" href="/favicon.svg" />
+</head>
+<body>
+  <main>
+    <a href="/en/" class="brand">
+      <span class="mark" aria-hidden="true">L</span>
+      <span>LONGHORN<small>Publishers Cameroon</small></span>
+    </a>
+    <p class="eyebrow">Content workspace</p>
+    <h1 id="title">Welcome back</h1>
+    <p id="intro">Sign in to manage Longhorn’s bilingual catalogue and editorial content.</p>
+
+    <form id="activate" hidden>
+      <label>
+        Create password
+        <input name="password" type="password" autocomplete="new-password" required minlength="8" />
+      </label>
+      <label>
+        Confirm password
+        <input name="confirmation" type="password" autocomplete="new-password" required minlength="8" />
+      </label>
+      <button type="submit">Activate administrator account <span>→</span></button>
+    </form>
+
+    <form id="login">
+      <label>
+        Email address
+        <input name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
+      </label>
+      <label>
+        Password
+        <input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" />
+      </label>
+      <button type="submit">Sign in <span>→</span></button>
+    </form>
+
+    <p id="status" role="status" aria-live="polite"></p>
+  </main>
+
+  <aside>
+    <div>
+      <span class="quote-mark" aria-hidden="true">“</span>
+      <h2>Every great book starts with a clear story.</h2>
+      <p>The Longhorn content desk keeps every English and French version ready for publication.</p>
+    </div>
+    <small>Longhorn Publishers Cameroon</small>
+  </aside>
+
+  <script>
+    import { acceptInvite, AuthError, getUser, handleAuthCallback, login } from '@netlify/identity';
+    const status = document.querySelector('#status');
+    const activationForm = document.querySelector('#activate') as HTMLFormElement | null;
+    const loginForm = document.querySelector('#login') as HTMLFormElement | null;
+    const title = document.querySelector('#title');
+    const intro = document.querySelector('#intro');
+
+    if (import.meta.env.DEV) {
+      title!.textContent = 'Admin sign-in requires a deploy preview';
+      intro!.textContent = 'Netlify Identity does not run in the local development server. You can test the local database and public CMS APIs here; test administrator login, roles, and protected writes on a Netlify deploy preview.';
+      if (loginForm) loginForm.hidden = true;
+      if (status) {
+        status.textContent = 'Local Identity is intentionally unavailable in dev mode.';
+        status.className = 'status status--info';
       }
-      submit.disabled = true;
-      if (status) status.textContent = 'Activating account…';
+    } else {
       try {
-        const user = await acceptInvite(token, password);
-        if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
-        location.href = '/admin/';
-      } catch (error) {
-        if (status) status.textContent = error instanceof Error ? error.message : 'Unable to activate this invitation.';
-      } finally { submit.disabled = false; }
-    });
-  } else {
-    const user = await getUser();
-    if (user?.roles?.includes('admin')) location.href = '/admin/';
-  }
-} catch {
-  // Only an actual invitation can be "invalid or expired". A failed plain
-  // session lookup must not accuse an ordinary visitor of a bad invite link.
-  const hadToken = /(?:^#|&)(?:invite_token|recovery_token)=/.test(window.location.hash);
-  if (status) status.textContent = hadToken
-    ? 'This invitation link is invalid or has expired. Request a new invitation.'
-    : 'Could not check your session. Enter your credentials to sign in.';
-}
-document.querySelector('#login')?.addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const submit = form.querySelector('button') as HTMLButtonElement; submit.disabled = true; if (status) status.textContent = 'Signing in…'; try { const user = await login(String(new FormData(form).get('email')), String(new FormData(form).get('password'))); if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.'); location.href = '/admin/'; } catch (error) { if (status) status.textContent = error instanceof AuthError && error.status === 401 ? 'Invalid email or password.' : error instanceof Error ? error.message : 'Unable to sign in.'; } finally { submit.disabled = false; } });
-}
-</script><style>
-:root {
-  --burgundy: #5C1A2B;
-  --burgundy-deep: #3B0F1B;
-  --burgundy-soft: #7A2C3F;
-  --green: #6FBF3F;
-  --green-deep: #2F7A2A;
-  --green-pale: #EAF7E2;
-  --cream: #FBF6EE;
-  --cream-deep: #F3EADD;
-  --ink: #1A1216;
-  --ink-soft: #5A4C52;
-}
-body { margin: 0; min-height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(380px, 44%); background: var(--cream); color: var(--ink); font: 15px/1.5 Inter, system-ui, sans-serif; -webkit-font-smoothing: antialiased; }
-main { width: min(440px, calc(100% - 4rem)); align-self: center; justify-self: center; padding: 42px 0; }
-.brand { display: flex; align-items: center; gap: 11px; color: var(--burgundy); text-decoration: none; font: 700 14px/1 Poppins, system-ui; letter-spacing: .08em; }
-.brand small { display: block; margin-top: 5px; color: var(--ink-soft); font: 500 10px Inter, system-ui; letter-spacing: .04em; }
-.mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--green); color: var(--burgundy-deep); font: 700 21px "Fraunces", Georgia, serif; }
-.eyebrow { margin: 48px 0 9px; color: var(--green-deep); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; font-family: Poppins, system-ui; }
-h1 { font: 700 42px/1.08 Poppins, system-ui; letter-spacing: -.04em; margin: 0; color: var(--ink); }
-#intro { margin: 10px 0 0; max-width: 370px; color: var(--ink-soft); font-size: 16px; }
-form { display: grid; gap: 18px; margin-top: 34px; }
-form[hidden] { display: none; }
-label { display: grid; gap: 7px; color: var(--ink); font-size: 13px; font-weight: 600; font-family: Poppins, system-ui; }
-input { padding: 13px 15px; border: 1.5px solid rgba(26, 18, 22, .15); border-radius: 10px; background: #fff; font: inherit; color: var(--ink); transition: border-color .2s ease, box-shadow .2s ease; }
-input:focus { outline: 3px solid var(--green-deep); outline-offset: 2px; border-color: var(--green-deep); box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
-button { margin-top: 8px; background: var(--burgundy); color: #fff; border: 0; border-radius: 999px; padding: 14px 22px; font: 600 14px Poppins, system-ui; cursor: pointer; box-shadow: 0 6px 18px rgba(92, 26, 43, 0.22); text-align: left; transition: all .25s ease; }
-button:hover { background: var(--burgundy-soft); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(92, 26, 43, 0.3); }
-button span { float: right; font-size: 18px; line-height: 14px; }
-button:disabled { opacity: .6; transform: none !important; }
-#status { min-height: 1.4rem; margin: 16px 0 0; color: #b3261e; font-weight: 650; }
-aside { display: flex; flex-direction: column; justify-space-between; padding: 64px; background: linear-gradient(155deg, var(--burgundy-deep), var(--burgundy) 60%, var(--burgundy-soft)); color: #fff; }
-aside > div { max-width: 420px; margin: auto 0; }
-.quote-mark { color: var(--green); font: 100px/0 "Fraunces", Georgia, serif; }
-aside h2 { font: 600 clamp(30px, 4vw, 48px)/1.08 Poppins, system-ui; letter-spacing: -.04em; margin: 24px 0 16px; }
-aside p { max-width: 360px; color: rgba(255, 255, 255, 0.82); font-size: 16px; line-height: 1.6; }
-aside small { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-family: Poppins, system-ui; }
-@media (max-width: 760px) {
-  body { display: block; }
-  main { width: min(440px, calc(100% - 40px)); padding: 35px 0 50px; }
-  aside { display: none; }
-  .eyebrow { margin-top: 38px; }
-  h1 { font-size: 34px; }
-}
-</style></body></html>
+        const invitationToken = new URLSearchParams(window.location.hash.substring(1)).get('invite_token');
+        const callback = await handleAuthCallback();
+        const token = callback?.type === 'invite' ? callback.token : invitationToken;
+
+        if (token && activationForm && loginForm) {
+          title!.textContent = 'Activate administrator account';
+          intro!.textContent = 'Create a password to finish accepting your invitation.';
+          activationForm.hidden = false;
+          loginForm.hidden = true;
+          activationForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const form = event.currentTarget as HTMLFormElement;
+            const submit = form.querySelector('button') as HTMLButtonElement;
+            const data = new FormData(form);
+            const password = String(data.get('password'));
+
+            if (password !== String(data.get('confirmation'))) {
+              if (status) {
+                status.textContent = 'Passwords do not match.';
+                status.className = 'status status--err';
+              }
+              return;
+            }
+
+            submit.disabled = true;
+            if (status) {
+              status.textContent = 'Activating account…';
+              status.className = 'status status--info';
+            }
+
+            try {
+              const user = await acceptInvite(token, password);
+              if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
+              location.href = '/admin/';
+            } catch (error) {
+              if (status) {
+                status.textContent = error instanceof Error ? error.message : 'Unable to activate this invitation.';
+                status.className = 'status status--err';
+              }
+            } finally {
+              submit.disabled = false;
+            }
+          });
+        } else {
+          const user = await getUser();
+          if (user?.roles?.includes('admin')) location.href = '/admin/';
+        }
+      } catch {
+        const hadToken = /(?:^#|&)(?:invite_token|recovery_token)=/.test(window.location.hash);
+        if (status) {
+          status.textContent = hadToken
+            ? 'This invitation link is invalid or has expired. Request a new invitation.'
+            : 'Could not check your session. Enter your credentials to sign in.';
+          status.className = 'status status--err';
+        }
+      }
+
+      document.querySelector('#login')?.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const form = event.currentTarget as HTMLFormElement;
+        const submit = form.querySelector('button') as HTMLButtonElement;
+        submit.disabled = true;
+        if (status) {
+          status.textContent = 'Signing in…';
+          status.className = 'status status--info';
+        }
+
+        try {
+          const user = await login(
+            String(new FormData(form).get('email')),
+            String(new FormData(form).get('password'))
+          );
+          if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
+          location.href = '/admin/';
+        } catch (error) {
+          if (status) {
+            status.textContent = error instanceof AuthError && error.status === 401
+              ? 'Invalid email or password.'
+              : error instanceof Error
+              ? error.message
+              : 'Unable to sign in.';
+            status.className = 'status status--err';
+          }
+        } finally {
+          submit.disabled = false;
+        }
+      });
+    }
+  </script>
+
+  <style>
+    :root {
+      --burgundy: #5C1A2B;
+      --burgundy-deep: #3B0F1B;
+      --burgundy-soft: #7A2C3F;
+      --green: #6FBF3F;
+      --green-deep: #2F7A2A;
+      --green-pale: #EAF7E2;
+      --cream: #FBF6EE;
+      --cream-deep: #F3EADD;
+      --ink: #1A1216;
+      --ink-soft: #5A4C52;
+      --danger: #B3261E;
+      --font-display: "Poppins", "Montserrat", system-ui, sans-serif;
+      --font-body: "Inter", system-ui, sans-serif;
+      --font-accent: "Fraunces", Georgia, serif;
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0; min-height: 100vh; display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(380px, 44%);
+      background: var(--cream); color: var(--ink);
+      font: 15px/1.5 var(--font-body); -webkit-font-smoothing: antialiased;
+    }
+
+    main { width: min(440px, calc(100% - 4rem)); align-self: center; justify-self: center; padding: 48px 0; }
+    
+    .brand { display: flex; align-items: center; gap: 12px; color: var(--burgundy); text-decoration: none; font: 700 14px/1 var(--font-display); letter-spacing: .08em; }
+    .brand small { display: block; margin-top: 5px; color: var(--ink-soft); font: 500 10px var(--font-body); letter-spacing: .04em; }
+    .mark {
+      display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px;
+      background: var(--burgundy-deep); color: var(--green); border: 1px solid rgba(111, 191, 63, 0.4);
+      font: 700 21px var(--font-accent); box-shadow: 0 4px 12px rgba(59, 15, 27, 0.2);
+    }
+    
+    .eyebrow { margin: 44px 0 8px; color: var(--green-deep); font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; font-family: var(--font-display); }
+    h1 { font: 700 40px/1.08 var(--font-display); letter-spacing: -.04em; margin: 0; color: var(--ink); }
+    #intro { margin: 10px 0 0; max-width: 380px; color: var(--ink-soft); font-size: 15px; }
+
+    form { display: grid; gap: 18px; margin-top: 32px; }
+    form[hidden] { display: none; }
+    label { display: grid; gap: 7px; color: var(--ink); font-size: 13px; font-weight: 600; font-family: var(--font-display); }
+    input {
+      padding: 13px 15px; border: 1.5px solid rgba(26, 18, 22, .15); border-radius: 12px;
+      background: #fff; font: inherit; color: var(--ink); transition: border-color .2s ease, box-shadow .2s ease;
+    }
+    input:focus {
+      outline: 3px solid var(--green-deep); outline-offset: 2px;
+      border-color: var(--green-deep); box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14);
+    }
+
+    button {
+      margin-top: 8px; background: var(--burgundy); color: #fff; border: 0; border-radius: 999px;
+      padding: 14px 24px; font: 600 14px var(--font-display); cursor: pointer;
+      box-shadow: 0 6px 18px rgba(92, 26, 43, 0.22); text-align: left; transition: all .25s ease;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    button:hover { background: var(--burgundy-soft); transform: translateY(-2px); box-shadow: 0 8px 22px rgba(92, 26, 43, 0.3); }
+    button:focus-visible { outline: 3px solid var(--green-deep); outline-offset: 2px; }
+    button span { font-size: 18px; line-height: 1; }
+    button:disabled { opacity: .6; transform: none !important; cursor: not-allowed; }
+
+    #status { min-height: 1.4rem; margin: 18px 0 0; font-weight: 650; font-size: 13px; padding: 10px 14px; border-radius: 10px; }
+    #status:empty { display: none; }
+    #status.status--info { background: var(--cream-deep); color: var(--burgundy); border: 1px solid rgba(26, 18, 22, 0.1); }
+    #status.status--err { background: #FBE9EC; color: var(--danger); border: 1px solid rgba(179, 38, 30, 0.2); }
+
+    aside {
+      display: flex; flex-direction: column; justify-content: space-between; padding: 64px;
+      background: linear-gradient(160deg, var(--burgundy-deep) 0%, var(--burgundy) 65%, var(--burgundy-soft) 100%);
+      color: #fff;
+    }
+    aside > div { max-width: 420px; margin: auto 0; }
+    .quote-mark { color: var(--green); font: 100px/0 var(--font-accent); display: block; margin-bottom: 20px; }
+    aside h2 { font: 600 clamp(28px, 3.8vw, 44px)/1.1 var(--font-display); letter-spacing: -.03em; margin: 0 0 16px; }
+    aside p { max-width: 360px; color: rgba(255, 255, 255, 0.82); font-size: 15px; line-height: 1.6; }
+    aside small { color: var(--green); font-size: 11px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase; font-family: var(--font-display); }
+
+    @media (max-width: 760px) {
+      body { display: block; }
+      main { width: min(440px, calc(100% - 32px)); padding: 36px 0 48px; }
+      aside { display: none; }
+      .eyebrow { margin-top: 32px; }
+      h1 { font-size: 32px; }
+    }
+  </style>
+</body>
+</html>

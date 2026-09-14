@@ -2,54 +2,58 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="Overview">
-  <h1>Content Management Desk</h1>
-  <p>Manage bilingual publication titles, curriculum subjects, and company news with guaranteed EN/FR parity.</p>
+  <div class="admin-page-head">
+    <div>
+      <h1>Content Management Desk</h1>
+      <p>Manage bilingual publication titles, curriculum subjects, and company news with guaranteed EN/FR parity.</p>
+    </div>
+  </div>
 
-  <section class="metrics">
+  <section class="metrics" aria-label="Dashboard Statistics">
     <article class="metric-card">
       <div class="metric-head">
-        <span class="metric-icon">▤</span>
+        <span class="metric-icon" aria-hidden="true">▤</span>
         <span class="admin-badge admin-badge--published" id="catalogueBadge">Live</span>
       </div>
       <p>Catalogue Titles</p>
-      <strong id="metricCatalogue">—</strong>
-      <small id="metricCatalogueSub">Fetching publication titles…</small>
+      <strong id="metricCatalogue" class="metric-value admin-skeleton"></strong>
+      <small id="metricCatalogueSub" class="metric-sub">Fetching publication titles…</small>
     </article>
 
     <article class="metric-card">
       <div class="metric-head">
-        <span class="metric-icon gold">✦</span>
+        <span class="metric-icon gold" aria-hidden="true">✦</span>
         <span class="admin-badge admin-badge--draft" id="newsBadge">Editorial</span>
       </div>
       <p>News Articles</p>
-      <strong id="metricNews">—</strong>
-      <small id="metricNewsSub">Fetching editorial drafts…</small>
+      <strong id="metricNews" class="metric-value admin-skeleton"></strong>
+      <small id="metricNewsSub" class="metric-sub">Fetching editorial drafts…</small>
     </article>
 
     <article class="metric-card">
       <div class="metric-head">
-        <span class="metric-icon purple">❖</span>
+        <span class="metric-icon purple" aria-hidden="true">❖</span>
         <span class="admin-badge admin-badge--purple">Taxonomy</span>
       </div>
       <p>Curriculum Subjects</p>
-      <strong id="metricSubjects">—</strong>
-      <small id="metricSubjectsSub">Fetching subjects…</small>
+      <strong id="metricSubjects" class="metric-value admin-skeleton"></strong>
+      <small id="metricSubjectsSub" class="metric-sub">Fetching subjects…</small>
     </article>
 
     <article class="metric-card">
       <div class="metric-head">
-        <span class="metric-icon green">✓</span>
+        <span class="metric-icon green" aria-hidden="true">✓</span>
         <span class="admin-badge admin-badge--published">Active</span>
       </div>
       <p>Bilingual Parity</p>
-      <strong>100%</strong>
-      <small>EN & FR required per record.</small>
+      <strong class="metric-value">100%</strong>
+      <small class="metric-sub">EN & FR required per record.</small>
     </article>
   </section>
 
-  <section class="quick-grid">
+  <section class="quick-grid" aria-label="Workspace Shortcuts">
     <div class="card quick-action">
-      <span class="action-icon">📚</span>
+      <span class="action-icon" aria-hidden="true">📚</span>
       <div>
         <p class="section-kicker">Catalogue Workspace</p>
         <h2>Educational Titles</h2>
@@ -59,7 +63,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     </div>
 
     <div class="card quick-action">
-      <span class="action-icon">📰</span>
+      <span class="action-icon" aria-hidden="true">📰</span>
       <div>
         <p class="section-kicker">Editorial Desk</p>
         <h2>News & Partnerships</h2>
@@ -69,7 +73,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     </div>
   </section>
 
-  <section class="card workflow">
+  <section class="card workflow" aria-label="Publishing Process">
     <div class="workflow-header">
       <h2>Publishing Process & Quality Checklist</h2>
       <p>All content published from this workspace reflects directly across the Cameroonian & DRC public sites.</p>
@@ -118,6 +122,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         request<any[]>('/api/subjects-admin', {}, 'Unable to fetch subjects.'),
       ]);
 
+      if (catalogueEl) catalogueEl.classList.remove('admin-skeleton');
+      if (newsEl) newsEl.classList.remove('admin-skeleton');
+      if (subjectsEl) subjectsEl.classList.remove('admin-skeleton');
+
       if (catRes.ok && catRes.data) {
         const published = catRes.data.filter(t => t.published).length;
         if (catalogueEl) catalogueEl.textContent = String(catRes.data.length);
@@ -144,10 +152,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         if (subjectsSub) subjectsSub.textContent = 'Define subjects to categorize titles.';
       }
     } catch {
-      // Netlify database unconfigured fallback
-      if (catalogueEl) catalogueEl.textContent = '—';
-      if (newsEl) newsEl.textContent = '—';
-      if (subjectsEl) subjectsEl.textContent = '—';
+      if (catalogueEl) { catalogueEl.classList.remove('admin-skeleton'); catalogueEl.textContent = '—'; }
+      if (newsEl) { newsEl.classList.remove('admin-skeleton'); newsEl.textContent = '—'; }
+      if (subjectsEl) { subjectsEl.classList.remove('admin-skeleton'); subjectsEl.textContent = '—'; }
     }
   }
 
@@ -164,9 +171,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 }
 .metric-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(59, 15, 27, 0.08); }
 .metric-head { display: flex; align-items: center; justify-content: space-between; }
-.metric-card p { margin: 14px 0 2px; color: var(--muted); font-size: 13px; font-weight: 500; }
-.metric-card strong { display: block; font: 700 36px/1 var(--font-display); color: var(--ink); letter-spacing: -.04em; }
-.metric-card small { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
+.metric-card p { margin: 14px 0 2px; color: var(--muted); font-size: 13px; font-weight: 600; font-family: var(--font-display); }
+.metric-value { display: block; font: 700 36px/1 var(--font-display); color: var(--ink); letter-spacing: -.04em; min-height: 36px; }
+.metric-sub { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
+
 .metric-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--green-pale); color: var(--green-deep); font-weight: 900; font-size: 16px; }
 .metric-icon.gold { background: rgba(233,166,59,.18); color: #9A6608; }
 .metric-icon.purple { background: rgba(110,75,158,.14); color: var(--purple); }
@@ -175,7 +183,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 .quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 4px; }
 .quick-action {
   display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
-  background: linear-gradient(135deg, #ffffff, #fdfaf5);
+  background: linear-gradient(135deg, #ffffff, #fdfaf5); border: 1px solid var(--line);
 }
 .action-icon { font-size: 32px; }
 .quick-action p { color: var(--muted); margin-top: 6px; }

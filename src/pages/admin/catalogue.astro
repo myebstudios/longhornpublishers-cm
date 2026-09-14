@@ -65,7 +65,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
 
       <div class="form-actions">
-        <button class="button">Save Title</button>
+        <button class="button" type="submit">Save Title</button>
         <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
       </div>
       <p id="status" role="status" aria-live="polite"></p>
@@ -76,26 +76,28 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   <section class="card list-card">
     <div class="list-toolbar">
       <div class="search-box">
-        <span class="search-icon">🔍</span>
-        <input type="search" id="searchFilter" placeholder="Search titles by name or slug..." />
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input type="search" id="searchFilter" placeholder="Search titles by name or slug..." aria-label="Search catalogue titles" />
       </div>
       <div class="filter-controls">
-        <select id="filterLevel">
+        <select id="filterLevel" aria-label="Filter by education level">
           <option value="all">All Levels</option>
           <option value="primary">Primary</option>
           <option value="secondary">Secondary</option>
         </select>
-        <select id="filterStatus">
+        <select id="filterStatus" aria-label="Filter by publication status">
           <option value="all">All Statuses</option>
           <option value="published">Published</option>
           <option value="draft">Drafts</option>
         </select>
       </div>
     </div>
-    <p id="empty" class="empty-notice">Loading catalogue…</p>
+
+    <div id="empty" class="empty-container"></div>
     <div id="items" class="catalogue-list"></div>
   </section>
 </AdminLayout>
+
 <script>
   import {
     confirmAction, coverFileError, coverViewState, emptyToNull, request, sendJson,
@@ -104,7 +106,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   type CmsRecord = { [key: string]: any };
 
   const form = document.querySelector('#editor') as HTMLFormElement;
-  const submit = form.querySelector('button:not([type="button"])') as HTMLButtonElement;
+  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   const items = document.querySelector('#items')!;
   const empty = document.querySelector('#empty')!;
   const status = document.querySelector('#status')!;
@@ -150,42 +152,117 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       description_fr: data.get('description_fr'),
       curriculum_alignment_en: data.get('curriculum_alignment_en'),
       curriculum_alignment_fr: data.get('curriculum_alignment_fr'),
-      languages: ['language_en', 'language_fr'].filter(key => data.get(key)).map(key => key.replace('language_', '')),
-      featured: Boolean(data.get('featured')),
-      published: Boolean(data.get('published')),
-    } as CmsRecord, ['curriculum_alignment_en', 'curriculum_alignment_fr']);
+      language_en: (form.elements.namedItem('language_en') as HTMLInputElement).checked,
+      language_fr: (form.elements.namedItem('language_fr') as HTMLInputElement).checked,
+      featured: (form.elements.namedItem('featured') as HTMLInputElement).checked,
+      published: (form.elements.namedItem('published') as HTMLInputElement).checked,
+    }, ['id', 'subject_id', 'cover_image_id']);
   };
 
-  // --- Cover image -------------------------------------------------------
-  // The rules live in admin-client so they can be unit-tested without a DOM;
-  // everything here just applies the resulting state.
-  const coverField = form.elements.namedItem('cover_image_id') as HTMLInputElement;
-  const coverFile = document.querySelector('#coverFile') as HTMLInputElement;
-  const coverFileLabel = document.querySelector('#coverFileLabel')!;
+  const edit = async (entry: CmsRecord) => {
+    if (!(await confirmDiscard())) return;
+    (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
+    (form.elements.namedItem('title_en') as HTMLInputElement).value = entry.title_en ?? '';
+    (form.elements.namedItem('title_fr') as HTMLInputElement).value = entry.title_fr ?? '';
+    (form.elements.namedItem('slug') as HTMLInputElement).value = entry.slug ?? '';
+    (form.elements.namedItem('level') as HTMLSelectElement).value = entry.level ?? 'primary';
+    (form.elements.namedItem('subject_id') as HTMLSelectElement).value = entry.subject_id ?? '';
+    (form.elements.namedItem('description_en') as HTMLTextAreaElement).value = entry.description_en ?? '';
+    (form.elements.namedItem('description_fr') as HTMLTextAreaElement).value = entry.description_fr ?? '';
+    (form.elements.namedItem('curriculum_alignment_en') as HTMLTextAreaElement).value = entry.curriculum_alignment_en ?? '';
+    (form.elements.namedItem('curriculum_alignment_fr') as HTMLTextAreaElement).value = entry.curriculum_alignment_fr ?? '';
+    (form.elements.namedItem('language_en') as HTMLInputElement).checked = Boolean(entry.language_en);
+    (form.elements.namedItem('language_fr') as HTMLInputElement).checked = Boolean(entry.language_fr);
+    (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
+    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
+    (form.elements.namedItem('cover_image_id') as HTMLInputElement).value = entry.cover_image_id ?? '';
+    releasePreviewUrl();
+    coverField.value = '';
+    renderCover(entry.cover_image_id ?? null);
+    setCoverStatus('');
+    title.textContent = `Editing: ${entry.title_en}`;
+    setStatus('');
+    pristine = snapshot();
+    showEditor();
+  };
+
+  const coverIdInput = form.elements.namedItem('cover_image_id') as HTMLInputElement;
   const coverPreview = document.querySelector('#coverPreview') as HTMLImageElement;
-  const coverEmpty = document.querySelector('#coverEmpty')!;
+  const coverEmpty = document.querySelector('#coverEmpty') as HTMLParagraphElement;
+  const coverFileLabel = document.querySelector('#coverFileLabel') as HTMLLabelElement;
   const coverClear = document.querySelector('#coverClear') as HTMLButtonElement;
-  const coverStatus = document.querySelector('#coverStatus')!;
+  const coverStatus = document.querySelector('#coverStatus') as HTMLParagraphElement;
+  const coverField = document.querySelector('#coverFile') as HTMLInputElement;
 
-  /** Object URL for a just-picked file, revoked when it stops being shown. */
-  let previewObjectUrl: string | null = null;
+  let activePreviewUrl: string | null = null;
   const releasePreviewUrl = () => {
-    if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+    if (activePreviewUrl) { URL.revokeObjectURL(activePreviewUrl); activePreviewUrl = null; }
   };
+  const setCoverStatus = (message: string) => { coverStatus.textContent = message; };
 
-  const setCoverStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
-    coverStatus.textContent = message;
-    coverStatus.className = message ? `cover__status status--${tone}` : 'cover__status';
-  };
+  function renderCover(storedId: string | null, localFile?: File | null) {
+    if (localFile) {
+      releasePreviewUrl();
+      activePreviewUrl = URL.createObjectURL(localFile);
+    }
+    const state = coverViewState(storedId, activePreviewUrl);
+    if (state.imageSrc) {
+      coverPreview.src = state.imageSrc;
+      coverPreview.hidden = false;
+      coverEmpty.hidden = true;
+    } else {
+      coverPreview.hidden = true;
+      coverPreview.removeAttribute('src');
+      coverEmpty.hidden = false;
+    }
+    coverFileLabel.textContent = state.fileLabel;
+    coverClear.hidden = !state.showClear;
+  }
+
+  coverField.addEventListener('change', async () => {
+    const file = coverField.files?.[0];
+    if (!file) return;
+    const err = coverFileError(file);
+    if (err) { setCoverStatus(err); coverField.value = ''; return; }
+    setCoverStatus('Uploading cover image…');
+    renderCover(coverIdInput.value || null, file);
+    try {
+      const res = await request<{ id: string }>('/api/media', {
+        method: 'POST',
+        headers: { 'Content-Type': file.type },
+        body: file,
+      }, 'Unable to upload image.');
+      if (!res.ok || !res.data?.id) { setCoverStatus(res.error!); renderCover(coverIdInput.value || null); return; }
+      coverIdInput.value = res.data.id;
+      releasePreviewUrl();
+      renderCover(res.data.id);
+      setCoverStatus('Cover image attached.');
+    } catch {
+      setCoverStatus('Upload failed. Check your connection and try again.');
+      renderCover(coverIdInput.value || null);
+    }
+  });
+
+  coverClear.addEventListener('click', () => {
+    releasePreviewUrl();
+    coverField.value = '';
+    coverIdInput.value = '';
+    renderCover(null);
+    setCoverStatus('Cover image removed.');
+  });
 
   const editorCard = document.querySelector('#editorCard') as HTMLElement;
   const openEditorBtn = document.querySelector('#openEditorBtn') as HTMLButtonElement;
   const closeEditorBtn = document.querySelector('#closeEditorBtn') as HTMLButtonElement;
   const cancelEditorBtn = document.querySelector('#cancelEditorBtn') as HTMLButtonElement;
+  const searchFilter = document.querySelector('#searchFilter') as HTMLInputElement;
+  const filterLevel = document.querySelector('#filterLevel') as HTMLSelectElement;
+  const filterStatus = document.querySelector('#filterStatus') as HTMLSelectElement;
+  const subjectSelect = form.elements.namedItem('subject_id') as HTMLSelectElement;
 
   const showEditor = (isNew = false) => {
     editorCard.removeAttribute('hidden');
-    if (isNew) title.textContent = 'Create New Title';
+    if (isNew) title.textContent = 'New Title';
     editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
     const firstInput = form.querySelector('input[name="title_en"]') as HTMLInputElement | null;
     if (firstInput) firstInput.focus();
@@ -193,139 +270,41 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   const hideEditor = async () => {
     if (await confirmDiscard()) {
-      form.reset();
+      await reset(true);
       editorCard.setAttribute('hidden', '');
       setStatus('');
     }
   };
 
   openEditorBtn.addEventListener('click', async () => {
-    if (await reset(true)) {
-      showEditor(true);
-    }
+    if (await reset(true)) showEditor(true);
   });
 
   closeEditorBtn.addEventListener('click', hideEditor);
   cancelEditorBtn.addEventListener('click', hideEditor);
 
-
-
-  const renderCover = (id: string | null, src?: string) => {
-    const view = coverViewState(id, src);
-    if (view.imageSrc) coverPreview.src = view.imageSrc;
-    else coverPreview.removeAttribute('src');
-    coverPreview.alt = '';
-    coverPreview.hidden = !view.showImage;
-    (coverEmpty as HTMLElement).hidden = !view.showEmpty;
-    coverClear.hidden = !view.showClear;
-    coverFileLabel.textContent = view.fileLabel;
-  };
-
-  coverFile.addEventListener('change', async () => {
-    const file = coverFile.files?.[0];
-    if (!file) return;
-
-    const invalid = coverFileError(file);
-    if (invalid) {
-      setCoverStatus(invalid, 'err');
-      coverFile.value = '';
-      return;
-    }
-
-    releasePreviewUrl();
-    previewObjectUrl = URL.createObjectURL(file);
-    renderCover(null, previewObjectUrl);
-
-    coverFile.disabled = true;
-    submit.disabled = true;
-    setCoverStatus(`Uploading ${file.name}…`);
-    try {
-      const body = new FormData();
-      body.append('file', file);
-      const result = await request<{ id: string }>(
-        '/api/media', { method: 'POST', body }, 'Unable to upload that image.',
-      );
-      if (!result.ok || !result.data?.id) {
-        releasePreviewUrl();
-        renderCover(coverField.value || null);
-        setCoverStatus(result.error ?? 'Unable to upload that image.', 'err');
-        return;
-      }
-      coverField.value = result.data.id;
-      setCoverStatus(`${file.name} uploaded. Save the title to attach it.`);
-    } finally {
-      coverFile.disabled = false;
-      submit.disabled = false;
-      coverFile.value = '';
-    }
-  });
-
-  coverClear.addEventListener('click', () => {
-    releasePreviewUrl();
-    coverField.value = '';
-    renderCover(null);
-    setCoverStatus('Cover image removed. Save the title to apply it.');
-    coverFile.focus();
-  });
-
-  const edit = async (entry: CmsRecord) => {
-    if (!(await confirmDiscard())) return;
-    for (const [key, value] of Object.entries(entry)) {
-      const input = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null;
-      if (input && typeof value === 'string') input.value = value;
-    }
-    (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
-    const languages: string[] = Array.isArray(entry.languages)
-      ? entry.languages
-      : typeof entry.languages === 'string'
-        ? (() => { try { return JSON.parse(entry.languages); } catch { return []; } })()
-        : [];
-    (form.elements.namedItem('language_en') as HTMLInputElement).checked = languages.includes('en');
-    (form.elements.namedItem('language_fr') as HTMLInputElement).checked = languages.includes('fr');
-    const subjectSelect = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
-    if (subjectSelect) subjectSelect.value = entry.subject_id ?? '';
-    releasePreviewUrl();
-    coverField.value = entry.cover_image_id ?? '';
-    renderCover(entry.cover_image_id ?? null);
-    setCoverStatus('');
-    (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
-    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
-    title.textContent = `Editing: ${entry.title_en}`;
-    setStatus('');
-    pristine = snapshot();
-    showEditor(false);
-  };
+  let allRows: CmsRecord[] = [];
 
   async function loadSubjects() {
-    const select = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
-    if (!select) return;
-    const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
-    if (!result.ok) {
-      setStatus(`${result.error} Titles can still be saved without a subject.`, 'err');
-      return;
-    }
-    const rows = result.data ?? [];
-    for (const subject of rows) {
-      const option = document.createElement('option');
-      option.value = subject.id;
-      option.textContent = subject.name_fr ? `${subject.name_en} / ${subject.name_fr}` : subject.name_en;
-      select.append(option);
-    }
-    if (!rows.length) {
-      const option = select.querySelector('option');
-      if (option) option.textContent = '— No subjects defined yet —';
-    }
+    const res = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to fetch subjects.');
+    if (!res.ok || !res.data) return;
+    subjectSelect.replaceChildren();
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = '— No subject —';
+    subjectSelect.append(defaultOpt);
+    res.data.forEach(sub => {
+      const opt = document.createElement('option');
+      opt.value = sub.id;
+      opt.textContent = `${sub.name_en} (${sub.name_fr})`;
+      subjectSelect.append(opt);
+    });
   }
 
-  let allRows: CmsRecord[] = [];
-  const searchFilter = document.querySelector('#searchFilter') as HTMLInputElement | null;
-  const filterLevel = document.querySelector('#filterLevel') as HTMLSelectElement | null;
-  const filterStatus = document.querySelector('#filterStatus') as HTMLSelectElement | null;
-
   function renderList() {
-    const query = (searchFilter?.value || '').toLowerCase().trim();
-    const level = filterLevel?.value || 'all';
-    const statusVal = filterStatus?.value || 'all';
+    const query = searchFilter.value.trim().toLowerCase();
+    const level = filterLevel.value;
+    const statusVal = filterStatus.value;
 
     const filtered = allRows.filter(entry => {
       const matchQuery = !query ||
@@ -338,7 +317,54 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     });
 
     items.replaceChildren();
-    empty.textContent = filtered.length ? '' : (allRows.length ? 'No titles match the selected filters.' : 'No titles yet. Click "+ Create New Title" to start.');
+    empty.replaceChildren();
+
+    if (!filtered.length) {
+      const card = document.createElement('div');
+      card.className = 'admin-empty-state';
+
+      const icon = document.createElement('div');
+      icon.className = 'admin-empty-icon';
+      icon.textContent = '📚';
+
+      const titleEl = document.createElement('h3');
+      titleEl.className = 'admin-empty-title';
+      titleEl.textContent = allRows.length ? 'No Matching Titles Found' : 'Catalogue is Empty';
+
+      const text = document.createElement('p');
+      text.className = 'admin-empty-text';
+      text.textContent = allRows.length
+        ? 'No catalogue entries match your current search filters. Try clearing your filters.'
+        : 'Get started by creating your first bilingual publication entry for Longhorn Publishers.';
+
+      card.append(icon, titleEl, text);
+
+      if (allRows.length) {
+        const resetBtn = document.createElement('button');
+        resetBtn.type = 'button';
+        resetBtn.className = 'button secondary';
+        resetBtn.textContent = 'Clear Filters';
+        resetBtn.onclick = () => {
+          searchFilter.value = '';
+          filterLevel.value = 'all';
+          filterStatus.value = 'all';
+          renderList();
+        };
+        card.append(resetBtn);
+      } else {
+        const createBtn = document.createElement('button');
+        createBtn.type = 'button';
+        createBtn.className = 'button';
+        createBtn.textContent = '+ Create First Title';
+        createBtn.onclick = async () => {
+          if (await reset(true)) showEditor(true);
+        };
+        card.append(createBtn);
+      }
+
+      empty.append(card);
+      return;
+    }
 
     filtered.forEach(entry => {
       const article = document.createElement('article');
@@ -402,8 +428,26 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   }
 
   async function load() {
+    items.replaceChildren();
+    empty.replaceChildren();
+    
+    // Render skeleton loading cards
+    for (let i = 0; i < 3; i++) {
+      const skel = document.createElement('div');
+      skel.className = 'admin-skeleton-card admin-skeleton';
+      skel.style.height = '72px';
+      items.append(skel);
+    }
+
     const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
-    if (!result.ok) { empty.textContent = result.error!; return; }
+    if (!result.ok) {
+      items.replaceChildren();
+      const errCard = document.createElement('div');
+      errCard.className = 'admin-empty-state';
+      errCard.innerHTML = `<div class="admin-empty-icon">⚠️</div><h3 class="admin-empty-title">Catalogue Unavailable</h3><p class="admin-empty-text">${result.error}</p>`;
+      empty.replaceChildren(errCard);
+      return;
+    }
     allRows = result.data ?? [];
     renderList();
   }
@@ -427,7 +471,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       );
       if (!result.ok) { setStatus(result.error!, 'err'); return; }
       setStatus(record.published ? 'Title published.' : 'Draft saved.');
-      reset(true);
+      await reset(true);
       editorCard.setAttribute('hidden', '');
       await load();
     } finally {
@@ -444,39 +488,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </script>
 
 <style>
-.admin-page-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .5rem; }
 .editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
 .editor-card[hidden] { display: none; }
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
-.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
-.two label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
-.two input, .two textarea, .two select { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font-size: 14px; transition: all .2s ease; }
-.two input:focus, .two textarea:focus, .two select:focus { border-color: var(--green-deep); box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
-.two textarea { min-height: 5.5rem; resize: vertical; }
-
-.cover { border: 1.5px solid var(--line); border-radius: 14px; padding: 1.25rem; margin: 1.5rem 0; background: #fff; }
-.cover legend { font-weight: 700; font-family: var(--font-display); font-size: 13px; padding: 0 .5rem; color: var(--burgundy); }
-.cover__row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
-.cover__preview { flex: 0 0 110px; width: 110px; aspect-ratio: 3/4; border: 2px dashed rgba(26, 18, 22, 0.2); border-radius: 12px; display: grid; place-items: center; overflow: hidden; background: var(--cream); }
-.cover__preview img { width: 100%; height: 100%; object-fit: cover; }
-.cover__empty { margin: 0; padding: .5rem; text-align: center; color: var(--muted); font-size: .85em; }
-.cover__controls { flex: 1 1 16rem; display: grid; gap: .6rem; justify-items: start; }
-.cover__hint { margin: 0; color: var(--muted); font-size: 12px; }
-.cover__status { margin: 0; min-height: 1.3em; font-weight: 650; }
-
-.checks { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 1.25rem 0 1.5rem; }
-.checks label { font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }
-.form-actions { display: flex; gap: 1rem; align-items: center; margin-top: 1.25rem; }
-
-/* List & Search Controls */
-.list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
-.search-box { flex: 1 1 280px; position: relative; display: flex; align-items: center; }
-.search-icon { position: absolute; left: 1rem; font-size: 14px; pointer-events: none; opacity: .6; }
-.search-box input { width: 100%; padding: .75rem 1rem .75rem 2.5rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 14px; font-family: var(--font-body); transition: all .2s ease; }
-.search-box input:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
-.filter-controls { display: flex; gap: .75rem; }
-.filter-controls select { padding: .65rem 1rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 13px; font-weight: 600; font-family: var(--font-display); color: var(--ink); }
-
 .catalogue-list { display: grid; gap: 1rem; }
 .catalogue-item-card { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
 .catalogue-item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
@@ -484,14 +497,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 .title-info .alt { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 400; }
 .item-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
 .item-actions { display: flex; gap: .6rem; align-items: center; }
-.empty-notice { color: var(--muted); padding: 2rem; text-align: center; font-size: 15px; }
 
 @media (max-width: 760px) {
-  .two { grid-template-columns: 1fr; }
   .catalogue-item-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
   .item-actions { width: 100%; justify-content: flex-end; }
-  .list-toolbar { flex-direction: column; align-items: stretch; }
-  .filter-controls { width: 100%; justify-content: space-between; }
-  .filter-controls select { flex: 1; }
 }
 </style>
