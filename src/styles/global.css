@@ -195,12 +195,13 @@ em.accent, .accent {
 .site-header {
   position: fixed; inset: 0 0 auto; z-index: 100;
   padding-block: 1rem;
-  transition: background-color .35s ease, box-shadow .35s ease, padding .35s ease;
+  pointer-events: none;
+  transition: padding .35s ease;
+}
+.site-header > * {
+  pointer-events: auto;
 }
 .site-header.is-solid {
-  background: rgba(251, 246, 238, .88);
-  backdrop-filter: blur(14px);
-  box-shadow: 0 1px 0 var(--line);
   padding-block: .6rem;
 }
 .site-header__inner {
@@ -208,6 +209,10 @@ em.accent, .accent {
   background: var(--white); border-radius: 999px;
   padding: .55rem .55rem .55rem 1.5rem;
   box-shadow: var(--shadow-sm);
+  transition: box-shadow .35s ease;
+}
+.site-header.is-solid .site-header__inner {
+  box-shadow: var(--shadow);
 }
 .brand { display: flex; align-items: center; gap: .6rem; flex-shrink: 0; }
 .brand__logo { display: block; width: 122px; height: 48px; object-fit: contain; object-position: left center; }
