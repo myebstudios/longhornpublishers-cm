@@ -717,6 +717,11 @@ em.accent, .accent {
   transition: transform .35s ease, box-shadow .35s ease;
 }
 .map-embed:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+.map-embed__img {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  object-fit: cover; opacity: .75; mix-blend-mode: overlay; pointer-events: none;
+}
+.map-embed__body { position: relative; z-index: 1; }
 .map-embed__pin {
   margin: 0 auto .75rem; color: var(--green);
   transition: transform .4s cubic-bezier(.34,1.4,.64,1);

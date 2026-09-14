@@ -1,3 +1,5 @@
+import { INTRINSIC_WIDTH } from './image-sizes';
+
 /**
  * Netlify Image CDN helpers — see Docs/ui_ux_audit.md §10.
  *
@@ -16,7 +18,7 @@
  * Capped at 1920 because that is the widest source in `public/img` — asking the
  * CDN for more would upscale, costing bytes for no detail.
  */
-export const IMAGE_WIDTHS = [640, 960, 1280, 1600, 1920] as const;
+export const IMAGE_WIDTHS: number[] = [640, 960, 1280, 1600, 1920];
 
 /** Route through the CDN only for real builds — see module note above. */
 const useCdn = import.meta.env.PROD;
@@ -66,6 +68,13 @@ export function cdnUrl(src: string, width: number, quality = 75): string {
 /**
  * Build `srcset`/`src` for an image under `/img/`.
  *
+ * Candidate widths are capped twice: by the slot's `maxWidth`, and by the
+ * source's own pixel width. The second cap matters — asking the CDN for more
+ * pixels than the file holds returns an upscale, which costs bytes and adds
+ * blur rather than detail, and reads as an oversized-image flag in a Lighthouse
+ * audit. A source narrower than every listed width still gets one candidate at
+ * its native size, so the browser downscales in-page instead.
+ *
  * Returns `srcset: undefined` for SVGs and in dev, so callers can spread the
  * result onto an `<img>` and let Astro drop the empty attribute.
  */
@@ -76,9 +85,13 @@ export function responsive(
   const src = imgPath(img);
   if (!useCdn || !isRaster(src)) return { src };
 
-  const widths = IMAGE_WIDTHS.filter((w) => w <= maxWidth);
+  const intrinsic = INTRINSIC_WIDTH[img] ?? Infinity;
+  const cap = Math.min(maxWidth, intrinsic);
+  const widths = IMAGE_WIDTHS.filter((w) => w <= cap);
+  if (!widths.length) widths.push(Math.min(cap, IMAGE_WIDTHS[0]));
+
   return {
-    src: cdnUrl(src, widths.at(-1) ?? maxWidth, quality),
+    src: cdnUrl(src, widths.at(-1) ?? cap, quality),
     srcset: widths.map((w) => `${cdnUrl(src, w, quality)} ${w}w`).join(', '),
   };
 }

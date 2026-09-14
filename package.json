@@ -10,7 +10,9 @@
     "build": "npm run typecheck && astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "typecheck": "tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler src/i18n/en.ts src/i18n/fr.ts src/data/site.ts src/data/presentation.ts"
+    "typecheck": "tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler src/i18n/en.ts src/i18n/fr.ts src/data/site.ts src/data/presentation.ts",
+    "audit:images": "node scripts/image-audit.mjs",
+    "gen:image-sizes": "node scripts/gen-image-sizes.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.5",
