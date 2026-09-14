@@ -4,11 +4,31 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 <AdminLayout title="Catalogue" section="catalogue">
   <h1>Catalogue</h1><p>Manage bilingual titles as drafts, then publish only after editorial review.</p>
   <section class="card"><div class="toolbar"><h2 id="editorTitle">New title</h2><button class="button secondary" type="button" id="reset">New title</button></div>
-    <form id="editor"><input type="hidden" name="id" /><div class="two"><label>English title<input name="title_en" required /></label><label>French title<input name="title_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Level<select name="level" required><option value="primary">Primary</option><option value="secondary">Secondary</option></select></label><label>Subject<select name="subject_id"><option value="">— No subject —</option></select></label><label>English description<textarea name="description_en" required></textarea></label><label>French description<textarea name="description_fr" required></textarea></label><label>English curriculum alignment<textarea name="curriculum_alignment_en"></textarea></label><label>French curriculum alignment<textarea name="curriculum_alignment_fr"></textarea></label></div><div class="checks"><label><input name="language_en" type="checkbox" checked /> English edition</label><label><input name="language_fr" type="checkbox" checked /> French edition</label><label><input name="featured" type="checkbox" /> Featured title</label><label><input name="published" type="checkbox" /> Publish now</label></div><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section>
+    <form id="editor"><input type="hidden" name="id" /><div class="two"><label>English title<input name="title_en" required /></label><label>French title<input name="title_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Level<select name="level" required><option value="primary">Primary</option><option value="secondary">Secondary</option></select></label><label>Subject<select name="subject_id"><option value="">— No subject —</option></select></label><label>English description<textarea name="description_en" required></textarea></label><label>French description<textarea name="description_fr" required></textarea></label><label>English curriculum alignment<textarea name="curriculum_alignment_en"></textarea></label><label>French curriculum alignment<textarea name="curriculum_alignment_fr"></textarea></label></div>
+      <fieldset class="cover">
+        <legend>Cover image</legend>
+        <input type="hidden" name="cover_image_id" />
+        <div class="cover__row">
+          <div class="cover__preview">
+            <img id="coverPreview" alt="" hidden />
+            <p id="coverEmpty" class="cover__empty">No cover image</p>
+          </div>
+          <div class="cover__controls">
+            <label for="coverFile" id="coverFileLabel">Choose a cover image</label>
+            <input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="coverHint coverStatus" />
+            <p id="coverHint" class="cover__hint">JPEG, PNG or WebP, up to 8&nbsp;MB. Portrait (3:4) reproduces best.</p>
+            <button class="button secondary" type="button" id="coverClear" hidden>Remove cover image</button>
+            <p id="coverStatus" class="cover__status" role="status" aria-live="polite"></p>
+          </div>
+        </div>
+      </fieldset>
+      <div class="checks"><label><input name="language_en" type="checkbox" checked /> English edition</label><label><input name="language_fr" type="checkbox" checked /> French edition</label><label><input name="featured" type="checkbox" /> Featured title</label><label><input name="published" type="checkbox" /> Publish now</label></div><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section>
   <section class="card"><h2>Titles</h2><p id="empty">Loading catalogue…</p><div id="items" class="items"></div></section>
 </AdminLayout>
 <script>
-  import { emptyToNull, request, sendJson } from '../../lib/admin-client';
+  import {
+    coverFileError, coverViewState, emptyToNull, request, sendJson,
+  } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
 
@@ -35,6 +55,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (!force && !confirmDiscard()) return false;
     form.reset();
     (form.elements.namedItem('id') as HTMLInputElement).value = '';
+    releasePreviewUrl();
+    coverField.value = '';
+    renderCover(null);
+    setCoverStatus('');
     title.textContent = 'New title';
     setStatus('');
     pristine = snapshot();
@@ -50,6 +74,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       slug: data.get('slug'),
       level: data.get('level'),
       subject_id: data.get('subject_id') || null,
+      cover_image_id: data.get('cover_image_id') || null,
       description_en: data.get('description_en'),
       description_fr: data.get('description_fr'),
       curriculum_alignment_en: data.get('curriculum_alignment_en'),
@@ -59,6 +84,100 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       published: Boolean(data.get('published')),
     } as CmsRecord, ['curriculum_alignment_en', 'curriculum_alignment_fr']);
   };
+
+  // --- Cover image -------------------------------------------------------
+  // The rules live in admin-client so they can be unit-tested without a DOM;
+  // everything here just applies the resulting state.
+  const coverField = form.elements.namedItem('cover_image_id') as HTMLInputElement;
+  const coverFile = document.querySelector('#coverFile') as HTMLInputElement;
+  const coverFileLabel = document.querySelector('#coverFileLabel')!;
+  const coverPreview = document.querySelector('#coverPreview') as HTMLImageElement;
+  const coverEmpty = document.querySelector('#coverEmpty')!;
+  const coverClear = document.querySelector('#coverClear') as HTMLButtonElement;
+  const coverStatus = document.querySelector('#coverStatus')!;
+
+  /** Object URL for a just-picked file, revoked when it stops being shown. */
+  let previewObjectUrl: string | null = null;
+  const releasePreviewUrl = () => {
+    if (previewObjectUrl) { URL.revokeObjectURL(previewObjectUrl); previewObjectUrl = null; }
+  };
+
+  const setCoverStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
+    coverStatus.textContent = message;
+    coverStatus.className = message ? `cover__status status--${tone}` : 'cover__status';
+  };
+
+  /**
+   * Reflect the current cover in the UI.
+   *
+   * `src` is passed for a freshly picked file (an object URL, shown before the
+   * upload finishes); otherwise the stored id is read back through /api/media,
+   * which serves unpublished drafts to signed-in admins.
+   */
+  const renderCover = (id: string | null, src?: string) => {
+    const view = coverViewState(id, src);
+    if (view.imageSrc) coverPreview.src = view.imageSrc;
+    else coverPreview.removeAttribute('src');
+    // The preview duplicates the adjacent text, so it is decorative; the file
+    // name and status message carry the information.
+    coverPreview.alt = '';
+    coverPreview.hidden = !view.showImage;
+    (coverEmpty as HTMLElement).hidden = !view.showEmpty;
+    coverClear.hidden = !view.showClear;
+    coverFileLabel.textContent = view.fileLabel;
+  };
+
+  coverFile.addEventListener('change', async () => {
+    const file = coverFile.files?.[0];
+    if (!file) return;
+
+    const invalid = coverFileError(file);
+    if (invalid) {
+      setCoverStatus(invalid, 'err');
+      coverFile.value = '';
+      return;
+    }
+
+    // Show the picked file immediately; uploading it may take a moment.
+    releasePreviewUrl();
+    previewObjectUrl = URL.createObjectURL(file);
+    renderCover(null, previewObjectUrl);
+
+    coverFile.disabled = true;
+    submit.disabled = true;
+    setCoverStatus(`Uploading ${file.name}…`);
+    try {
+      const body = new FormData();
+      body.append('file', file);
+      const result = await request<{ id: string }>(
+        '/api/media', { method: 'POST', body }, 'Unable to upload that image.',
+      );
+      if (!result.ok || !result.data?.id) {
+        // Roll the preview back to whatever was saved before this attempt, so
+        // the form never shows an image the record does not actually have.
+        releasePreviewUrl();
+        renderCover(coverField.value || null);
+        setCoverStatus(result.error ?? 'Unable to upload that image.', 'err');
+        return;
+      }
+      coverField.value = result.data.id;
+      setCoverStatus(`${file.name} uploaded. Save the title to attach it.`);
+    } finally {
+      coverFile.disabled = false;
+      submit.disabled = false;
+      coverFile.value = '';
+    }
+  });
+
+  coverClear.addEventListener('click', () => {
+    releasePreviewUrl();
+    coverField.value = '';
+    renderCover(null);
+    setCoverStatus('Cover image removed. Save the title to apply it.');
+    // Keyboard users land on a control that just vanished, so move focus
+    // somewhere predictable rather than letting it fall back to <body>.
+    coverFile.focus();
+  });
 
   const edit = (entry: CmsRecord) => {
     if (!confirmDiscard()) return;
@@ -80,6 +199,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     // whose subject was cleared would otherwise keep the previous selection.
     const subjectSelect = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
     if (subjectSelect) subjectSelect.value = entry.subject_id ?? '';
+    releasePreviewUrl();
+    coverField.value = entry.cover_image_id ?? '';
+    renderCover(entry.cover_image_id ?? null);
+    setCoverStatus('');
     (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
     (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
     title.textContent = `Editing: ${entry.title_en}`;
@@ -206,4 +329,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   pristine = snapshot();
   loadSubjects().then(() => { pristine = snapshot(); return load(); });
 </script>
-<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea{min-height:5rem;resize:vertical}.checks{display:flex;flex-wrap:wrap;gap:1rem;margin:1rem 0}.checks label{font-weight:600}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
+<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea{min-height:5rem;resize:vertical}.cover{border:1px solid #cdbebe;border-radius:.6rem;padding:1rem 1.15rem 1.15rem;margin:1.25rem 0}.cover legend{font-weight:600;padding:0 .35rem}.cover__row{display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap}.cover__preview{flex:0 0 120px;width:120px;aspect-ratio:3/4;border:1px dashed #cdbebe;border-radius:.45rem;display:grid;place-items:center;overflow:hidden;background:#faf6f6}.cover__preview img{width:100%;height:100%;object-fit:cover}.cover__empty{margin:0;padding:.5rem;text-align:center;color:#7a6a6a;font-size:.85em}.cover__controls{flex:1 1 16rem;display:grid;gap:.5rem;justify-items:start}.cover__controls label{font-weight:600}.cover__hint{margin:0;color:#7a6a6a;font-size:.85em}.cover__status{margin:0;min-height:1.3em;font-weight:650}.cover__status.status--err{color:#8b1e31}#coverFile{font:inherit}#coverFile:focus-visible{outline:3px solid #2F7A2A;outline-offset:2px}#coverFile:disabled{opacity:.6;cursor:progress}.checks{display:flex;flex-wrap:wrap;gap:1rem;margin:1rem 0}.checks label{font-weight:600}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>

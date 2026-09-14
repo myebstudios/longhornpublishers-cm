@@ -99,3 +99,51 @@ export function emptyToNull<T extends Record<string, unknown>>(record: T, keys: 
   }
   return record;
 }
+
+/* -------------------------------------------------------------------------
+ * Cover image helpers
+ *
+ * The rules live here rather than inline in the editor so they can be tested
+ * without a DOM, and so the client limits stay visibly aligned with the ones
+ * netlify/functions/media.mts enforces.
+ * ---------------------------------------------------------------------- */
+
+export const MAX_COVER_BYTES = 8 * 1024 * 1024;
+export const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+
+/**
+ * Reject a file the server would reject anyway, before spending an upload on
+ * it. Returns null when the file is acceptable.
+ */
+export function coverFileError(file: { type: string; size: number }): string | null {
+  if (!COVER_TYPES.includes(file.type)) return 'Choose a JPEG, PNG or WebP image.';
+  if (file.size > MAX_COVER_BYTES) return 'That image is larger than 8 MB. Choose a smaller file.';
+  return null;
+}
+
+/** What the cover controls should show for a given state. */
+export interface CoverViewState {
+  imageSrc: string | null;
+  showImage: boolean;
+  showEmpty: boolean;
+  showClear: boolean;
+  /** The file input's label — "Replace" only once a cover actually exists. */
+  fileLabel: string;
+}
+
+/**
+ * Derive the cover UI from the stored id and any locally previewed file.
+ *
+ * `previewSrc` wins over `id` so a just-picked file appears immediately, before
+ * its upload has returned an id.
+ */
+export function coverViewState(id: string | null, previewSrc?: string | null): CoverViewState {
+  const src = previewSrc ?? (id ? `/api/media/${id}` : null);
+  return {
+    imageSrc: src,
+    showImage: Boolean(src),
+    showEmpty: !src,
+    showClear: Boolean(src),
+    fileLabel: src ? 'Replace cover image' : 'Choose a cover image',
+  };
+}

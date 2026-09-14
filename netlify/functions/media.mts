@@ -52,7 +52,17 @@ async function serveMedia(key: string): Promise<Response> {
 
   // Authorize before touching the store: a timing or error difference between
   // "exists but unapproved" and "does not exist" would leak which keys are real.
-  if (!(await isPubliclyApproved(key))) return new Response('Not found', { status: 404 });
+  //
+  // Signed-in admins may also read unapproved blobs, otherwise the cover an
+  // editor just attached to an unpublished draft would 404 in their own
+  // preview. The public rule is unchanged: this branch is reached only after
+  // the published-content check has already failed, and requireAdmin() rejects
+  // anyone without the admin role.
+  let adminOnly = false;
+  if (!(await isPubliclyApproved(key))) {
+    if (await requireAdmin()) return new Response('Not found', { status: 404 });
+    adminOnly = true;
+  }
 
   const blob = await getStore({ name: STORE, consistency: 'strong' })
     .getWithMetadata(key, { type: 'arrayBuffer' });
@@ -72,7 +82,11 @@ async function serveMedia(key: string): Promise<Response> {
       'Content-Disposition': 'inline',
       // Deliberately not immutable. Keys never change, but approval does —
       // unpublishing must actually take the image down within a short window.
-      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
+      // Admin-only reads are never cached: the response is authorized per
+      // request, so a shared cache must not be able to replay it to the public.
+      'Cache-Control': adminOnly
+        ? 'private, no-store'
+        : 'public, max-age=300, stale-while-revalidate=600',
     },
   });
 }
