@@ -44,7 +44,7 @@ Pulled from `sitemap.md` §6 and `admin_panel_spec.md` §10 — resolve here rat
 
 1. **"Why Choose Us" as standalone nav page** vs. folding into Home/Services sections only. *(sitemap.md)*
 2. **French slug translations** — 🛑 **EXTERNAL CLIENT BLOCKER:** Technical implementation complete; pending formal client sign-off on official French URL slugs and terminology. *(sitemap.md, bilingual_content_request_pack.md)*
-3. **Legal content** (Privacy Policy, Terms of Use) — ✅ **Factual copy wired:** Bilingual pages implemented based on actual form behavior; final legal sign-off pending client. *(sitemap.md, bilingual_content_request_pack.md)*
+3. **Legal content** (Privacy Policy, Terms of Use) — ✅ **Factual copy wired:** Bilingual pages implemented based on actual form behavior; routes live at `/en/privacy-policy`, `/en/terms-of-use`, `/fr/politique-de-confidentialite`, `/fr/conditions-utilisation`, and the data-subject contact is the client-confirmed `longhorncameroon@longhornpublishers.com` (confirmed 2026-09-14). 🛑 Final legal sign-off still pending client — **no named owner assigned yet on the client side.** *(sitemap.md, bilingual_content_request_pack.md)*
 4. **Catalogue data source** — no title list in the company profile. Need a spreadsheet of titles (level, subject, language, cover art) from the client, or agreement to launch with a small curated set and grow via the admin panel. *(sitemap.md, admin_panel_spec.md)*
 5. **News & Updates: in-scope for launch?** — and who on the Cameroon team owns posting updates post-launch. An unmaintained news feed hurts more than not having one. *(sitemap.md, marketing_content_outline.md)*
 6. **Admin panel registration mode** — confirm Invite-only (recommended) vs. open signup. *(admin_panel_spec.md)*

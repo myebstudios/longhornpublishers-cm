@@ -100,9 +100,9 @@ export const fr: Content = {
             'Notre site web utilise les fonctionnalités de stockage du navigateur uniquement pour mémoriser votre langue d’affichage préférée (anglais ou français). Aucun cookie publicitaire tiers ou script de suivi comportemental n’est déposé.',
         },
         {
-          title: '5. Vos droits et contact',
+          title: '5. Vos droits et contacts',
           content:
-            'Vous pouvez à tout moment demander l’accès, la rectification ou la suppression de vos données personnelles en contactant notre bureau de Yaoundé à info@longhornpublishers-cm.com ou par téléphone au +(237) 672 49 10 93 / +(237) 657 51 92 03.',
+            'Vous pouvez à tout moment demander l’accès, la rectification ou la suppression de vos données personnelles en contactant notre bureau de Yaoundé à longhorncameroon@longhornpublishers.com ou par téléphone au +(237) 672 49 10 93 / +(237) 657 51 92 03.',
         },
       ],
     },

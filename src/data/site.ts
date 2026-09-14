@@ -2,8 +2,8 @@
 export const CONTACT = {
   addressLines: ['Total École de police, Tsinga', 'Yaoundé, Cameroon'],
   phones: ['+237 672 49 10 93', '+237 657 51 92 03'],
-  // PLACEHOLDER — confirm with client (open item, Docs/README.md)
-  email: 'info@longhornpublishers-cm.com',
+  // Confirmed final by client, 2026-09-14
+  email: 'longhorncameroon@longhornpublishers.com',
 } as const;
 
 export type Discipline = 'editorial' | 'creative' | 'production';

@@ -97,7 +97,7 @@ export const en: Content = {
         {
           title: '5. Your Rights & Contact Information',
           content:
-            'You may request access to, correction of, or deletion of your contact details at any time by contacting our Yaoundé office at info@longhornpublishers-cm.com or calling +(237) 672 49 10 93 / +(237) 657 51 92 03.',
+            'You may request access to, correction of, or deletion of your contact details at any time by contacting our Yaoundé office at longhorncameroon@longhornpublishers.com or calling +(237) 672 49 10 93 / +(237) 657 51 92 03.',
         },
       ],
     },
