@@ -5,7 +5,7 @@ import Button from '../Button.astro';
 import Icon from '../Icon.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
-  categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
+  articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
 
 interface Props { locale: Locale }
@@ -47,8 +47,9 @@ const articles = await getPublishedNews();
                     <time datetime={article.publish_date!}>{publishedOn(article, lang)}</time>
                   )}
                 </div>
-                <h3>{headline(article, lang)}</h3>
+                <h3><a href={articlePath(article, lang)}>{headline(article, lang)}</a></h3>
                 <p>{excerpt(article, lang)}</p>
+                <a class="link-arrow" style="font-size:var(--step--1)" href={articlePath(article, lang)}>{t.common.readArticle}</a>
               </div>
             </article>
           ))}

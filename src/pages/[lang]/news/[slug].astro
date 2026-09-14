@@ -1,0 +1,17 @@
+---
+import NewsArticlePage from '../../../components/pages/NewsArticle.astro';
+import { getPublishedNewsDetail } from '../../../lib/news';
+
+/**
+ * English route only. French articles live under the localized parent segment
+ * (/fr/actualites/) via src/pages/fr/actualites/[slug].astro, because
+ * ROUTES.news is not the same string in both locales.
+ */
+export async function getStaticPaths() {
+  const articles = await getPublishedNewsDetail();
+  return articles.map((article) => ({ params: { lang: 'en', slug: article.slug }, props: { article } }));
+}
+
+const { article } = Astro.props;
+---
+<NewsArticlePage locale="en" article={article} />

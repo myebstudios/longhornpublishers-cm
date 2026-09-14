@@ -1,0 +1,13 @@
+---
+import NewsArticlePage from '../../../components/pages/NewsArticle.astro';
+import { getPublishedNewsDetail } from '../../../lib/news';
+
+/** French articles, under the localized parent segment from ROUTES.news.fr. */
+export async function getStaticPaths() {
+  const articles = await getPublishedNewsDetail();
+  return articles.map((article) => ({ params: { slug: article.slug }, props: { article } }));
+}
+
+const { article } = Astro.props;
+---
+<NewsArticlePage locale="fr" article={article} />

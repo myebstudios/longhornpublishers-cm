@@ -14,7 +14,7 @@ import {
 } from '../../data/presentation';
 import { responsive } from '../../lib/images';
 import {
-  categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
+  articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
 import { description, getPublishedTitles, subjectName, titleText } from '../../lib/catalogue';
 
@@ -233,7 +233,7 @@ const latestNews = await getPublishedNews(3);
                     <time datetime={article.publish_date!}>{publishedOn(article, lang)}</time>
                   )}
                 </div>
-                <h3>{headline(article, lang)}</h3>
+                <h3><a href={articlePath(article, lang)}>{headline(article, lang)}</a></h3>
                 <p>{excerpt(article, lang)}</p>
               </div>
             </article>

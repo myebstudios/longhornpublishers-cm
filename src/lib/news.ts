@@ -8,7 +8,7 @@
  * deploy dependency noted in `getPublishedNews`.
  */
 import { getDatabase } from '@netlify/database';
-import type { Locale } from '../i18n';
+import { path, type Locale } from '../i18n';
 
 /** Category values permitted by the news_articles CHECK constraint. */
 export type NewsCategory = 'company_news' | 'new_titles' | 'partnerships' | 'events';
@@ -23,6 +23,12 @@ export interface NewsArticle {
   headline_fr: string;
   excerpt_en: string;
   excerpt_fr: string;
+}
+
+/** A published article plus its body, for the detail route. */
+export interface NewsArticleDetail extends NewsArticle {
+  body_en: string;
+  body_fr: string;
 }
 
 /** Maps the database category values onto the `t.news.categories` keys. */
@@ -59,6 +65,29 @@ export function excerpt(article: NewsArticle, locale: Locale): string {
   return locale === 'fr' ? article.excerpt_fr : article.excerpt_en;
 }
 
+/**
+ * Article body split into paragraphs for the requested locale.
+ *
+ * The admin panel captures the body in a plain `<textarea>`, so this is text
+ * rather than markup — it is split on blank lines and rendered as text nodes,
+ * never as HTML. Treating editor input as markup here would be a stored-XSS
+ * route straight from the CMS into every visitor's page.
+ */
+export function bodyParagraphs(article: NewsArticleDetail, locale: Locale): string[] {
+  const raw = locale === 'fr' ? article.body_fr : article.body_en;
+  return raw.split(/\n\s*\n/).map((p) => p.trim()).filter(Boolean);
+}
+
+/**
+ * Path to an article's detail page.
+ *
+ * Unlike the catalogue, the parent segment is localized (`news` / `actualites`),
+ * so this composes from ROUTES rather than assuming a shared segment.
+ */
+export function articlePath(article: NewsArticle, locale: Locale): string {
+  return `${path('news', locale)}${article.slug}/`;
+}
+
 /** Publish date rendered for the active locale; empty when unset. */
 export function publishedOn(article: NewsArticle, locale: Locale): string {
   if (!article.publish_date) return '';
@@ -83,6 +112,26 @@ export function publishedOn(article: NewsArticle, locale: Locale): string {
  * still produce a site, falling back to the same empty state used before the
  * first article is written.
  */
+export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
+  try {
+    const db = getDatabase();
+    const rows = await db.sql`
+      SELECT id, slug, category, publish_date, headline_en, headline_fr,
+             excerpt_en, excerpt_fr, body_en, body_fr
+      FROM news_articles
+      WHERE published = true
+      ORDER BY publish_date DESC NULLS LAST, created_at DESC
+    `;
+    return rows as unknown as NewsArticleDetail[];
+  } catch (error) {
+    console.warn(
+      '[news] Could not read article bodies at build time; no detail routes will be generated.',
+      error instanceof Error ? error.message : error,
+    );
+    return [];
+  }
+}
+
 export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
   try {
     const db = getDatabase();

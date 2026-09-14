@@ -1,0 +1,62 @@
+---
+/**
+ * Article detail view — the `NewsArticle` component named in
+ * Docs/technical_architecture.md §61.
+ *
+ * Shared by the English route and the localized French one, which cannot share
+ * a `[lang]` path because ROUTES.news differs per locale (`news` / `actualites`).
+ */
+import Layout from '../../layouts/Layout.astro';
+import { type Locale, useTranslations, path } from '../../i18n';
+import {
+  bodyParagraphs, categoryKey, excerpt, headline, publishedOn, type NewsArticleDetail,
+} from '../../lib/news';
+
+interface Props { locale: Locale; article: NewsArticleDetail }
+const { locale: lang, article } = Astro.props;
+const t = useTranslations(lang);
+
+const title = headline(article, lang);
+const date = publishedOn(article, lang);
+const paragraphs = bodyParagraphs(article, lang);
+// Parent segment is localized, so alternates are composed per locale.
+const alternates = {
+  en: `${path('news', 'en')}${article.slug}/`,
+  fr: `${path('news', 'fr')}${article.slug}/`,
+};
+---
+
+<Layout
+  title={`${title} — Longhorn Publishers`}
+  description={excerpt(article, lang)}
+  locale={lang}
+  routeKey="news"
+  alternates={alternates}
+  type="article"
+>
+  <article class="section section--white">
+    <div class="wrap wrap--narrow article-detail">
+      <div class="pill-row article-detail__meta">
+        <span class="pill pill--green">{t.news.categories[categoryKey(article.category)]}</span>
+        {date && <time datetime={article.publish_date!}>{date}</time>}
+      </div>
+
+      <h1>{title}</h1>
+      <p class="article-detail__lede">{excerpt(article, lang)}</p>
+
+      {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
+
+      <a class="link-arrow article-detail__back" href={path('news', lang)}>
+        {lang === 'fr' ? 'Retour aux actualités' : 'Back to news'}
+      </a>
+    </div>
+  </article>
+</Layout>
+
+<style>
+  .article-detail__meta { align-items: center; gap: .75rem; margin-bottom: 1.25rem; }
+  .article-detail__meta time { color: var(--ink-soft); font-size: var(--step--1); }
+  .article-detail__lede { margin: 1rem 0 2rem; font-size: var(--step-1); color: var(--ink-soft); }
+  .article-detail p + p { margin-top: 1rem; }
+  .article-detail__back { display: inline-block; margin-top: 2.5rem; }
+</style>
