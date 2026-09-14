@@ -524,16 +524,16 @@ em.accent, .accent {
 .cta-band {
   position: relative; isolation: isolate; overflow: hidden;
   border-radius: var(--radius-xl); padding: clamp(2.5rem, 1.8rem + 3.5vw, 4.5rem);
-  background: var(--burgundy); color: var(--white);
+  background: var(--green); color: var(--burgundy-deep);
   display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 2rem; align-items: center;
 }
 .cta-band::before {
   content: ""; position: absolute; z-index: -1; inset: auto -8% -60% auto; right: -8%;
   width: 34rem; height: 34rem; border-radius: 50%;
-  background: radial-gradient(circle, rgba(111,191,63,.32), transparent 68%);
+  background: radial-gradient(circle, rgba(59,15,27,.18), transparent 68%);
 }
 .cta-band h2 { margin-bottom: .85rem; }
-.cta-band p { color: rgba(255,255,255,.76); max-width: 52ch; }
+.cta-band p { color: rgba(59,15,27,.82); max-width: 52ch; }
 @media (max-width: 860px) { .cta-band { grid-template-columns: 1fr; } }
 
 /* --- Core identity / value grid ---------------------------------------- */
