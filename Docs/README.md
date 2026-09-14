@@ -16,6 +16,7 @@
 | [`wireframes.md`](./wireframes.md) | UI/UX Designer | ASCII wireframes for every public page **and** the admin panel, drawn as they'll actually render |
 | [`technical_architecture.md`](./technical_architecture.md) | Developer | Tech stack (Astro, Netlify Database, Netlify Blobs, Netlify Identity, Netlify hosting), i18n, SEO, component breakdown |
 | [`admin_panel_spec.md`](./admin_panel_spec.md) | Developer | Admin panel auth, database schema, screens, and API surface |
+| [`local_development.md`](./local_development.md) | Developer | Local CMS, database, media, and production-preview test workflow |
 | [`implementation_plan.md`](./implementation_plan.md) | CEO / Project team | Delivery sequencing, decision register, dependencies, and progress log |
 | [`cms_rebuild_trigger.md`](./cms_rebuild_trigger.md) | Developer + CEO | Why published CMS content does not reach the live site until a build runs, and how to wire the Netlify build hook that fixes it |
 | [`client_approval_packet.md`](./client_approval_packet.md) | Marketer / Executive | Client-facing approval request for 3 testimonials/logos & French URL slugs (`a-propos`, `services-edition`, `pourquoi-nous-choisir`, `actualites`) |

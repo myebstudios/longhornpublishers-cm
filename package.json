@@ -6,7 +6,6 @@
   "description": "Bilingual corporate website for Longhorn Publishers Cameroon Ltd",
   "scripts": {
     "dev": "astro dev",
-    "dev:netlify": "netlify dev --offline",
     "start": "astro dev",
     "build": "npm run typecheck && astro build",
     "preview": "astro preview",
