@@ -17,12 +17,10 @@ const items = [
 <style is:inline>html[data-auth="pending"] body{visibility:hidden}</style>
 <script is:inline>document.documentElement.setAttribute('data-auth','pending')</script>
 </head>
-<body><aside class="sidebar"><a class="brand" href="/admin/"><span class="brand-mark">L</span><span>LONGHORN<small>Publishers Cameroon</small></span></a><p class="workspace-label">Content workspace</p><nav aria-label="Admin navigation">{items.map(([id, label, href, icon]) => <a class:list={{ active: section === id }} href={href}><span aria-hidden="true">{icon}</span>{label}</a>)}</nav><div class="sidebar-foot"><span class="secure-dot"></span>Admin-only area</div></aside><main class="app-main"><header class="topbar"><div><p class="eyebrow">Longhorn Publishers Cameroon</p><p class="crumb">Content management / {title}</p></div><div class="user-chip"><span class="avatar">LP</span><span id="adminUser">Checking session…</span></div></header><div class="page-content"><slot /></div></main>
+<body><aside class="sidebar"><a class="brand" href="/admin/"><span class="brand-mark">L</span><span>LONGHORN<small>Publishers Cameroon</small></span></a><p class="workspace-label">Content workspace</p><nav aria-label="Admin navigation">{items.map(([id, label, href, icon]) => <a class:list={{ active: section === id }} href={href}><span aria-hidden="true">{icon}</span>{label}</a>)}</nav><div class="sidebar-foot"><span class="secure-dot"></span>Admin workspace · Netlify CMS</div></aside><main class="app-main"><header class="topbar"><div><p class="eyebrow">Longhorn Publishers Cameroon</p><p class="crumb">Content management / {title}</p></div><div class="topbar-actions"><a href="/en/" target="_blank" class="view-site-link">View Public Site ↗</a><div class="user-chip"><span class="avatar">LP</span><span id="adminUser">Checking session…</span></div></div></header><div class="page-content"><slot /></div></main>
 <script>
   import { getUser } from '@netlify/identity';
   const target = document.querySelector('#adminUser');
-  // Keep the page hidden until we know the visitor is an admin. Releasing the
-  // gate only on the authorised path means a redirect never flashes content.
   const release = () => document.documentElement.removeAttribute('data-auth');
   try {
     const user = await getUser();
@@ -33,9 +31,6 @@ const items = [
       release();
     }
   } catch {
-    // Session lookup failed (offline, Identity unreachable). Show the page
-    // rather than trapping the user behind a blank screen; the API calls this
-    // page makes are authorised server-side and will surface their own errors.
     if (target) target.textContent = 'Session unavailable';
     release();
   }
@@ -49,68 +44,94 @@ const items = [
   --green-deep: #2F7A2A;
   --green-pale: #EAF7E2;
   --mustard: #E9A63B;
+  --purple: #6E4B9E;
   --cream: #FBF6EE;
   --cream-deep: #F3EADD;
+  --paper: #FFFFFF;
   --ink: #1A1216;
   --ink-soft: #5A4C52;
   --muted: #5A4C52;
   --wine: var(--burgundy);
   --wine-dark: var(--burgundy-deep);
   --gold: var(--green);
-  --paper: #FFFFFF;
   --line: rgba(26, 18, 22, .12);
   --soft: var(--cream-deep);
   --danger: #B3261E;
+  --font-display: "Poppins", "Montserrat", system-ui, sans-serif;
+  --font-body: "Inter", system-ui, sans-serif;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--cream); color: var(--ink); font: 15px/1.5 Inter, ui-sans-serif, system-ui, sans-serif; }
+body { margin: 0; background: var(--cream); color: var(--ink); font: 15px/1.5 var(--font-body); -webkit-font-smoothing: antialiased; }
 .sidebar {
   position: fixed; inset: 0 auto 0 0; width: 258px;
   background: linear-gradient(160deg, var(--burgundy-deep), var(--burgundy) 62%, var(--burgundy-soft));
-  color: #fff; padding: 28px 18px; display: flex; flex-direction: column; z-index: 2;
+  color: #fff; padding: 28px 18px; display: flex; flex-direction: column; z-index: 10;
+  box-shadow: 2px 0 16px rgba(59, 15, 27, 0.12);
 }
-.brand { display: flex; align-items: center; gap: 11px; color: #fff; text-decoration: none; font: 700 14px/1.05 Poppins, system-ui; letter-spacing: .08em; }
-.brand small { display: block; margin-top: 5px; font: 500 10px/1 Inter, system-ui; letter-spacing: .04em; color: #efced8; }
-.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: var(--burgundy-deep); background: var(--green); font: 700 21px Georgia; }
-.workspace-label { margin: 42px 10px 10px; color: #e9bdcc; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
-.sidebar nav { display: grid; gap: 5px; }
-.sidebar nav a { display: flex; gap: 12px; align-items: center; padding: 11px 12px; border-radius: 10px; color: #f4dce3; text-decoration: none; font-weight: 650; transition: .2s; }
-.sidebar nav a span { width: 20px; text-align: center; color: #e9bdcc; }
-.sidebar nav a:hover, .sidebar nav a.active { background: #ffffff19; color: #fff; }
-.sidebar nav a.active { box-shadow: inset 3px 0 var(--green); }
-.sidebar-foot { margin-top: auto; border-top: 1px solid #ffffff26; padding: 18px 10px 0; color: #e9bdcc; font-size: 12px; }
+.brand { display: flex; align-items: center; gap: 11px; color: #fff; text-decoration: none; font: 700 14px/1.05 var(--font-display); letter-spacing: .08em; }
+.brand small { display: block; margin-top: 5px; font: 500 10px/1 var(--font-body); letter-spacing: .04em; color: #efced8; }
+.brand-mark { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; color: var(--burgundy-deep); background: var(--green); font: 700 21px "Fraunces", Georgia, serif; }
+.workspace-label { margin: 38px 10px 10px; color: #e9bdcc; font-size: 10px; font-weight: 800; letter-spacing: .16em; text-transform: uppercase; }
+.sidebar nav { display: grid; gap: 6px; }
+.sidebar nav a { display: flex; gap: 12px; align-items: center; padding: 11px 14px; border-radius: 12px; color: #f4dce3; text-decoration: none; font-weight: 600; font-size: 14px; transition: all .25s ease; }
+.sidebar nav a span { width: 20px; text-align: center; color: #e9bdcc; font-size: 15px; }
+.sidebar nav a:hover, .sidebar nav a.active { background: rgba(255, 255, 255, 0.15); color: #fff; transform: translateX(2px); }
+.sidebar nav a.active { background: rgba(255, 255, 255, 0.18); font-weight: 700; box-shadow: inset 4px 0 var(--green); }
+.sidebar-foot { margin-top: auto; border-top: 1px solid rgba(255, 255, 255, 0.16); padding: 18px 10px 0; color: #e9bdcc; font-size: 12px; font-weight: 500; }
 .secure-dot { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: var(--green); margin-right: 7px; }
 .app-main { margin-left: 258px; min-height: 100vh; }
-.topbar { min-height: 89px; padding: 17px clamp(24px, 5vw, 68px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: #ffffffb8; backdrop-filter: blur(10px); }
-.eyebrow { margin: 0; color: var(--burgundy); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; }
-.crumb { margin: 3px 0 0; color: var(--muted); font-size: 13px; }
-.user-chip { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: #fff; padding: 6px 11px 6px 6px; border-radius: 999px; color: #4d5361; font-size: 13px; max-width: 290px; }
-.avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--green-pale); color: var(--burgundy-deep); font-size: 10px; font-weight: 800; }
-.page-content { max-width: 1380px; padding: 48px clamp(24px, 5vw, 68px) 72px; }
-.page-content > h1 { font: 700 clamp(30px, 4vw, 44px)/1.08 Poppins, system-ui; margin: 0; color: var(--ink); letter-spacing: -.04em; }
-.page-content > h1 + p { max-width: 650px; margin: 10px 0 32px; color: var(--muted); font-size: 16px; }
-.card { background: var(--paper); border: 1px solid var(--line); border-radius: 18px; padding: 26px; box-shadow: 0 8px 28px #3c29310a; margin-top: 20px; }
-.card h2 { margin: 0; color: var(--ink); font: 700 19px/1.25 Poppins, system-ui; letter-spacing: -.02em; }
-.card h2 + p { color: var(--muted); margin: 6px 0 0; }
-.button { border: 0; border-radius: 9px; background: var(--burgundy); color: #fff; padding: 11px 16px; font: 700 13px Inter, system-ui; cursor: pointer; box-shadow: 0 5px 12px rgba(92, 26, 43, 0.18); }
-.button:hover { background: var(--burgundy-soft); }
+.topbar { min-height: 89px; padding: 17px clamp(24px, 5vw, 68px); display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); background: rgba(255, 255, 255, 0.82); backdrop-filter: blur(14px); position: sticky; top: 0; z-index: 5; }
+.topbar-actions { display: flex; align-items: center; gap: 1rem; }
+.view-site-link { display: inline-flex; align-items: center; padding: .42rem .9rem; border-radius: 999px; background: var(--cream-deep); color: var(--burgundy-deep); font-family: var(--font-display); font-size: 12px; font-weight: 600; text-decoration: none; border: 1px solid var(--line); transition: all .2s ease; }
+.view-site-link:hover { background: var(--green); border-color: var(--green); color: var(--burgundy-deep); transform: translateY(-1px); }
+.eyebrow { margin: 0; color: var(--burgundy); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-family: var(--font-display); }
+.crumb { margin: 3px 0 0; color: var(--muted); font-size: 13px; font-weight: 500; }
+.user-chip { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: #fff; padding: 6px 14px 6px 6px; border-radius: 999px; color: var(--ink-soft); font-size: 13px; max-width: 290px; }
+.avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--green-pale); color: var(--green-deep); font-size: 10px; font-weight: 800; }
+.page-content { max-width: 1380px; padding: 40px clamp(24px, 5vw, 68px) 72px; }
+.page-content > h1 { font: 700 clamp(28px, 3.5vw, 42px)/1.08 var(--font-display); margin: 0; color: var(--ink); letter-spacing: -.03em; }
+.page-content > h1 + p { max-width: 680px; margin: 10px 0 32px; color: var(--muted); font-size: 15px; }
+
+/* Consolidated Admin Cards */
+.card { background: var(--paper); border: 1px solid var(--line); border-radius: 20px; padding: 28px; box-shadow: 0 10px 30px rgba(59, 15, 27, 0.05); margin-top: 24px; transition: transform .25s ease, box-shadow .25s ease; }
+.card h2 { margin: 0; color: var(--ink); font: 700 20px/1.25 var(--font-display); letter-spacing: -.02em; }
+.card h2 + p { color: var(--muted); margin: 6px 0 0; font-size: 14px; }
+
+/* Buttons & Interactive Elements */
+.button { display: inline-flex; align-items: center; gap: .5rem; border: 0; border-radius: 999px; background: var(--burgundy); color: #fff; padding: 10px 20px; font: 600 13px var(--font-display); cursor: pointer; box-shadow: 0 4px 14px rgba(92, 26, 43, 0.2); transition: all .25s ease; text-decoration: none; }
+.button:hover { background: var(--burgundy-soft); transform: translateY(-1px); box-shadow: 0 6px 18px rgba(92, 26, 43, 0.28); }
+.button.secondary { background: var(--cream-deep); color: var(--burgundy); border: 1px solid var(--line); box-shadow: none; }
+.button.secondary:hover { background: var(--green-pale); color: var(--green-deep); border-color: var(--green); }
+.button.danger { background: #FBE9EC; color: var(--danger); border: 1px solid rgba(179, 38, 30, 0.2); box-shadow: none; }
+.button.danger:hover { background: var(--danger); color: #fff; }
+.button:disabled { opacity: .55; cursor: not-allowed; transform: none !important; }
 .button:focus-visible, input:focus-visible, textarea:focus-visible, select:focus-visible, a:focus-visible { outline: 3px solid var(--green-deep); outline-offset: 2px; }
-#status { font-weight: 650; }
-#status.status--ok { color: var(--green-deep); }
-#status.status--err { color: var(--danger); }
-#status.status--ok::before { content: '\2713\00a0\00a0'; }
-#status.status--err::before { content: '\26A0\00a0\00a0'; }
-.items { margin-top: 10px; }
+
+/* Status Notifications */
+#status { font-weight: 650; font-size: 14px; padding: .65rem 1rem; border-radius: 10px; margin-top: 1rem; }
+#status:empty { display: none; }
+#status.status--ok { background: var(--green-pale); color: var(--green-deep); }
+#status.status--err { background: #FBE9EC; color: var(--danger); }
+#status.status--ok::before { content: '\2713\00a0\00a0'; font-weight: 800; }
+#status.status--err::before { content: '\26A0\00a0\00a0'; font-weight: 800; }
+
+/* Table Badges & Status Pills */
+.admin-badge { display: inline-flex; align-items: center; padding: .25rem .7rem; border-radius: 999px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; }
+.admin-badge--published { background: var(--green-pale); color: var(--green-deep); }
+.admin-badge--draft { background: rgba(233,166,59,.18); color: #9A6608; }
+.admin-badge--purple { background: rgba(110,75,158,.14); color: var(--purple); }
+
 @media (max-width: 860px) {
   .sidebar { position: static; width: auto; height: auto; padding: 16px 20px; display: block; }
   .workspace-label, .sidebar-foot { display: none; }
   .sidebar nav { display: flex; gap: 7px; overflow: auto; margin-top: 17px; }
-  .sidebar nav a { white-space: nowrap; padding: 8px 11px; }
+  .sidebar nav a { white-space: nowrap; padding: 8px 14px; }
   .app-main { margin-left: 0; }
-  .topbar { min-height: 72px; padding: 12px 20px; }
+  .topbar { min-height: 72px; padding: 12px 20px; flex-wrap: wrap; gap: .75rem; }
   .user-chip { max-width: 150px; }
   .user-chip #adminUser { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .page-content { padding: 32px 20px 50px; }
-  .card { padding: 20px; border-radius: 14px; }
+  .page-content { padding: 28px 20px 50px; }
+  .card { padding: 20px; border-radius: 16px; }
 }
+</style></body></html>
 </style></body></html>

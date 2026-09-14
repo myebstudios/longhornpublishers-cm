@@ -94,17 +94,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       // Shows an editor why a delete will be refused before they attempt it.
       const count = Number(entry.title_count ?? 0);
       const meta = document.createElement('span');
-      meta.textContent = count === 1 ? '1 title' : `${count} titles`;
+      meta.className = 'admin-badge admin-badge--purple';
+      meta.textContent = count === 1 ? '1 Title' : `${count} Titles`;
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
+      editButton.className = 'button secondary';
       editButton.textContent = 'Edit';
       editButton.setAttribute('aria-label', `Edit ${entry.name_en}`);
       editButton.onclick = () => edit(entry);
 
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
-      deleteButton.className = 'danger';
+      deleteButton.className = 'button danger';
       deleteButton.textContent = 'Delete';
       deleteButton.setAttribute('aria-label', `Delete ${entry.name_en}`);
       deleteButton.disabled = count > 0;
@@ -158,4 +160,22 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}form{display:grid;gap:1rem}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.item button[disabled]{opacity:.55;cursor:not-allowed}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
+<style>
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.two label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
+.two input { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
+.two input:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+form { display: grid; gap: 1.25rem; }
+
+.items { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 1rem; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
+.item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 15, 27, 0.06); background: #fff; }
+.item strong { display: grid; gap: .2rem; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.item .alt { font-weight: 400; color: var(--muted); font-size: 13px; font-family: var(--font-body); }
+
+@media (max-width: 720px) {
+  .two { grid-template-columns: 1fr; }
+  .item { grid-template-columns: 1fr; gap: .75rem; }
+}
+</style>

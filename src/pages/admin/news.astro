@@ -85,19 +85,27 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       heading.append(alternate);
 
       const meta = document.createElement('span');
-      meta.textContent = `${String(entry.category ?? '').replace('_', ' ')} · ${entry.published ? 'Published' : 'Draft'}`;
+      meta.className = 'item-meta';
+      const catSpan = document.createElement('span');
+      catSpan.className = 'admin-badge admin-badge--purple';
+      catSpan.textContent = String(entry.category ?? '').replace('_', ' ').toUpperCase();
+      const statusSpan = document.createElement('span');
+      statusSpan.className = entry.published ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
+      statusSpan.textContent = entry.published ? 'Published' : 'Draft';
+      meta.append(catSpan, statusSpan);
 
       // Repeated controls are labelled with the headline so a screen reader does
       // not announce a column of identical "Edit"/"Delete" buttons.
       const editButton = document.createElement('button');
       editButton.type = 'button';
+      editButton.className = 'button secondary';
       editButton.textContent = 'Edit';
       editButton.setAttribute('aria-label', `Edit ${entry.headline_en}`);
       editButton.onclick = () => edit(entry);
 
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
-      deleteButton.className = 'danger';
+      deleteButton.className = 'button danger';
       deleteButton.textContent = 'Delete';
       deleteButton.setAttribute('aria-label', `Delete ${entry.headline_en}`);
       deleteButton.onclick = async () => {
@@ -153,4 +161,27 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   pristine = snapshot();
   load();
 </script>
-<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}form{display:grid;gap:1rem}.two label,form>label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select,form>label textarea{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea,form>label textarea{min-height:5rem;resize:vertical}form>label textarea{min-height:10rem}.check{align-content:end}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
+<style>
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+form { display: grid; gap: 1.25rem; }
+.two label, form > label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
+.two input, .two textarea, .two select, form > label textarea { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
+.two input:focus, .two textarea:focus, .two select:focus, form > label textarea:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+.two textarea, form > label textarea { min-height: 5.5rem; resize: vertical; }
+form > label textarea { min-height: 10rem; }
+.check { align-content: end; display: flex !important; align-items: center; gap: .5rem; font-weight: 600; font-size: 14px; cursor: pointer; }
+
+.items { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 1rem; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
+.item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 15, 27, 0.06); background: #fff; }
+.item strong { display: grid; gap: .2rem; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.item .alt { font-weight: 400; color: var(--muted); font-size: 13px; font-family: var(--font-body); }
+.item-meta { display: flex; gap: .5rem; align-items: center; }
+
+@media (max-width: 720px) {
+  .two { grid-template-columns: 1fr; }
+  .item { grid-template-columns: 1fr; gap: .75rem; }
+  .item-meta { flex-wrap: wrap; }
+}
+</style>

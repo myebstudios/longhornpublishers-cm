@@ -261,19 +261,27 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       heading.append(alternate);
 
       const meta = document.createElement('span');
-      meta.textContent = `${entry.level} · ${entry.published ? 'Published' : 'Draft'}`;
+      meta.className = 'item-meta';
+      const levelSpan = document.createElement('span');
+      levelSpan.className = 'admin-badge admin-badge--purple';
+      levelSpan.textContent = String(entry.level).toUpperCase();
+      const statusSpan = document.createElement('span');
+      statusSpan.className = entry.published ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
+      statusSpan.textContent = entry.published ? 'Published' : 'Draft';
+      meta.append(levelSpan, statusSpan);
 
       // Repeated controls are labelled with the title so a screen reader does
       // not announce a column of identical "Edit"/"Delete" buttons.
       const editButton = document.createElement('button');
       editButton.type = 'button';
+      editButton.className = 'button secondary';
       editButton.textContent = 'Edit';
       editButton.setAttribute('aria-label', `Edit ${entry.title_en}`);
       editButton.onclick = () => edit(entry);
 
       const deleteButton = document.createElement('button');
       deleteButton.type = 'button';
-      deleteButton.className = 'danger';
+      deleteButton.className = 'button danger';
       deleteButton.textContent = 'Delete';
       deleteButton.setAttribute('aria-label', `Delete ${entry.title_en}`);
       deleteButton.onclick = async () => {
@@ -329,4 +337,39 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   pristine = snapshot();
   loadSubjects().then(() => { pristine = snapshot(); return load(); });
 </script>
-<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea{min-height:5rem;resize:vertical}.cover{border:1px solid #cdbebe;border-radius:.6rem;padding:1rem 1.15rem 1.15rem;margin:1.25rem 0}.cover legend{font-weight:600;padding:0 .35rem}.cover__row{display:flex;gap:1.25rem;align-items:flex-start;flex-wrap:wrap}.cover__preview{flex:0 0 120px;width:120px;aspect-ratio:3/4;border:1px dashed #cdbebe;border-radius:.45rem;display:grid;place-items:center;overflow:hidden;background:#faf6f6}.cover__preview img{width:100%;height:100%;object-fit:cover}.cover__empty{margin:0;padding:.5rem;text-align:center;color:#7a6a6a;font-size:.85em}.cover__controls{flex:1 1 16rem;display:grid;gap:.5rem;justify-items:start}.cover__controls label{font-weight:600}.cover__hint{margin:0;color:#7a6a6a;font-size:.85em}.cover__status{margin:0;min-height:1.3em;font-weight:650}.cover__status.status--err{color:#8b1e31}#coverFile{font:inherit}#coverFile:focus-visible{outline:3px solid #2F7A2A;outline-offset:2px}#coverFile:disabled{opacity:.6;cursor:progress}.checks{display:flex;flex-wrap:wrap;gap:1rem;margin:1rem 0}.checks label{font-weight:600}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
+<style>
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
+.two label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
+.two input, .two textarea, .two select { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
+.two input:focus, .two textarea:focus, .two select:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+.two textarea { min-height: 5.5rem; resize: vertical; }
+
+.cover { border: 1.5px solid var(--line); border-radius: 14px; padding: 1.25rem; margin: 1.5rem 0; background: rgba(251, 246, 238, 0.5); }
+.cover legend { font-weight: 700; font-family: var(--font-display); font-size: 13px; padding: 0 .5rem; color: var(--burgundy); }
+.cover__row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
+.cover__preview { flex: 0 0 110px; width: 110px; aspect-ratio: 3/4; border: 2px dashed rgba(26, 18, 22, 0.2); border-radius: 12px; display: grid; place-items: center; overflow: hidden; background: #fff; }
+.cover__preview img { width: 100%; height: 100%; object-fit: cover; }
+.cover__empty { margin: 0; padding: .5rem; text-align: center; color: var(--muted); font-size: .85em; }
+.cover__controls { flex: 1 1 16rem; display: grid; gap: .6rem; justify-items: start; }
+.cover__controls label { font-weight: 700; font-family: var(--font-display); font-size: 13px; color: var(--burgundy); cursor: pointer; }
+.cover__hint { margin: 0; color: var(--muted); font-size: 12px; }
+.cover__status { margin: 0; min-height: 1.3em; font-weight: 650; }
+#coverFile { font: inherit; }
+
+.checks { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 1.25rem 0 1.5rem; }
+.checks label { font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }
+
+.items { display: grid; gap: 1rem; margin-top: 1.25rem; }
+.item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 1rem; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
+.item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 15, 27, 0.06); background: #fff; }
+.item strong { display: grid; gap: .2rem; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
+.item .alt { font-weight: 400; color: var(--muted); font-size: 13px; font-family: var(--font-body); }
+.item-meta { display: flex; gap: .5rem; align-items: center; }
+
+@media (max-width: 720px) {
+  .two { grid-template-columns: 1fr; }
+  .item { grid-template-columns: 1fr; gap: .75rem; }
+  .item-meta { flex-wrap: wrap; }
+}
+</style>
