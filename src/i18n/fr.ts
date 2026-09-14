@@ -13,9 +13,9 @@ export const fr: Content = {
   nav: {
     home: 'Accueil',
     about: 'À propos',
-    services: 'Services d’édition',
+    services: 'Services',
     catalogue: 'Catalogue',
-    why: 'Pourquoi nous choisir',
+    why: 'Pourquoi Nous',
     contact: 'Nous contacter',
     news: 'Actualités',
     menu: 'Menu',

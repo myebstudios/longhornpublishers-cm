@@ -8,9 +8,9 @@ export const en: Content = {
   nav: {
     home: 'Home',
     about: 'About Us',
-    services: 'Publishing Services',
+    services: 'Services',
     catalogue: 'Catalogue',
-    why: 'Why Choose Us',
+    why: 'Why Us',
     contact: 'Contact Us',
     news: 'News & Updates',
     menu: 'Menu',

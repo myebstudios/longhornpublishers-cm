@@ -127,7 +127,8 @@ const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
   <section class="section section--white">
     <div class="wrap">
       <div class="map-embed reveal">
-        <div>
+        <img src="/img/lh-contact-map.jpg" alt="Map of Longhorn Publishers Cameroon location in Yaoundé" style="position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0.75; mix-blend-mode: overlay; pointer-events: none;" />
+        <div style="position: relative; z-index: 1;">
           <Icon name="pin" size={30} class="map-embed__pin" />
           <h3>{CONTACT.addressLines.join(' — ')}</h3>
           <p class="map-embed__meta">{t.contact.addressLine}</p>

@@ -44,12 +44,11 @@ export function alternatePath(key: RouteKey, locale: Locale): string {
   return path(key, locale === 'en' ? 'fr' : 'en');
 }
 
-/** Primary header navigation, in order. News lives in the footer only. */
-export const NAV_KEYS: Array<Exclude<RouteKey, 'privacy' | 'terms'>> = [
+/** Primary header navigation, in order. News & contact live in footer/CTA. */
+export const NAV_KEYS: Array<Exclude<RouteKey, 'privacy' | 'terms' | 'contact'>> = [
   'home',
   'about',
   'services',
   'catalogue',
   'why',
-  'contact',
 ];
