@@ -7,6 +7,12 @@ const activationForm = document.querySelector('#activate') as HTMLFormElement | 
 const loginForm = document.querySelector('#login') as HTMLFormElement | null;
 const title = document.querySelector('#title');
 const intro = document.querySelector('#intro');
+if (import.meta.env.DEV) {
+  title!.textContent = 'Admin sign-in requires a deploy preview';
+  intro!.textContent = 'Netlify Identity does not run in the local development server. You can test the local database and public CMS APIs here; test administrator login, roles, and protected writes on a Netlify deploy preview.';
+  loginForm!.hidden = true;
+  if (status) status.textContent = 'Local Identity is intentionally unavailable.';
+} else {
 try {
   const invitationToken = new URLSearchParams(window.location.hash.substring(1)).get('invite_token');
   const callback = await handleAuthCallback();
@@ -49,6 +55,7 @@ try {
     : 'Could not check your session. Enter your credentials to sign in.';
 }
 document.querySelector('#login')?.addEventListener('submit', async (event) => { event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const submit = form.querySelector('button') as HTMLButtonElement; submit.disabled = true; if (status) status.textContent = 'Signing in…'; try { const user = await login(String(new FormData(form).get('email')), String(new FormData(form).get('password'))); if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.'); location.href = '/admin/'; } catch (error) { if (status) status.textContent = error instanceof AuthError && error.status === 401 ? 'Invalid email or password.' : error instanceof Error ? error.message : 'Unable to sign in.'; } finally { submit.disabled = false; } });
+}
 </script><style>
 :root {
   --burgundy: #5C1A2B;

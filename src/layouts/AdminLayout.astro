@@ -17,22 +17,28 @@ const items = [
 <style is:inline>html[data-auth="pending"] body{visibility:hidden}</style>
 <script is:inline>document.documentElement.setAttribute('data-auth','pending')</script>
 </head>
-<body><aside class="sidebar"><a class="brand" href="/admin/"><span class="brand-mark">L</span><span>LONGHORN<small>Publishers Cameroon</small></span></a><p class="workspace-label">Content workspace</p><nav aria-label="Admin navigation">{items.map(([id, label, href, icon]) => <a class:list={{ active: section === id }} href={href}><span aria-hidden="true">{icon}</span>{label}</a>)}</nav><div class="sidebar-foot"><span class="secure-dot"></span>Admin workspace · Netlify CMS</div></aside><main class="app-main"><header class="topbar"><div><p class="eyebrow">Longhorn Publishers Cameroon</p><p class="crumb">Content management / {title}</p></div><div class="topbar-actions"><a href="/en/" target="_blank" class="view-site-link">View Public Site ↗</a><div class="user-chip"><span class="avatar">LP</span><span id="adminUser">Checking session…</span></div></div></header><div class="page-content"><slot /></div></main>
+<body><div id="localAdminNotice" class="local-admin-notice" role="status" hidden><strong>Local development mode.</strong> Netlify Identity does not run locally, so admin sign-in and protected writes must be tested on a Netlify deploy preview. The local database and public CMS APIs remain available.</div><aside class="sidebar"><a class="brand" href="/admin/"><span class="brand-mark">L</span><span>LONGHORN<small>Publishers Cameroon</small></span></a><p class="workspace-label">Content workspace</p><nav aria-label="Admin navigation">{items.map(([id, label, href, icon]) => <a class:list={{ active: section === id }} href={href}><span aria-hidden="true">{icon}</span>{label}</a>)}</nav><div class="sidebar-foot"><span class="secure-dot"></span>Admin workspace · Netlify CMS</div></aside><main class="app-main"><header class="topbar"><div><p class="eyebrow">Longhorn Publishers Cameroon</p><p class="crumb">Content management / {title}</p></div><div class="topbar-actions"><a href="/en/" target="_blank" class="view-site-link">View Public Site ↗</a><div class="user-chip"><span class="avatar">LP</span><span id="adminUser">Checking session…</span></div></div></header><div class="page-content"><slot /></div></main>
 <script>
   import { getUser } from '@netlify/identity';
   const target = document.querySelector('#adminUser');
   const release = () => document.documentElement.removeAttribute('data-auth');
-  try {
-    const user = await getUser();
-    if (!user?.roles?.includes('admin')) {
-      window.location.replace('/admin/login/');
-    } else {
-      if (target) target.textContent = user.email ?? 'Administrator';
+  if (import.meta.env.DEV) {
+    if (target) target.textContent = 'Local Identity unavailable';
+    document.querySelector('#localAdminNotice')?.removeAttribute('hidden');
+    release();
+  } else {
+    try {
+      const user = await getUser();
+      if (!user?.roles?.includes('admin')) {
+        window.location.replace('/admin/login/');
+      } else {
+        if (target) target.textContent = user.email ?? 'Administrator';
+        release();
+      }
+    } catch {
+      if (target) target.textContent = 'Session unavailable';
       release();
     }
-  } catch {
-    if (target) target.textContent = 'Session unavailable';
-    release();
   }
 </script>
 <style is:global>
@@ -62,6 +68,7 @@ const items = [
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--cream); color: var(--ink); font: 15px/1.5 var(--font-body); -webkit-font-smoothing: antialiased; }
+.local-admin-notice { position: fixed; z-index: 30; right: 1rem; bottom: 1rem; max-width: 34rem; padding: .8rem 1rem; border: 1px solid #b9811a; border-radius: 10px; background: #fff7de; color: #553800; box-shadow: 0 8px 24px rgba(26, 18, 22, .18); font-size: 13px; }
 .sidebar {
   position: fixed; inset: 0 auto 0 0; width: 258px;
   background: linear-gradient(160deg, var(--burgundy-deep), var(--burgundy) 62%, var(--burgundy-soft));
