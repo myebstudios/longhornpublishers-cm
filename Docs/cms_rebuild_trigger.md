@@ -48,9 +48,11 @@ secret** — anyone holding it can trigger unlimited builds against the account'
 
 ### 2.2 Store it as a scoped environment variable
 
-Add `CMS_REBUILD_HOOK_URL` under **Site configuration → Environment variables**, scoped to
-**Functions only**. It must not be scoped to the build or exposed to the client bundle: an
-`import.meta.env` value reachable from the browser would leak the hook to every visitor.
+Add `CMS_REBUILD_HOOK_URL` under **Site configuration → Environment variables** as a
+**production-only secret**. The current Netlify plan applies it to server-side build,
+Functions, and runtime contexts; finer Functions-only scope is unavailable. This remains safe
+because the hook is read only by server-side function code and is never passed through
+`import.meta.env` or exposed to the client bundle.
 
 Anything prefixed `PUBLIC_` in Astro is client-visible. Do not use that prefix here.
 
@@ -89,8 +91,10 @@ Two properties matter and are easy to get wrong:
 
 - **Never fail the write.** If the hook call throws, the editor must still see "Published".
   The database row is already correct; only propagation is delayed.
-- **Do not `await` it into the response latency** if the hook is slow. Fire it after the
-  database work and before returning; a rejected promise must stay handled.
+- **Await a bounded acknowledgement.** The write handlers await the hook after the database
+  commit, with a five-second timeout. This is more reliable than a fire-and-forget request a
+  serverless invocation may terminate; failures are caught, logged without the URL, and never
+  turn a successful save into an error response.
 
 ### 2.4 Only rebuild when it changes public output
 
@@ -160,10 +164,9 @@ The failure is visible only as a `console.warn` in the build log:
 [news] Could not read published articles at build time; rendering the empty state instead.
 ```
 
-Recommended guard: fail the build when the database is unreachable *and* the build is a
-production context — for example, check `process.env.CONTEXT === 'production'` in the catch
-and rethrow. Deploy previews and local builds keep the forgiving behaviour. This is a small
-change to both `src/lib/*.ts` catch blocks and should land with the hook work.
+Implemented guard: when `process.env.CONTEXT === 'production'`, a database read failure throws
+and fails the build rather than deploying empty CMS pages. Deploy previews and local builds keep
+the forgiving empty-state behaviour.
 
 ---
 

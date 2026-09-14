@@ -9,6 +9,7 @@
  */
 import { getDatabase } from '@netlify/database';
 import { path, type Locale } from '../i18n';
+import { failIfProductionDatabaseUnavailable } from './production-build';
 
 /** Category values permitted by the news_articles CHECK constraint. */
 export type NewsCategory = 'company_news' | 'new_titles' | 'partnerships' | 'events';
@@ -124,6 +125,7 @@ export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
     `;
     return rows as unknown as NewsArticleDetail[];
   } catch (error) {
+    failIfProductionDatabaseUnavailable('news');
     console.warn(
       '[news] Could not read article bodies at build time; no detail routes will be generated.',
       error instanceof Error ? error.message : error,
@@ -144,6 +146,7 @@ export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
     const articles = rows as unknown as NewsArticle[];
     return typeof limit === 'number' ? articles.slice(0, limit) : articles;
   } catch (error) {
+    failIfProductionDatabaseUnavailable('news');
     console.warn(
       '[news] Could not read published articles at build time; rendering the empty state instead.',
       error instanceof Error ? error.message : error,
