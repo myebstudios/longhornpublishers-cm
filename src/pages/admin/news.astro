@@ -2,9 +2,78 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="News & updates" section="news">
-  <h1>News & updates</h1><p>Prepare bilingual editorial drafts; publication remains accountable to the designated content owner.</p>
-  <section class="card"><div class="toolbar"><h2 id="editorTitle">New article</h2><button class="button secondary" type="button" id="reset">New article</button></div><form id="editor"><input type="hidden" name="id" /><div class="two"><label>English headline<input name="headline_en" required /></label><label>French headline<input name="headline_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Category<select name="category"><option value="company_news">Company news</option><option value="new_titles">New titles</option><option value="partnerships">Partnerships</option><option value="events">Events</option></select></label><label>Publish date<input name="publish_date" type="date" /></label><label class="check"><input name="published" type="checkbox" /> Publish now</label><label>English excerpt<textarea name="excerpt_en" required></textarea></label><label>French excerpt<textarea name="excerpt_fr" required></textarea></label></div><label>English article body<textarea name="body_en" required></textarea></label><label>French article body<textarea name="body_fr" required></textarea></label><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section><section class="card"><h2>Articles</h2><p id="empty">Loading articles…</p><div id="items" class="items"></div></section>
+  <div class="admin-page-head">
+    <div>
+      <h1>Editorial & News Desk</h1>
+      <p>Draft company news, new title announcements, and partnership press releases in English and French.</p>
+    </div>
+    <button class="button" type="button" id="openEditorBtn">+ Create New Article</button>
+  </div>
+
+  <!-- Collapsible Editor Form Card -->
+  <section class="card editor-card" id="editorCard" hidden>
+    <div class="toolbar">
+      <h2 id="editorTitle">New Article</h2>
+      <button class="button secondary" type="button" id="closeEditorBtn">Close Editor ✕</button>
+    </div>
+    <form id="editor">
+      <input type="hidden" name="id" />
+      <div class="two">
+        <label>English headline<input name="headline_en" required placeholder="e.g. Longhorn Expands Bilingual Distribution in Cameroon" /></label>
+        <label>French headline<input name="headline_fr" required placeholder="e.g. Longhorn Étend sa Distribution Bilingue au Cameroun" /></label>
+        <label>Slug<input name="slug" required pattern="[a-z0-9-]+" placeholder="bilingual-distribution-cameroon" /></label>
+        <label>Category
+          <select name="category">
+            <option value="company_news">Company news</option>
+            <option value="new_titles">New titles</option>
+            <option value="partnerships">Partnerships</option>
+            <option value="events">Events</option>
+          </select>
+        </label>
+        <label>Publish date<input name="publish_date" type="date" /></label>
+        <label class="check"><input name="published" type="checkbox" /> Publish now</label>
+        <label>English excerpt<textarea name="excerpt_en" required placeholder="Brief article summary for news cards..."></textarea></label>
+        <label>French excerpt<textarea name="excerpt_fr" required placeholder="Résumé concis pour les cartes d'actualités..."></textarea></label>
+      </div>
+
+      <label>English article body<textarea name="body_en" required placeholder="Full article content in English..."></textarea></label>
+      <label>French article body<textarea name="body_fr" required placeholder="Contenu complet en français..."></textarea></label>
+
+      <div class="form-actions">
+        <button class="button">Save Article</button>
+        <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <!-- Primary Article List & Search View -->
+  <section class="card list-card">
+    <div class="list-toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="searchFilter" placeholder="Search news articles by headline or slug..." />
+      </div>
+      <div class="filter-controls">
+        <select id="filterCategory">
+          <option value="all">All Categories</option>
+          <option value="company_news">Company News</option>
+          <option value="new_titles">New Titles</option>
+          <option value="partnerships">Partnerships</option>
+          <option value="events">Events</option>
+        </select>
+        <select id="filterStatus">
+          <option value="all">All Statuses</option>
+          <option value="published">Published</option>
+          <option value="draft">Drafts</option>
+        </select>
+      </div>
+    </div>
+    <p id="empty" class="empty-notice">Loading articles…</p>
+    <div id="items" class="news-list"></div>
+  </section>
 </AdminLayout>
+
 <script>
   import { confirmAction, emptyToNull, request, sendJson } from '../../lib/admin-client';
 
@@ -17,23 +86,50 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const status = document.querySelector('#status')!;
   const title = document.querySelector('#editorTitle')!;
 
+  const editorCard = document.querySelector('#editorCard') as HTMLElement;
+  const openEditorBtn = document.querySelector('#openEditorBtn') as HTMLButtonElement;
+  const closeEditorBtn = document.querySelector('#closeEditorBtn') as HTMLButtonElement;
+  const cancelEditorBtn = document.querySelector('#cancelEditorBtn') as HTMLButtonElement;
+
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
     status.textContent = message;
     status.className = message ? `status status--${tone}` : '';
   };
 
-  /** Serialised form state as of the last load/save, for the unsaved-work guard. */
   let pristine = '';
   const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
   const isDirty = () => snapshot() !== pristine;
   const confirmDiscard = async () =>
     !isDirty() || (await confirmAction('This form has unsaved changes. Discard them?'));
 
+  const showEditor = (isNew = false) => {
+    editorCard.removeAttribute('hidden');
+    if (isNew) title.textContent = 'Create New Article';
+    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const firstInput = form.querySelector('input[name="headline_en"]') as HTMLInputElement | null;
+    if (firstInput) firstInput.focus();
+  };
+
+  const hideEditor = async () => {
+    if (await confirmDiscard()) {
+      form.reset();
+      editorCard.setAttribute('hidden', '');
+      setStatus('');
+    }
+  };
+
+  openEditorBtn.addEventListener('click', async () => {
+    if (await reset(true)) showEditor(true);
+  });
+
+  closeEditorBtn.addEventListener('click', hideEditor);
+  cancelEditorBtn.addEventListener('click', hideEditor);
+
   const reset = async (force = false) => {
     if (!force && !(await confirmDiscard())) return false;
     form.reset();
     (form.elements.namedItem('id') as HTMLInputElement).value = '';
-    title.textContent = 'New article';
+    title.textContent = 'Create New Article';
     setStatus('');
     pristine = snapshot();
     return true;
@@ -41,9 +137,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   const values = () => {
     const record = Object.fromEntries(new FormData(form).entries()) as CmsRecord;
-    // An unchecked checkbox is absent from FormData, so set it explicitly.
     record.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
-    // An untouched date input yields '', which Postgres rejects for a date column.
     return emptyToNull(record, ['publish_date']);
   };
 
@@ -60,31 +154,46 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     title.textContent = `Editing: ${entry.headline_en}`;
     setStatus('');
     pristine = snapshot();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showEditor(false);
   };
 
-  async function load() {
-    const result = await request<CmsRecord[]>('/api/news-admin', {}, 'Unable to load articles.');
-    if (!result.ok) { empty.textContent = result.error!; return; }
+  let allRows: CmsRecord[] = [];
+  const searchFilter = document.querySelector('#searchFilter') as HTMLInputElement | null;
+  const filterCategory = document.querySelector('#filterCategory') as HTMLSelectElement | null;
+  const filterStatus = document.querySelector('#filterStatus') as HTMLSelectElement | null;
 
-    const rows = result.data ?? [];
+  function renderList() {
+    const query = (searchFilter?.value || '').toLowerCase().trim();
+    const cat = filterCategory?.value || 'all';
+    const statusVal = filterStatus?.value || 'all';
+
+    const filtered = allRows.filter(entry => {
+      const matchQuery = !query ||
+        String(entry.headline_en || '').toLowerCase().includes(query) ||
+        String(entry.headline_fr || '').toLowerCase().includes(query) ||
+        String(entry.slug || '').toLowerCase().includes(query);
+      const matchCat = cat === 'all' || String(entry.category).toLowerCase() === cat;
+      const matchStatus = statusVal === 'all' || (statusVal === 'published' ? entry.published : !entry.published);
+      return matchQuery && matchCat && matchStatus;
+    });
+
     items.replaceChildren();
-    empty.textContent = rows.length ? '' : 'No articles yet. Create a bilingual draft.';
+    empty.textContent = filtered.length ? '' : (allRows.length ? 'No articles match the selected filters.' : 'No articles yet. Click "+ Create New Article" to start.');
 
-    rows.forEach(entry => {
+    filtered.forEach(entry => {
       const article = document.createElement('article');
-      article.className = 'item';
+      article.className = 'news-item-card';
 
-      const heading = document.createElement('strong');
-      heading.textContent = entry.headline_en;
-      // Both languages are listed: a French-first editor needs to recognise
-      // their own work without opening each record.
+      const heading = document.createElement('div');
+      heading.className = 'title-info';
+      const titleStrong = document.createElement('strong');
+      titleStrong.textContent = entry.headline_en;
       const alternate = document.createElement('small');
       alternate.className = 'alt';
       alternate.textContent = entry.headline_fr ?? '—';
-      heading.append(alternate);
+      heading.append(titleStrong, alternate);
 
-      const meta = document.createElement('span');
+      const meta = document.createElement('div');
       meta.className = 'item-meta';
       const catSpan = document.createElement('span');
       catSpan.className = 'admin-badge admin-badge--purple';
@@ -94,8 +203,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       statusSpan.textContent = entry.published ? 'Published' : 'Draft';
       meta.append(catSpan, statusSpan);
 
-      // Repeated controls are labelled with the headline so a screen reader does
-      // not announce a column of identical "Edit"/"Delete" buttons.
+      const actions = document.createElement('div');
+      actions.className = 'item-actions';
+
       const editButton = document.createElement('button');
       editButton.type = 'button';
       editButton.className = 'button secondary';
@@ -117,20 +227,33 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           'Unable to delete article.',
         );
         if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
-        // Editing the record that was just deleted would post to a dead id.
-        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) reset(true);
+        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) {
+          reset(true);
+          editorCard.setAttribute('hidden', '');
+        }
         setStatus('Article deleted.');
         await load();
       };
 
-      article.append(heading, meta, editButton, deleteButton);
+      actions.append(editButton, deleteButton);
+      article.append(heading, meta, actions);
       items.append(article);
     });
   }
 
+  async function load() {
+    const result = await request<CmsRecord[]>('/api/news-admin', {}, 'Unable to load articles.');
+    if (!result.ok) { empty.textContent = result.error!; return; }
+    allRows = result.data ?? [];
+    renderList();
+  }
+
+  searchFilter?.addEventListener('input', renderList);
+  filterCategory?.addEventListener('change', renderList);
+  filterStatus?.addEventListener('change', renderList);
+
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    // Guards against a double-click creating two records for one POST.
     if (submit.disabled) return;
     submit.disabled = true;
     setStatus('Saving…');
@@ -145,15 +268,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       if (!result.ok) { setStatus(result.error!, 'err'); return; }
       setStatus(record.published ? 'Article published.' : 'Draft saved.');
       reset(true);
+      editorCard.setAttribute('hidden', '');
       await load();
     } finally {
       submit.disabled = false;
     }
   });
 
-  document.querySelector('#reset')?.addEventListener('click', () => reset());
-
-  // Warn on tab close / navigation while a draft has unsaved edits.
   window.addEventListener('beforeunload', event => {
     if (isDirty()) event.preventDefault();
   });
@@ -161,27 +282,46 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   pristine = snapshot();
   load();
 </script>
+
 <style>
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.admin-page-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
+.editor-card[hidden] { display: none; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
 form { display: grid; gap: 1.25rem; }
 .two label, form > label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
-.two input, .two textarea, .two select, form > label textarea { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
-.two input:focus, .two textarea:focus, .two select:focus, form > label textarea:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+.two input, .two textarea, .two select, form > label textarea { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font-size: 14px; transition: all .2s ease; }
+.two input:focus, .two textarea:focus, .two select:focus, form > label textarea:focus { border-color: var(--green-deep); box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
 .two textarea, form > label textarea { min-height: 5.5rem; resize: vertical; }
 form > label textarea { min-height: 10rem; }
 .check { align-content: end; display: flex !important; align-items: center; gap: .5rem; font-weight: 600; font-size: 14px; cursor: pointer; }
+.form-actions { display: flex; gap: 1rem; align-items: center; margin-top: 1.25rem; }
 
-.items { display: grid; gap: 1rem; margin-top: 1.25rem; }
-.item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 1rem; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
-.item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 15, 27, 0.06); background: #fff; }
-.item strong { display: grid; gap: .2rem; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
-.item .alt { font-weight: 400; color: var(--muted); font-size: 13px; font-family: var(--font-body); }
-.item-meta { display: flex; gap: .5rem; align-items: center; }
+/* List & Search Controls */
+.list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.search-box { flex: 1 1 280px; position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; left: 1rem; font-size: 14px; pointer-events: none; opacity: .6; }
+.search-box input { width: 100%; padding: .75rem 1rem .75rem 2.5rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 14px; font-family: var(--font-body); transition: all .2s ease; }
+.search-box input:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+.filter-controls { display: flex; gap: .75rem; }
+.filter-controls select { padding: .65rem 1rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 13px; font-weight: 600; font-family: var(--font-display); color: var(--ink); }
 
-@media (max-width: 720px) {
+.news-list { display: grid; gap: 1rem; }
+.news-item-card { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
+.news-item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
+.title-info strong { display: block; font-family: var(--font-display); font-size: 16px; color: var(--ink); font-weight: 700; }
+.title-info .alt { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 400; }
+.item-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.item-actions { display: flex; gap: .6rem; align-items: center; }
+.empty-notice { color: var(--muted); padding: 2rem; text-align: center; font-size: 15px; }
+
+@media (max-width: 760px) {
   .two { grid-template-columns: 1fr; }
-  .item { grid-template-columns: 1fr; gap: .75rem; }
-  .item-meta { flex-wrap: wrap; }
+  .news-item-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .item-actions { width: 100%; justify-content: flex-end; }
+  .list-toolbar { flex-direction: column; align-items: stretch; }
+  .filter-controls { width: 100%; justify-content: space-between; }
+  .filter-controls select { flex: 1; }
 }
 </style>

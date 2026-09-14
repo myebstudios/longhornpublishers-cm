@@ -2,26 +2,45 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="Subjects" section="subjects">
-  <h1>Subjects</h1>
-  <p>The subject taxonomy used to classify catalogue titles. Subjects drive the subject filter on the public catalogue, so both language names are required.</p>
+  <div class="admin-page-head">
+    <div>
+      <h1>Subject Taxonomy</h1>
+      <p>Manage bilingual subject classifications for catalogue titles across English and French curricula.</p>
+    </div>
+    <button class="button" type="button" id="openEditorBtn">+ Create New Subject</button>
+  </div>
 
-  <section class="card">
-    <div class="toolbar"><h2 id="editorTitle">New subject</h2><button class="button secondary" type="button" id="reset">New subject</button></div>
+  <!-- Collapsible Subject Editor Card -->
+  <section class="card editor-card" id="editorCard" hidden>
+    <div class="toolbar">
+      <h2 id="editorTitle">New Subject</h2>
+      <button class="button secondary" type="button" id="closeEditorBtn">Close Editor ✕</button>
+    </div>
     <form id="editor">
       <input type="hidden" name="id" />
       <div class="two">
-        <label>English name<input name="name_en" required /></label>
-        <label>French name<input name="name_fr" required /></label>
+        <label>English subject name<input name="name_en" required placeholder="e.g. Mathematics" /></label>
+        <label>French subject name<input name="name_fr" required placeholder="e.g. Mathématiques" /></label>
       </div>
-      <button class="button">Save subject</button>
+      <div class="form-actions">
+        <button class="button">Save Subject</button>
+        <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
+      </div>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
   </section>
 
-  <section class="card">
-    <h2>Taxonomy</h2>
-    <p id="empty">Loading subjects…</p>
-    <div id="items" class="items"></div>
+  <!-- Primary Subject Taxonomy List -->
+  <section class="card list-card">
+    <div class="list-toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="searchFilter" placeholder="Search subjects by English or French name..." />
+      </div>
+      <div class="subject-count-chip" id="countChip">0 subjects</div>
+    </div>
+    <p id="empty" class="empty-notice">Loading subjects…</p>
+    <div id="items" class="subjects-list"></div>
   </section>
 </AdminLayout>
 
@@ -32,10 +51,18 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   const form = document.querySelector('#editor') as HTMLFormElement;
   const submit = form.querySelector('button:not([type="button"])') as HTMLButtonElement;
-  const items = document.querySelector('#items')!;
-  const empty = document.querySelector('#empty')!;
-  const status = document.querySelector('#status')!;
-  const title = document.querySelector('#editorTitle')!;
+  const itemsContainer = document.querySelector('#items') as HTMLDivElement;
+  const empty = document.querySelector('#empty') as HTMLParagraphElement;
+  const status = document.querySelector('#status') as HTMLParagraphElement;
+  const editorTitle = document.querySelector('#editorTitle') as HTMLHeadingElement;
+  const editorCard = document.querySelector('#editorCard') as HTMLElement;
+  const openEditorBtn = document.querySelector('#openEditorBtn') as HTMLButtonElement;
+  const closeEditorBtn = document.querySelector('#closeEditorBtn') as HTMLButtonElement;
+  const cancelEditorBtn = document.querySelector('#cancelEditorBtn') as HTMLButtonElement;
+  const searchFilter = document.querySelector('#searchFilter') as HTMLInputElement;
+  const countChip = document.querySelector('#countChip') as HTMLDivElement;
+
+  let allSubjects: CmsRecord[] = [];
 
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
     status.textContent = message;
@@ -49,14 +76,31 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const confirmDiscard = async () =>
     !isDirty() || (await confirmAction('This form has unsaved changes. Discard them?'));
 
-  const reset = async (force = false) => {
+  const hideEditor = () => {
+    editorCard.hidden = true;
+  };
+
+  const showEditor = () => {
+    editorCard.hidden = false;
+  };
+
+  const resetForm = async (force = false) => {
     if (!force && !(await confirmDiscard())) return false;
     form.reset();
     (form.elements.namedItem('id') as HTMLInputElement).value = '';
-    title.textContent = 'New subject';
+    editorTitle.textContent = 'New Subject';
     setStatus('');
     pristine = snapshot();
     return true;
+  };
+
+  const openNewEditor = async () => {
+    const ok = await resetForm();
+    if (ok) {
+      showEditor();
+      (form.elements.namedItem('name_en') as HTMLInputElement).focus();
+      editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
   };
 
   const edit = async (entry: CmsRecord) => {
@@ -64,38 +108,66 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
     (form.elements.namedItem('name_en') as HTMLInputElement).value = entry.name_en ?? '';
     (form.elements.namedItem('name_fr') as HTMLInputElement).value = entry.name_fr ?? '';
-    title.textContent = `Editing: ${entry.name_en}`;
+    editorTitle.textContent = `Editing: ${entry.name_en}`;
     setStatus('');
     pristine = snapshot();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showEditor();
+    (form.elements.namedItem('name_en') as HTMLInputElement).focus();
+    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
-  async function load() {
-    const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
-    if (!result.ok) { empty.textContent = result.error!; return; }
+  function renderList() {
+    const query = searchFilter.value.trim().toLowerCase();
+    const filtered = allSubjects.filter(sub => {
+      if (!query) return true;
+      const en = (sub.name_en || '').toLowerCase();
+      const fr = (sub.name_fr || '').toLowerCase();
+      return en.includes(query) || fr.includes(query);
+    });
 
-    const rows = result.data ?? [];
-    items.replaceChildren();
-    empty.textContent = rows.length
-      ? ''
-      : 'No subjects yet. Add the approved taxonomy here before classifying catalogue titles.';
+    countChip.textContent = `${filtered.length} of ${allSubjects.length} subject${allSubjects.length === 1 ? '' : 's'}`;
 
-    rows.forEach(entry => {
+    itemsContainer.replaceChildren();
+
+    if (!filtered.length) {
+      empty.hidden = false;
+      empty.textContent = allSubjects.length
+        ? 'No subjects match your search criteria.'
+        : 'No subjects yet. Add your subject taxonomy here to classify catalogue titles.';
+      return;
+    }
+
+    empty.hidden = true;
+
+    filtered.forEach(entry => {
       const article = document.createElement('article');
-      article.className = 'item';
+      article.className = 'subject-item';
 
-      const heading = document.createElement('strong');
+      const iconBox = document.createElement('div');
+      iconBox.className = 'subject-icon';
+      iconBox.textContent = (entry.name_en || 'S').charAt(0).toUpperCase();
+
+      const details = document.createElement('div');
+      details.className = 'subject-details';
+
+      const heading = document.createElement('h3');
+      heading.className = 'subject-title';
       heading.textContent = entry.name_en;
-      const alternate = document.createElement('small');
-      alternate.className = 'alt';
-      alternate.textContent = entry.name_fr ?? '—';
-      heading.append(alternate);
 
-      // Shows an editor why a delete will be refused before they attempt it.
+      const altName = document.createElement('span');
+      altName.className = 'subject-alt';
+      altName.textContent = entry.name_fr ? `FR: ${entry.name_fr}` : '—';
+      heading.appendChild(altName);
+
+      details.appendChild(heading);
+
       const count = Number(entry.title_count ?? 0);
       const meta = document.createElement('span');
       meta.className = 'admin-badge admin-badge--purple';
       meta.textContent = count === 1 ? '1 Title' : `${count} Titles`;
+
+      const actions = document.createElement('div');
+      actions.className = 'subject-actions';
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -120,14 +192,33 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           'Unable to delete subject.',
         );
         if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
-        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) reset(true);
+        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) {
+          await resetForm(true);
+          hideEditor();
+        }
         setStatus('Subject deleted.');
         await load();
       };
 
-      article.append(heading, meta, editButton, deleteButton);
-      items.append(article);
+      actions.append(editButton, deleteButton);
+      article.append(iconBox, details, meta, actions);
+      itemsContainer.append(article);
     });
+  }
+
+  async function load() {
+    empty.hidden = false;
+    empty.textContent = 'Loading subjects…';
+    const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
+    if (!result.ok) {
+      empty.textContent = result.error!;
+      allSubjects = [];
+      renderList();
+      return;
+    }
+
+    allSubjects = result.data ?? [];
+    renderList();
   }
 
   form.addEventListener('submit', async event => {
@@ -146,14 +237,23 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       );
       if (!result.ok) { setStatus(result.error!, 'err'); return; }
       setStatus('Subject saved.');
-      reset(true);
+      await resetForm(true);
+      hideEditor();
       await load();
     } finally {
       submit.disabled = false;
     }
   });
 
-  document.querySelector('#reset')?.addEventListener('click', () => reset());
+  openEditorBtn.addEventListener('click', openNewEditor);
+  closeEditorBtn.addEventListener('click', async () => {
+    if (await resetForm()) hideEditor();
+  });
+  cancelEditorBtn.addEventListener('click', async () => {
+    if (await resetForm()) hideEditor();
+  });
+  searchFilter.addEventListener('input', renderList);
+
   window.addEventListener('beforeunload', event => { if (isDirty()) event.preventDefault(); });
 
   pristine = snapshot();
@@ -161,21 +261,43 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </script>
 
 <style>
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.admin-page-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 1.5rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.admin-page-head h1 { font: 700 clamp(24px, 3vw, 36px)/1.1 var(--font-display); margin: 0; color: var(--ink); }
+.admin-page-head p { margin: .5rem 0 0; color: var(--muted); font-size: 14px; max-width: 620px; }
+
+.editor-card { background: #fff; border: 1.5px solid var(--green); border-radius: 20px; padding: 24px 28px; box-shadow: 0 12px 36px rgba(47, 122, 42, 0.08); margin-bottom: 24px; }
+.editor-card .toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.25rem; padding-bottom: 1rem; border-bottom: 1px solid var(--line); }
+.editor-card h2 { margin: 0; font-size: 18px; color: var(--ink); font-family: var(--font-display); }
+
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
 .two label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
 .two input { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
 .two input:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
-form { display: grid; gap: 1.25rem; }
 
-.items { display: grid; gap: 1rem; margin-top: 1.25rem; }
-.item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 1rem; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
-.item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 15, 27, 0.06); background: #fff; }
-.item strong { display: grid; gap: .2rem; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
-.item .alt { font-weight: 400; color: var(--muted); font-size: 13px; font-family: var(--font-body); }
+.form-actions { display: flex; gap: .75rem; align-items: center; margin-top: 1.25rem; }
+
+.list-card { background: var(--paper); }
+.list-toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; flex-wrap: wrap; }
+.search-box { display: flex; align-items: center; gap: .6rem; background: var(--cream); border: 1.5px solid var(--line); border-radius: 999px; padding: .4rem 1rem; min-width: 280px; flex: 1; transition: all .2s ease; }
+.search-box:focus-within { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.12); }
+.search-box input { border: 0; background: transparent; font: inherit; font-size: 14px; width: 100%; outline: none; }
+.subject-count-chip { font-family: var(--font-display); font-size: 12px; font-weight: 700; color: var(--muted); background: var(--cream-deep); padding: .4rem .85rem; border-radius: 999px; border: 1px solid var(--line); }
+
+.empty-notice { color: var(--muted); text-align: center; padding: 2rem 1rem; font-size: 14px; background: var(--cream); border-radius: 12px; margin: 0; }
+
+.subjects-list { display: grid; gap: .85rem; }
+.subject-item { display: flex; align-items: center; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease, background .2s ease; }
+.subject-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.06); background: #fff; }
+
+.subject-icon { width: 42px; height: 42px; border-radius: 12px; background: linear-gradient(135deg, var(--burgundy-deep), var(--burgundy)); color: var(--green); display: grid; place-items: center; font-family: var(--font-display); font-weight: 800; font-size: 18px; flex-shrink: 0; }
+.subject-details { flex: 1; min-width: 0; }
+.subject-title { margin: 0; font-family: var(--font-display); font-size: 15px; font-weight: 700; color: var(--ink); display: flex; align-items: baseline; gap: .75rem; flex-wrap: wrap; }
+.subject-alt { font-family: var(--font-body); font-weight: 400; font-size: 13px; color: var(--muted); }
+.subject-actions { display: flex; align-items: center; gap: .5rem; flex-shrink: 0; }
 
 @media (max-width: 720px) {
   .two { grid-template-columns: 1fr; }
-  .item { grid-template-columns: 1fr; gap: .75rem; }
+  .subject-item { flex-direction: column; align-items: flex-start; gap: .75rem; }
+  .subject-actions { margin-top: .5rem; width: 100%; justify-content: flex-end; }
 }
 </style>

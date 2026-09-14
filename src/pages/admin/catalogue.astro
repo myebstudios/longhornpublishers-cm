@@ -2,11 +2,45 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="Catalogue" section="catalogue">
-  <h1>Catalogue</h1><p>Manage bilingual titles as drafts, then publish only after editorial review.</p>
-  <section class="card"><div class="toolbar"><h2 id="editorTitle">New title</h2><button class="button secondary" type="button" id="reset">New title</button></div>
-    <form id="editor"><input type="hidden" name="id" /><div class="two"><label>English title<input name="title_en" required /></label><label>French title<input name="title_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Level<select name="level" required><option value="primary">Primary</option><option value="secondary">Secondary</option></select></label><label>Subject<select name="subject_id"><option value="">— No subject —</option></select></label><label>English description<textarea name="description_en" required></textarea></label><label>French description<textarea name="description_fr" required></textarea></label><label>English curriculum alignment<textarea name="curriculum_alignment_en"></textarea></label><label>French curriculum alignment<textarea name="curriculum_alignment_fr"></textarea></label></div>
+  <div class="admin-page-head">
+    <div>
+      <h1>Catalogue Management</h1>
+      <p>Manage bilingual publication titles, curriculum alignments, and 3:4 portrait book cover assets.</p>
+    </div>
+    <button class="button" type="button" id="openEditorBtn">+ Create New Title</button>
+  </div>
+
+  <!-- Collapsible Editor Form Card -->
+  <section class="card editor-card" id="editorCard" hidden>
+    <div class="toolbar">
+      <h2 id="editorTitle">New Title</h2>
+      <button class="button secondary" type="button" id="closeEditorBtn">Close Editor ✕</button>
+    </div>
+    <form id="editor">
+      <input type="hidden" name="id" />
+      <div class="two">
+        <label>English title<input name="title_en" required placeholder="e.g. Primary Mathematics Book 4" /></label>
+        <label>French title<input name="title_fr" required placeholder="e.g. Mathématiques Élémentaires 4" /></label>
+        <label>Slug<input name="slug" required pattern="[a-z0-9-]+" placeholder="primary-mathematics-book-4" /></label>
+        <label>Level
+          <select name="level" required>
+            <option value="primary">Primary</option>
+            <option value="secondary">Secondary</option>
+          </select>
+        </label>
+        <label>Subject
+          <select name="subject_id">
+            <option value="">— No subject —</option>
+          </select>
+        </label>
+        <label>English description<textarea name="description_en" required placeholder="Comprehensive curriculum coverage..."></textarea></label>
+        <label>French description<textarea name="description_fr" required placeholder="Couverture complète du programme..."></textarea></label>
+        <label>English curriculum alignment<textarea name="curriculum_alignment_en" placeholder="MINEDUB official syllabus compliant..."></textarea></label>
+        <label>French curriculum alignment<textarea name="curriculum_alignment_fr" placeholder="Conforme au programme officiel du MINEDUB..."></textarea></label>
+      </div>
+
       <fieldset class="cover">
-        <legend>Cover image</legend>
+        <legend>Cover Image (3:4 Portrait)</legend>
         <input type="hidden" name="cover_image_id" />
         <div class="cover__row">
           <div class="cover__preview">
@@ -14,16 +48,53 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             <p id="coverEmpty" class="cover__empty">No cover image</p>
           </div>
           <div class="cover__controls">
-            <label for="coverFile" id="coverFileLabel">Choose a cover image</label>
-            <input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="coverHint coverStatus" />
+            <label for="coverFile" id="coverFileLabel" class="button secondary">Choose cover image</label>
+            <input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="coverHint coverStatus" style="display:none" />
             <p id="coverHint" class="cover__hint">JPEG, PNG or WebP, up to 8&nbsp;MB. Portrait (3:4) reproduces best.</p>
-            <button class="button secondary" type="button" id="coverClear" hidden>Remove cover image</button>
+            <button class="button danger" type="button" id="coverClear" hidden>Remove cover image</button>
             <p id="coverStatus" class="cover__status" role="status" aria-live="polite"></p>
           </div>
         </div>
       </fieldset>
-      <div class="checks"><label><input name="language_en" type="checkbox" checked /> English edition</label><label><input name="language_fr" type="checkbox" checked /> French edition</label><label><input name="featured" type="checkbox" /> Featured title</label><label><input name="published" type="checkbox" /> Publish now</label></div><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section>
-  <section class="card"><h2>Titles</h2><p id="empty">Loading catalogue…</p><div id="items" class="items"></div></section>
+
+      <div class="checks">
+        <label><input name="language_en" type="checkbox" checked /> English edition</label>
+        <label><input name="language_fr" type="checkbox" checked /> French edition</label>
+        <label><input name="featured" type="checkbox" /> Featured title</label>
+        <label><input name="published" type="checkbox" /> Publish now</label>
+      </div>
+
+      <div class="form-actions">
+        <button class="button">Save Title</button>
+        <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
+      </div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <!-- Primary Publication List & Filter View -->
+  <section class="card list-card">
+    <div class="list-toolbar">
+      <div class="search-box">
+        <span class="search-icon">🔍</span>
+        <input type="search" id="searchFilter" placeholder="Search titles by name or slug..." />
+      </div>
+      <div class="filter-controls">
+        <select id="filterLevel">
+          <option value="all">All Levels</option>
+          <option value="primary">Primary</option>
+          <option value="secondary">Secondary</option>
+        </select>
+        <select id="filterStatus">
+          <option value="all">All Statuses</option>
+          <option value="published">Published</option>
+          <option value="draft">Drafts</option>
+        </select>
+      </div>
+    </div>
+    <p id="empty" class="empty-notice">Loading catalogue…</p>
+    <div id="items" class="catalogue-list"></div>
+  </section>
 </AdminLayout>
 <script>
   import {
@@ -107,19 +178,42 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     coverStatus.className = message ? `cover__status status--${tone}` : 'cover__status';
   };
 
-  /**
-   * Reflect the current cover in the UI.
-   *
-   * `src` is passed for a freshly picked file (an object URL, shown before the
-   * upload finishes); otherwise the stored id is read back through /api/media,
-   * which serves unpublished drafts to signed-in admins.
-   */
+  const editorCard = document.querySelector('#editorCard') as HTMLElement;
+  const openEditorBtn = document.querySelector('#openEditorBtn') as HTMLButtonElement;
+  const closeEditorBtn = document.querySelector('#closeEditorBtn') as HTMLButtonElement;
+  const cancelEditorBtn = document.querySelector('#cancelEditorBtn') as HTMLButtonElement;
+
+  const showEditor = (isNew = false) => {
+    editorCard.removeAttribute('hidden');
+    if (isNew) title.textContent = 'Create New Title';
+    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const firstInput = form.querySelector('input[name="title_en"]') as HTMLInputElement | null;
+    if (firstInput) firstInput.focus();
+  };
+
+  const hideEditor = async () => {
+    if (await confirmDiscard()) {
+      form.reset();
+      editorCard.setAttribute('hidden', '');
+      setStatus('');
+    }
+  };
+
+  openEditorBtn.addEventListener('click', async () => {
+    if (await reset(true)) {
+      showEditor(true);
+    }
+  });
+
+  closeEditorBtn.addEventListener('click', hideEditor);
+  cancelEditorBtn.addEventListener('click', hideEditor);
+
+
+
   const renderCover = (id: string | null, src?: string) => {
     const view = coverViewState(id, src);
     if (view.imageSrc) coverPreview.src = view.imageSrc;
     else coverPreview.removeAttribute('src');
-    // The preview duplicates the adjacent text, so it is decorative; the file
-    // name and status message carry the information.
     coverPreview.alt = '';
     coverPreview.hidden = !view.showImage;
     (coverEmpty as HTMLElement).hidden = !view.showEmpty;
@@ -138,7 +232,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       return;
     }
 
-    // Show the picked file immediately; uploading it may take a moment.
     releasePreviewUrl();
     previewObjectUrl = URL.createObjectURL(file);
     renderCover(null, previewObjectUrl);
@@ -153,8 +246,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         '/api/media', { method: 'POST', body }, 'Unable to upload that image.',
       );
       if (!result.ok || !result.data?.id) {
-        // Roll the preview back to whatever was saved before this attempt, so
-        // the form never shows an image the record does not actually have.
         releasePreviewUrl();
         renderCover(coverField.value || null);
         setCoverStatus(result.error ?? 'Unable to upload that image.', 'err');
@@ -174,8 +265,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     coverField.value = '';
     renderCover(null);
     setCoverStatus('Cover image removed. Save the title to apply it.');
-    // Keyboard users land on a control that just vanished, so move focus
-    // somewhere predictable rather than letting it fall back to <body>.
     coverFile.focus();
   });
 
@@ -186,8 +275,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       if (input && typeof value === 'string') input.value = value;
     }
     (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
-    // `languages` arrives as a JSON array, or as its string form from some
-    // driver/column combinations — normalise before testing membership.
     const languages: string[] = Array.isArray(entry.languages)
       ? entry.languages
       : typeof entry.languages === 'string'
@@ -195,8 +282,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         : [];
     (form.elements.namedItem('language_en') as HTMLInputElement).checked = languages.includes('en');
     (form.elements.namedItem('language_fr') as HTMLInputElement).checked = languages.includes('fr');
-    // Set explicitly: the loop above only assigns string values, so a title
-    // whose subject was cleared would otherwise keep the previous selection.
     const subjectSelect = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
     if (subjectSelect) subjectSelect.value = entry.subject_id ?? '';
     releasePreviewUrl();
@@ -208,16 +293,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     title.textContent = `Editing: ${entry.title_en}`;
     setStatus('');
     pristine = snapshot();
-    window.scrollTo({ top: 0, behavior: 'smooth' });
+    showEditor(false);
   };
 
-  /**
-   * Fill the subject dropdown from the taxonomy.
-   *
-   * Runs before the title list so that edit() can select an existing
-   * subject_id — setting a <select> value before its options exist silently
-   * leaves it blank, which would look like the title has no subject.
-   */
   async function loadSubjects() {
     const select = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
     if (!select) return;
@@ -239,28 +317,43 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     }
   }
 
-  async function load() {
-    const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
-    if (!result.ok) { empty.textContent = result.error!; return; }
+  let allRows: CmsRecord[] = [];
+  const searchFilter = document.querySelector('#searchFilter') as HTMLInputElement | null;
+  const filterLevel = document.querySelector('#filterLevel') as HTMLSelectElement | null;
+  const filterStatus = document.querySelector('#filterStatus') as HTMLSelectElement | null;
 
-    const rows = result.data ?? [];
+  function renderList() {
+    const query = (searchFilter?.value || '').toLowerCase().trim();
+    const level = filterLevel?.value || 'all';
+    const statusVal = filterStatus?.value || 'all';
+
+    const filtered = allRows.filter(entry => {
+      const matchQuery = !query ||
+        String(entry.title_en || '').toLowerCase().includes(query) ||
+        String(entry.title_fr || '').toLowerCase().includes(query) ||
+        String(entry.slug || '').toLowerCase().includes(query);
+      const matchLevel = level === 'all' || String(entry.level).toLowerCase() === level;
+      const matchStatus = statusVal === 'all' || (statusVal === 'published' ? entry.published : !entry.published);
+      return matchQuery && matchLevel && matchStatus;
+    });
+
     items.replaceChildren();
-    empty.textContent = rows.length ? '' : 'No titles yet. Start with a bilingual draft.';
+    empty.textContent = filtered.length ? '' : (allRows.length ? 'No titles match the selected filters.' : 'No titles yet. Click "+ Create New Title" to start.');
 
-    rows.forEach(entry => {
+    filtered.forEach(entry => {
       const article = document.createElement('article');
-      article.className = 'item';
+      article.className = 'catalogue-item-card';
 
-      const heading = document.createElement('strong');
-      heading.textContent = entry.title_en;
-      // Both languages are listed: a French-first editor needs to recognise
-      // their own work without opening each record.
+      const heading = document.createElement('div');
+      heading.className = 'title-info';
+      const titleStrong = document.createElement('strong');
+      titleStrong.textContent = entry.title_en;
       const alternate = document.createElement('small');
       alternate.className = 'alt';
       alternate.textContent = entry.title_fr ?? '—';
-      heading.append(alternate);
+      heading.append(titleStrong, alternate);
 
-      const meta = document.createElement('span');
+      const meta = document.createElement('div');
       meta.className = 'item-meta';
       const levelSpan = document.createElement('span');
       levelSpan.className = 'admin-badge admin-badge--purple';
@@ -270,8 +363,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       statusSpan.textContent = entry.published ? 'Published' : 'Draft';
       meta.append(levelSpan, statusSpan);
 
-      // Repeated controls are labelled with the title so a screen reader does
-      // not announce a column of identical "Edit"/"Delete" buttons.
+      const actions = document.createElement('div');
+      actions.className = 'item-actions';
+
       const editButton = document.createElement('button');
       editButton.type = 'button';
       editButton.className = 'button secondary';
@@ -293,20 +387,33 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           'Unable to delete title.',
         );
         if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
-        // Editing the record that was just deleted would post to a dead id.
-        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) reset(true);
+        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) {
+          reset(true);
+          editorCard.setAttribute('hidden', '');
+        }
         setStatus('Title deleted.');
         await load();
       };
 
-      article.append(heading, meta, editButton, deleteButton);
+      actions.append(editButton, deleteButton);
+      article.append(heading, meta, actions);
       items.append(article);
     });
   }
 
+  async function load() {
+    const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
+    if (!result.ok) { empty.textContent = result.error!; return; }
+    allRows = result.data ?? [];
+    renderList();
+  }
+
+  searchFilter?.addEventListener('input', renderList);
+  filterLevel?.addEventListener('change', renderList);
+  filterStatus?.addEventListener('change', renderList);
+
   form.addEventListener('submit', async event => {
     event.preventDefault();
-    // Guards against a double-click creating two records for one POST.
     if (submit.disabled) return;
     submit.disabled = true;
     setStatus('Saving…');
@@ -321,15 +428,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       if (!result.ok) { setStatus(result.error!, 'err'); return; }
       setStatus(record.published ? 'Title published.' : 'Draft saved.');
       reset(true);
+      editorCard.setAttribute('hidden', '');
       await load();
     } finally {
       submit.disabled = false;
     }
   });
 
-  document.querySelector('#reset')?.addEventListener('click', () => reset());
-
-  // Warn on tab close / navigation while a draft has unsaved edits.
   window.addEventListener('beforeunload', event => {
     if (isDirty()) event.preventDefault();
   });
@@ -337,39 +442,56 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   pristine = snapshot();
   loadSubjects().then(() => { pristine = snapshot(); return load(); });
 </script>
+
 <style>
-.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1rem; }
+.admin-page-head { display: flex; align-items: center; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .5rem; }
+.editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
+.editor-card[hidden] { display: none; }
+.toolbar { display: flex; justify-content: space-between; align-items: center; gap: 1rem; margin-bottom: 1.5rem; }
 .two { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.25rem; }
 .two label { display: grid; gap: .45rem; font-weight: 600; font-family: var(--font-display); font-size: 13px; color: var(--ink); }
-.two input, .two textarea, .two select { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: var(--cream); font-size: 14px; transition: all .2s ease; }
-.two input:focus, .two textarea:focus, .two select:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+.two input, .two textarea, .two select { font: inherit; padding: .75rem .9rem; border: 1.5px solid var(--line); border-radius: 12px; background: #fff; font-size: 14px; transition: all .2s ease; }
+.two input:focus, .two textarea:focus, .two select:focus { border-color: var(--green-deep); box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
 .two textarea { min-height: 5.5rem; resize: vertical; }
 
-.cover { border: 1.5px solid var(--line); border-radius: 14px; padding: 1.25rem; margin: 1.5rem 0; background: rgba(251, 246, 238, 0.5); }
+.cover { border: 1.5px solid var(--line); border-radius: 14px; padding: 1.25rem; margin: 1.5rem 0; background: #fff; }
 .cover legend { font-weight: 700; font-family: var(--font-display); font-size: 13px; padding: 0 .5rem; color: var(--burgundy); }
 .cover__row { display: flex; gap: 1.5rem; align-items: flex-start; flex-wrap: wrap; }
-.cover__preview { flex: 0 0 110px; width: 110px; aspect-ratio: 3/4; border: 2px dashed rgba(26, 18, 22, 0.2); border-radius: 12px; display: grid; place-items: center; overflow: hidden; background: #fff; }
+.cover__preview { flex: 0 0 110px; width: 110px; aspect-ratio: 3/4; border: 2px dashed rgba(26, 18, 22, 0.2); border-radius: 12px; display: grid; place-items: center; overflow: hidden; background: var(--cream); }
 .cover__preview img { width: 100%; height: 100%; object-fit: cover; }
 .cover__empty { margin: 0; padding: .5rem; text-align: center; color: var(--muted); font-size: .85em; }
 .cover__controls { flex: 1 1 16rem; display: grid; gap: .6rem; justify-items: start; }
-.cover__controls label { font-weight: 700; font-family: var(--font-display); font-size: 13px; color: var(--burgundy); cursor: pointer; }
 .cover__hint { margin: 0; color: var(--muted); font-size: 12px; }
 .cover__status { margin: 0; min-height: 1.3em; font-weight: 650; }
-#coverFile { font: inherit; }
 
 .checks { display: flex; flex-wrap: wrap; gap: 1.25rem; margin: 1.25rem 0 1.5rem; }
 .checks label { font-weight: 600; font-size: 14px; display: inline-flex; align-items: center; gap: .45rem; cursor: pointer; }
+.form-actions { display: flex; gap: 1rem; align-items: center; margin-top: 1.25rem; }
 
-.items { display: grid; gap: 1rem; margin-top: 1.25rem; }
-.item { display: grid; grid-template-columns: 1fr auto auto auto; align-items: center; gap: 1rem; background: var(--cream); border: 1px solid var(--line); border-radius: 14px; padding: 1rem 1.25rem; transition: transform .2s ease, box-shadow .2s ease; }
-.item:hover { transform: translateY(-2px); box-shadow: 0 6px 18px rgba(59, 15, 27, 0.06); background: #fff; }
-.item strong { display: grid; gap: .2rem; font-family: var(--font-display); font-size: 15px; color: var(--ink); }
-.item .alt { font-weight: 400; color: var(--muted); font-size: 13px; font-family: var(--font-body); }
-.item-meta { display: flex; gap: .5rem; align-items: center; }
+/* List & Search Controls */
+.list-toolbar { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+.search-box { flex: 1 1 280px; position: relative; display: flex; align-items: center; }
+.search-icon { position: absolute; left: 1rem; font-size: 14px; pointer-events: none; opacity: .6; }
+.search-box input { width: 100%; padding: .75rem 1rem .75rem 2.5rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 14px; font-family: var(--font-body); transition: all .2s ease; }
+.search-box input:focus { border-color: var(--green-deep); background: #fff; box-shadow: 0 4px 14px rgba(47, 122, 42, 0.14); }
+.filter-controls { display: flex; gap: .75rem; }
+.filter-controls select { padding: .65rem 1rem; border: 1.5px solid var(--line); border-radius: 999px; background: var(--cream); font-size: 13px; font-weight: 600; font-family: var(--font-display); color: var(--ink); }
 
-@media (max-width: 720px) {
+.catalogue-list { display: grid; gap: 1rem; }
+.catalogue-item-card { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
+.catalogue-item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
+.title-info strong { display: block; font-family: var(--font-display); font-size: 16px; color: var(--ink); font-weight: 700; }
+.title-info .alt { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 400; }
+.item-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
+.item-actions { display: flex; gap: .6rem; align-items: center; }
+.empty-notice { color: var(--muted); padding: 2rem; text-align: center; font-size: 15px; }
+
+@media (max-width: 760px) {
   .two { grid-template-columns: 1fr; }
-  .item { grid-template-columns: 1fr; gap: .75rem; }
-  .item-meta { flex-wrap: wrap; }
+  .catalogue-item-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
+  .item-actions { width: 100%; justify-content: flex-end; }
+  .list-toolbar { flex-direction: column; align-items: stretch; }
+  .filter-controls { width: 100%; justify-content: space-between; }
+  .filter-controls select { flex: 1; }
 }
 </style>
