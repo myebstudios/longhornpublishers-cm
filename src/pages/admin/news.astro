@@ -6,7 +6,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   <section class="card"><div class="toolbar"><h2 id="editorTitle">New article</h2><button class="button secondary" type="button" id="reset">New article</button></div><form id="editor"><input type="hidden" name="id" /><div class="two"><label>English headline<input name="headline_en" required /></label><label>French headline<input name="headline_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Category<select name="category"><option value="company_news">Company news</option><option value="new_titles">New titles</option><option value="partnerships">Partnerships</option><option value="events">Events</option></select></label><label>Publish date<input name="publish_date" type="date" /></label><label class="check"><input name="published" type="checkbox" /> Publish now</label><label>English excerpt<textarea name="excerpt_en" required></textarea></label><label>French excerpt<textarea name="excerpt_fr" required></textarea></label></div><label>English article body<textarea name="body_en" required></textarea></label><label>French article body<textarea name="body_fr" required></textarea></label><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section><section class="card"><h2>Articles</h2><p id="empty">Loading articles…</p><div id="items" class="items"></div></section>
 </AdminLayout>
 <script>
-  import { emptyToNull, request, sendJson } from '../../lib/admin-client';
+  import { confirmAction, emptyToNull, request, sendJson } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
 
@@ -26,11 +26,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   let pristine = '';
   const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
   const isDirty = () => snapshot() !== pristine;
-  const confirmDiscard = () =>
-    !isDirty() || confirm('This form has unsaved changes. Discard them?');
+  const confirmDiscard = async () =>
+    !isDirty() || (await confirmAction('This form has unsaved changes. Discard them?'));
 
-  const reset = (force = false) => {
-    if (!force && !confirmDiscard()) return false;
+  const reset = async (force = false) => {
+    if (!force && !(await confirmDiscard())) return false;
     form.reset();
     (form.elements.namedItem('id') as HTMLInputElement).value = '';
     title.textContent = 'New article';
@@ -47,8 +47,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     return emptyToNull(record, ['publish_date']);
   };
 
-  const edit = (entry: CmsRecord) => {
-    if (!confirmDiscard()) return;
+  const edit = async (entry: CmsRecord) => {
+    if (!(await confirmDiscard())) return;
     for (const [key, value] of Object.entries(entry)) {
       const input = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null;
       if (input && typeof value === 'string') {
@@ -101,7 +101,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       deleteButton.textContent = 'Delete';
       deleteButton.setAttribute('aria-label', `Delete ${entry.headline_en}`);
       deleteButton.onclick = async () => {
-        if (!confirm(`Delete “${entry.headline_en}”?`)) return;
+        if (!(await confirmAction(`Delete “${entry.headline_en}”?`))) return;
         deleteButton.disabled = true;
         const result = await request(
           `/api/news-admin?id=${encodeURIComponent(entry.id)}`,

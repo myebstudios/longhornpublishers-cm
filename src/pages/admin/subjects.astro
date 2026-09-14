@@ -26,7 +26,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { request, sendJson } from '../../lib/admin-client';
+  import { confirmAction, request, sendJson } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
 
@@ -46,10 +46,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   let pristine = '';
   const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
   const isDirty = () => snapshot() !== pristine;
-  const confirmDiscard = () => !isDirty() || confirm('This form has unsaved changes. Discard them?');
+  const confirmDiscard = async () =>
+    !isDirty() || (await confirmAction('This form has unsaved changes. Discard them?'));
 
-  const reset = (force = false) => {
-    if (!force && !confirmDiscard()) return false;
+  const reset = async (force = false) => {
+    if (!force && !(await confirmDiscard())) return false;
     form.reset();
     (form.elements.namedItem('id') as HTMLInputElement).value = '';
     title.textContent = 'New subject';
@@ -58,8 +59,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     return true;
   };
 
-  const edit = (entry: CmsRecord) => {
-    if (!confirmDiscard()) return;
+  const edit = async (entry: CmsRecord) => {
+    if (!(await confirmDiscard())) return;
     (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
     (form.elements.namedItem('name_en') as HTMLInputElement).value = entry.name_en ?? '';
     (form.elements.namedItem('name_fr') as HTMLInputElement).value = entry.name_fr ?? '';
@@ -109,7 +110,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       deleteButton.disabled = count > 0;
       if (count > 0) deleteButton.title = 'Reassign the titles using this subject first.';
       deleteButton.onclick = async () => {
-        if (!confirm(`Delete “${entry.name_en}”?`)) return;
+        if (!(await confirmAction(`Delete “${entry.name_en}”?`))) return;
         deleteButton.disabled = true;
         const result = await request(
           `/api/subjects-admin?id=${encodeURIComponent(entry.id)}`,

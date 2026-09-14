@@ -27,7 +27,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 <script>
   import {
-    coverFileError, coverViewState, emptyToNull, request, sendJson,
+    confirmAction, coverFileError, coverViewState, emptyToNull, request, sendJson,
   } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
@@ -48,11 +48,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   let pristine = '';
   const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
   const isDirty = () => snapshot() !== pristine;
-  const confirmDiscard = () =>
-    !isDirty() || confirm('This form has unsaved changes. Discard them?');
+  const confirmDiscard = async () =>
+    !isDirty() || (await confirmAction('This form has unsaved changes. Discard them?'));
 
-  const reset = (force = false) => {
-    if (!force && !confirmDiscard()) return false;
+  const reset = async (force = false) => {
+    if (!force && !(await confirmDiscard())) return false;
     form.reset();
     (form.elements.namedItem('id') as HTMLInputElement).value = '';
     releasePreviewUrl();
@@ -179,8 +179,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     coverFile.focus();
   });
 
-  const edit = (entry: CmsRecord) => {
-    if (!confirmDiscard()) return;
+  const edit = async (entry: CmsRecord) => {
+    if (!(await confirmDiscard())) return;
     for (const [key, value] of Object.entries(entry)) {
       const input = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | null;
       if (input && typeof value === 'string') input.value = value;
@@ -277,7 +277,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       deleteButton.textContent = 'Delete';
       deleteButton.setAttribute('aria-label', `Delete ${entry.title_en}`);
       deleteButton.onclick = async () => {
-        if (!confirm(`Delete “${entry.title_en}”?`)) return;
+        if (!(await confirmAction(`Delete “${entry.title_en}”?`))) return;
         deleteButton.disabled = true;
         const result = await request(
           `/api/catalogue-admin?id=${encodeURIComponent(entry.id)}`,

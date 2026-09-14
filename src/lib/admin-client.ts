@@ -75,6 +75,45 @@ export async function request<T = unknown>(
   return { ok: true, status: response.status, data: body as T, error: null };
 }
 
+/**
+ * In-page confirmation, replacing `window.confirm()`.
+ *
+ * The native dialog suspends the JS event loop for the whole tab, so an
+ * automated driver can only wait for it and has no DOM element to click to
+ * dismiss it; a stalled wait there timed out and reset the browser session
+ * mid-QA (Docs/qa_log_2026-09-13.md, "Cleanup-path failure analysis"). A
+ * `<dialog>` is ordinary DOM — its buttons accept normal clicks — so it
+ * keeps the confirm-before-delete behaviour without blocking the event loop.
+ */
+let confirmDialog: HTMLDialogElement | null = null;
+
+export function confirmAction(message: string): Promise<boolean> {
+  if (!confirmDialog) {
+    confirmDialog = document.createElement('dialog');
+    confirmDialog.style.cssText = 'border:0;border-radius:.6rem;padding:1.25rem 1.5rem;max-width:24rem;box-shadow:0 1rem 2rem rgba(0,0,0,.2)';
+    confirmDialog.innerHTML = `
+      <form method="dialog" style="display:grid;gap:1rem">
+        <p data-message style="margin:0"></p>
+        <div style="display:flex;justify-content:flex-end;gap:.6rem">
+          <button type="submit" value="cancel" style="border:0;border-radius:.4rem;padding:.5rem .9rem;cursor:pointer;background:#eee">Cancel</button>
+          <button type="submit" value="confirm" style="border:0;border-radius:.4rem;padding:.5rem .9rem;cursor:pointer;color:#8b1e31;background:#fbe8eb">Confirm</button>
+        </div>
+      </form>
+    `;
+    document.body.append(confirmDialog);
+  }
+  const dialog = confirmDialog;
+  dialog.querySelector('[data-message]')!.textContent = message;
+  return new Promise(resolve => {
+    const onClose = () => {
+      dialog.removeEventListener('close', onClose);
+      resolve(dialog.returnValue === 'confirm');
+    };
+    dialog.addEventListener('close', onClose);
+    dialog.showModal();
+  });
+}
+
 /** Send a JSON payload. */
 export function sendJson<T = unknown>(
   url: string,
