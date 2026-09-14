@@ -100,7 +100,10 @@ export interface Content {
     levels: { primary: string; secondary: string };
     subjects: Record<'maths' | 'english' | 'french' | 'science' | 'social', string>;
     languages: { en: string; fr: string };
+    /** Shown when the active filters match nothing. */
     empty: { message: string; reset: string };
+    /** Shown when the CMS has no published titles at all. */
+    unpublished: { heading: string; body: string; cta: string };
     cta: Titled;
   };
 

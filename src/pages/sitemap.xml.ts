@@ -1,5 +1,5 @@
 import { LOCALES, NAV_KEYS, path } from '../i18n';
-import { TITLES, titleSlug } from '../data/site';
+import { getPublishedTitles } from '../lib/catalogue';
 
 export const prerender = true;
 
@@ -10,11 +10,14 @@ export const prerender = true;
  * Legal routes remain directly reachable from the footer but deliberately stay
  * out of the sitemap until approved copy is published.
  */
-export function GET({ site }: { site: URL }) {
+export async function GET({ site }: { site: URL }) {
+  // Detail URLs must match what the catalogue route actually generates, so both
+  // read the same published-titles query.
+  const titles = await getPublishedTitles();
   const pages = LOCALES.flatMap((locale) => [
     ...NAV_KEYS.map((key) => path(key, locale)),
     path('news', locale),
-    ...TITLES.map((title) => `${path('catalogue', locale)}${titleSlug(title)}/`),
+    ...titles.map((title) => `${path('catalogue', locale)}${title.slug}/`),
   ]);
 
   const urls = [...new Set(pages)].map((route) => {

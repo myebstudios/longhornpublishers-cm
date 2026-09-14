@@ -393,6 +393,11 @@ export const fr: Content = {
     },
     languages: { en: 'Anglais', fr: 'Français' },
     empty: { message: 'Aucun matériel pédagogique ne correspond aux filtres sélectionnés.', reset: 'Réinitialiser les filtres' },
+    unpublished: {
+      heading: 'Catalogue bientôt disponible',
+      body: 'Nos premiers titres sont en cours de préparation. Indiquez-nous le programme, le niveau et les langues dont vous avez besoin et nous vous répondrons directement.',
+      cta: 'Demander un titre',
+    },
     cta: {
       eyebrow: 'Vous ne trouvez pas ?',
       titleLead: 'Besoin d’un titre',

@@ -1,9 +1,11 @@
 ---
 import Layout from '../../../layouts/Layout.astro';
-import { TITLES, titleSlug } from '../../../data/site';
-import { LOCALES, ROUTES, path, type Locale } from '../../../i18n';
+import {
+  curriculum, description, subjectName, titleText, getPublishedTitles, type CatalogueTitle,
+} from '../../../lib/catalogue';
+import { LOCALES, ROUTES, path, useTranslations, type Locale } from '../../../i18n';
 
-export function getStaticPaths() {
+export async function getStaticPaths() {
   // This route's directory segment is the literal `catalogue`, so it only lines
   // up with ROUTES.catalogue while that slug is the same in every locale. If the
   // French slug is ever localized, the listing and sitemap would emit URLs this
@@ -17,58 +19,81 @@ export function getStaticPaths() {
     );
   }
 
+  // Slugs are a single database column shared by both locales, so one published
+  // title yields exactly one page per locale. No published titles means no
+  // detail routes — the listing's empty state covers that case.
+  const titles = await getPublishedTitles();
   return LOCALES.flatMap((lang) =>
-    TITLES.map((title) => ({ params: { lang, slug: titleSlug(title) }, props: { title } })),
+    titles.map((title) => ({ params: { lang, slug: title.slug }, props: { title } })),
   );
 }
 
 const { lang } = Astro.params as { lang: Locale };
-const { title } = Astro.props as { title: (typeof TITLES)[number] };
-const content = title[lang];
-const level = lang === 'fr' ? (title.level === 'primary' ? 'Primaire' : 'Secondaire') : title.level === 'primary' ? 'Primary' : 'Secondary';
-const subjectMap = {
-  maths: ['Mathematics', 'Mathématiques'],
-  english: ['English Language', 'Anglais'],
-  french: ['French', 'Français'],
-  science: ['Science', 'Sciences'],
-  social: ['Social Studies', 'Études sociales'],
-} as const;
-const subject = subjectMap[title.subject][lang === 'fr' ? 1 : 0];
-const language = title.lang === 'en' ? (lang === 'fr' ? 'Anglais' : 'English') : 'Français';
-const inquiry = `${path('contact', lang)}?title=${encodeURIComponent(content.title)}`;
+const { title } = Astro.props as { title: CatalogueTitle };
+const t = useTranslations(lang);
+
+const name = titleText(title, lang);
+const subject = subjectName(title, lang);
+const alignment = curriculum(title, lang);
+const inquiry = `${path('contact', lang)}?title=${encodeURIComponent(name)}`;
 // The slug is locale-independent, so each locale's detail URL is just the
-// localized catalogue path plus that one slug. Passing these makes the page
-// canonical to itself rather than to the catalogue listing.
+// localized catalogue path plus that one slug.
 const alternates = {
-  en: `${path('catalogue', 'en')}${titleSlug(title)}/`,
-  fr: `${path('catalogue', 'fr')}${titleSlug(title)}/`,
+  en: `${path('catalogue', 'en')}${title.slug}/`,
+  fr: `${path('catalogue', 'fr')}${title.slug}/`,
 };
 ---
 
-<Layout title={`${content.title} — Longhorn Publishers`} description={`${content.note} ${lang === 'fr' ? 'Matériel pédagogique de Longhorn Publishers Cameroun.' : 'Learning material from Longhorn Publishers Cameroon.'}`} locale={lang} routeKey="catalogue" alternates={alternates}>
+<Layout
+  title={`${name} — Longhorn Publishers`}
+  description={description(title, lang)}
+  locale={lang}
+  routeKey="catalogue"
+  alternates={alternates}
+>
   <section class="section section--cream catalogue-detail">
     <div class="wrap catalogue-detail__grid">
-      <div class="book-card__cover catalogue-detail__cover" aria-hidden="true"><span>{title.cover.replace('|', '\n')}</span></div>
+      <div class="book-card__cover catalogue-detail__cover" aria-hidden="true"><span>{name}</span></div>
       <div>
         <span class="eyebrow">{lang === 'fr' ? 'Matériel pédagogique' : 'Learning material'}</span>
-        <h1>{content.title}</h1>
+        <h1>{name}</h1>
         <div class="pill-row catalogue-detail__pills">
-          <span class="pill pill--green">{level}</span>
-          <span class="pill">{subject}</span>
-          <span class="pill">{language}</span>
+          <span class="pill pill--green">{t.catalogue.levels[title.level]}</span>
+          {subject && <span class="pill">{subject}</span>}
+          {title.languages.map((code) => <span class="pill">{t.catalogue.languages[code]}</span>)}
         </div>
-        <p class="catalogue-detail__lede">{content.note}</p>
+        <p class="catalogue-detail__lede">{description(title, lang)}</p>
         <dl class="catalogue-detail__facts">
-          <div><dt>{lang === 'fr' ? 'Niveau' : 'Level'}</dt><dd>{level}</dd></div>
-          <div><dt>{lang === 'fr' ? 'Matière' : 'Subject'}</dt><dd>{subject}</dd></div>
-          <div><dt>{lang === 'fr' ? 'Programme' : 'Curriculum alignment'}</dt><dd>{content.note}</dd></div>
-          <div><dt>{lang === 'fr' ? 'Langue disponible' : 'Available language'}</dt><dd>{language}</dd></div>
+          <div>
+            <dt>{lang === 'fr' ? 'Niveau' : 'Level'}</dt>
+            <dd>{t.catalogue.levels[title.level]}</dd>
+          </div>
+          {subject && (
+            <div>
+              <dt>{lang === 'fr' ? 'Matière' : 'Subject'}</dt>
+              <dd>{subject}</dd>
+            </div>
+          )}
+          {alignment && (
+            <div>
+              <dt>{lang === 'fr' ? 'Programme' : 'Curriculum alignment'}</dt>
+              <dd>{alignment}</dd>
+            </div>
+          )}
+          {title.languages.length > 0 && (
+            <div>
+              <dt>{lang === 'fr' ? 'Langues disponibles' : 'Available languages'}</dt>
+              <dd>{title.languages.map((code) => t.catalogue.languages[code]).join(' · ')}</dd>
+            </div>
+          )}
         </dl>
         <a class="btn btn--primary" href={inquiry}>
-          {lang === 'fr' ? 'Demander ce titre' : 'Request this title'}
+          {t.common.requestTitle}
           <span class="btn__icon" aria-hidden="true">↗</span>
         </a>
-        <a class="link-arrow catalogue-detail__back" href={path('catalogue', lang)}>{lang === 'fr' ? 'Retour au catalogue' : 'Back to catalogue'}</a>
+        <a class="link-arrow catalogue-detail__back" href={path('catalogue', lang)}>
+          {lang === 'fr' ? 'Retour au catalogue' : 'Back to catalogue'}
+        </a>
       </div>
     </div>
   </section>

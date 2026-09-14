@@ -388,6 +388,11 @@ export const en: Content = {
     },
     languages: { en: 'English', fr: 'Français' },
     empty: { message: 'No learning materials match your selected filters.', reset: 'Clear filters' },
+    unpublished: {
+      heading: 'Catalogue coming soon',
+      body: 'Our first titles are being prepared for publication. Tell us the curriculum, level and languages you need and we will come back to you directly.',
+      cta: 'Request a title',
+    },
     cta: {
       eyebrow: "Can't find it?",
       titleLead: 'Need a title',

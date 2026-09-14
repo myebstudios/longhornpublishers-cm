@@ -1,29 +1,44 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
+import Button from '../Button.astro';
 import CtaBand from '../CtaBand.astro';
-import { type Locale, useTranslations, path, LOCALES } from '../../i18n';
-import { TITLES, titleSlug } from '../../data/site';
+import { type Locale, useTranslations, path } from '../../i18n';
+import {
+  description, filterTags, getPublishedTitles, subjectFilters, subjectName, titleText,
+} from '../../lib/catalogue';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
 const cataloguePath = path('catalogue', lang);
 
+/**
+ * Titles come from Netlify DB at build time. Until the first one is published —
+ * or if the database is unreachable during the build — `titles` is empty and the
+ * page shows its "coming soon" state rather than an empty grid under live filters.
+ */
+const titles = await getPublishedTitles();
+
 const levelFilters = [
   { value: 'all', label: t.common.all },
   { value: 'primary', label: t.catalogue.levels.primary },
   { value: 'secondary', label: t.catalogue.levels.secondary },
 ];
-const subjectFilters = [
-  { value: 'all', label: t.common.all },
-  ...(Object.keys(t.catalogue.subjects) as (keyof typeof t.catalogue.subjects)[])
-    .map((key) => ({ value: key, label: t.catalogue.subjects[key] })),
-];
+// Subjects are database rows, not a fixed enum, so the chips come from the data.
+const subjects = subjectFilters(titles, lang);
 const languageFilters = [
   { value: 'all', label: t.common.all },
   { value: 'en', label: t.catalogue.languages.en },
   { value: 'fr', label: t.catalogue.languages.fr },
+];
+
+const filterGroups = [
+  { label: t.catalogue.filters.level, options: levelFilters },
+  ...(subjects.length
+    ? [{ label: t.catalogue.filters.subject, options: [{ value: 'all', label: t.common.all }, ...subjects] }]
+    : []),
+  { label: t.catalogue.filters.language, options: languageFilters },
 ];
 ---
 
@@ -31,62 +46,76 @@ const languageFilters = [
   <Hero content={t.catalogue.hero} img="lh-maths-classroom.jpg" compact />
 
   <section class="section section--cream">
-    <div class="wrap" data-filter-scope>
-      <div class="filter-bar">
-        {[
-          { label: t.catalogue.filters.level, options: levelFilters },
-          { label: t.catalogue.filters.subject, options: subjectFilters },
-          { label: t.catalogue.filters.language, options: languageFilters },
-        ].map((group) => (
-          <div class="filter-group" role="radiogroup" aria-label={group.label}>
-            <span class="filter-group__label">{group.label}</span>
-            {group.options.map((option, i) => (
-              <button
-                class:list={['chip', i === 0 && 'is-active']}
-                type="button"
-                role="radio"
-                tabindex={i === 0 ? '0' : '-1'}
-                aria-checked={i === 0 ? 'true' : 'false'}
-                aria-pressed={i === 0 ? 'true' : 'false'}
-                data-value={option.value}
-              >{option.label}</button>
-            ))}
-          </div>
-        ))}
-        <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)" aria-live="polite">
-          <strong data-filter-count>{TITLES.length}</strong> {t.common.titles}
-        </p>
+    {titles.length === 0 ? (
+      <div class="wrap">
+        <div class="empty-state reveal">
+          <span class="eyebrow">{t.catalogue.hero.eyebrow}</span>
+          <h2>{t.catalogue.unpublished.heading}</h2>
+          <p>{t.catalogue.unpublished.body}</p>
+          <Button href={path('contact', lang)} variant="primary">{t.catalogue.unpublished.cta}</Button>
+        </div>
       </div>
-
-      <div class="filter-empty-state is-hidden" data-filter-empty hidden aria-hidden="true" style="text-align:center;padding:3rem 1.5rem;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--line);margin-top:1rem;">
-        <p style="font-size:var(--step-0);color:var(--ink-soft);margin-bottom:1.25rem;">{t.catalogue.empty.message}</p>
-        <button class="btn btn--ghost btn--sm" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
-      </div>
-
-      <div class="grid grid--4 reveal">
-        {TITLES.map((title) => (
-          <article class="book-card" data-tags={`${title.level} ${title.subject} ${title.lang}`}>
-            <div class="book-card__cover">
-              <span set:html={title.cover.split('|').join('<br />')} />
+    ) : (
+      <div class="wrap" data-filter-scope>
+        <div class="filter-bar">
+          {filterGroups.map((group) => (
+            <div class="filter-group" role="radiogroup" aria-label={group.label}>
+              <span class="filter-group__label">{group.label}</span>
+              {group.options.map((option, i) => (
+                <button
+                  class:list={['chip', i === 0 && 'is-active']}
+                  type="button"
+                  role="radio"
+                  tabindex={i === 0 ? '0' : '-1'}
+                  aria-checked={i === 0 ? 'true' : 'false'}
+                  aria-pressed={i === 0 ? 'true' : 'false'}
+                  data-value={option.value}
+                >{option.label}</button>
+              ))}
             </div>
-            <div class="book-card__body">
-              <div class="pill-row">
-                <span class="pill pill--green">{t.catalogue.levels[title.level]}</span>
-                <span class="pill">{t.catalogue.subjects[title.subject]}</span>
-                <span class="pill">{t.catalogue.languages[title.lang]}</span>
+          ))}
+          <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)" aria-live="polite">
+            <strong data-filter-count>{titles.length}</strong> {t.common.titles}
+          </p>
+        </div>
+
+        <div class="filter-empty-state is-hidden" data-filter-empty hidden aria-hidden="true" style="text-align:center;padding:3rem 1.5rem;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--line);margin-top:1rem;">
+          <p style="font-size:var(--step-0);color:var(--ink-soft);margin-bottom:1.25rem;">{t.catalogue.empty.message}</p>
+          <button class="btn btn--ghost btn--sm" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
+        </div>
+
+        <div class="grid grid--4 reveal">
+          {titles.map((title) => (
+            <article class="book-card" data-tags={filterTags(title)}>
+              {/*
+                cover_image_id is not rendered: netlify/functions/media.mts only
+                accepts uploads and exposes no read route, so there is no URL to
+                point at yet. The title stands in, as it did for placeholders.
+              */}
+              <div class="book-card__cover">
+                <span>{titleText(title, lang)}</span>
               </div>
-              <h3>{title[lang].title}</h3>
-              <p style="color:var(--ink-soft);font-size:var(--step--1)">{title[lang].note}</p>
-              <a
-                class="link-arrow"
-                style="font-size:var(--step--1)"
-                href={`${cataloguePath}${titleSlug(title)}/`}
-              >{t.common.requestTitle}</a>
-            </div>
-          </article>
-        ))}
+              <div class="book-card__body">
+                <div class="pill-row">
+                  <span class="pill pill--green">{t.catalogue.levels[title.level]}</span>
+                  {subjectName(title, lang) && <span class="pill">{subjectName(title, lang)}</span>}
+                  {title.languages.map((code) => (
+                    <span class="pill">{t.catalogue.languages[code]}</span>
+                  ))}
+                </div>
+                <h3>{titleText(title, lang)}</h3>
+                <p style="color:var(--ink-soft);font-size:var(--step--1)">{description(title, lang)}</p>
+                <a
+                  class="link-arrow"
+                  style="font-size:var(--step--1)"
+                  href={`${cataloguePath}${title.slug}/`}
+                >{t.common.requestTitle}</a>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
-    </div>
+    )}
   </section>
 
   <CtaBand content={t.catalogue.cta} buttonHref={path('contact', lang)} />
