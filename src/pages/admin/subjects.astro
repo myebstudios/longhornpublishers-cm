@@ -1,0 +1,160 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Subjects" section="subjects">
+  <h1>Subjects</h1>
+  <p>The subject taxonomy used to classify catalogue titles. Subjects drive the subject filter on the public catalogue, so both language names are required.</p>
+
+  <section class="card">
+    <div class="toolbar"><h2 id="editorTitle">New subject</h2><button class="button secondary" type="button" id="reset">New subject</button></div>
+    <form id="editor">
+      <input type="hidden" name="id" />
+      <div class="two">
+        <label>English name<input name="name_en" required /></label>
+        <label>French name<input name="name_fr" required /></label>
+      </div>
+      <button class="button">Save subject</button>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Taxonomy</h2>
+    <p id="empty">Loading subjects…</p>
+    <div id="items" class="items"></div>
+  </section>
+</AdminLayout>
+
+<script>
+  import { request, sendJson } from '../../lib/admin-client';
+
+  type CmsRecord = { [key: string]: any };
+
+  const form = document.querySelector('#editor') as HTMLFormElement;
+  const submit = form.querySelector('button:not([type="button"])') as HTMLButtonElement;
+  const items = document.querySelector('#items')!;
+  const empty = document.querySelector('#empty')!;
+  const status = document.querySelector('#status')!;
+  const title = document.querySelector('#editorTitle')!;
+
+  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
+    status.textContent = message;
+    status.className = message ? `status status--${tone}` : '';
+  };
+
+  /** Serialised form state as of the last load/save, for the unsaved-work guard. */
+  let pristine = '';
+  const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
+  const isDirty = () => snapshot() !== pristine;
+  const confirmDiscard = () => !isDirty() || confirm('This form has unsaved changes. Discard them?');
+
+  const reset = (force = false) => {
+    if (!force && !confirmDiscard()) return false;
+    form.reset();
+    (form.elements.namedItem('id') as HTMLInputElement).value = '';
+    title.textContent = 'New subject';
+    setStatus('');
+    pristine = snapshot();
+    return true;
+  };
+
+  const edit = (entry: CmsRecord) => {
+    if (!confirmDiscard()) return;
+    (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
+    (form.elements.namedItem('name_en') as HTMLInputElement).value = entry.name_en ?? '';
+    (form.elements.namedItem('name_fr') as HTMLInputElement).value = entry.name_fr ?? '';
+    title.textContent = `Editing: ${entry.name_en}`;
+    setStatus('');
+    pristine = snapshot();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  async function load() {
+    const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
+    if (!result.ok) { empty.textContent = result.error!; return; }
+
+    const rows = result.data ?? [];
+    items.replaceChildren();
+    empty.textContent = rows.length
+      ? ''
+      : 'No subjects yet. Add the approved taxonomy here before classifying catalogue titles.';
+
+    rows.forEach(entry => {
+      const article = document.createElement('article');
+      article.className = 'item';
+
+      const heading = document.createElement('strong');
+      heading.textContent = entry.name_en;
+      const alternate = document.createElement('small');
+      alternate.className = 'alt';
+      alternate.textContent = entry.name_fr ?? '—';
+      heading.append(alternate);
+
+      // Shows an editor why a delete will be refused before they attempt it.
+      const count = Number(entry.title_count ?? 0);
+      const meta = document.createElement('span');
+      meta.textContent = count === 1 ? '1 title' : `${count} titles`;
+
+      const editButton = document.createElement('button');
+      editButton.type = 'button';
+      editButton.textContent = 'Edit';
+      editButton.setAttribute('aria-label', `Edit ${entry.name_en}`);
+      editButton.onclick = () => edit(entry);
+
+      const deleteButton = document.createElement('button');
+      deleteButton.type = 'button';
+      deleteButton.className = 'danger';
+      deleteButton.textContent = 'Delete';
+      deleteButton.setAttribute('aria-label', `Delete ${entry.name_en}`);
+      deleteButton.disabled = count > 0;
+      if (count > 0) deleteButton.title = 'Reassign the titles using this subject first.';
+      deleteButton.onclick = async () => {
+        if (!confirm(`Delete “${entry.name_en}”?`)) return;
+        deleteButton.disabled = true;
+        const result = await request(
+          `/api/subjects-admin?id=${encodeURIComponent(entry.id)}`,
+          { method: 'DELETE' },
+          'Unable to delete subject.',
+        );
+        if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
+        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) reset(true);
+        setStatus('Subject deleted.');
+        await load();
+      };
+
+      article.append(heading, meta, editButton, deleteButton);
+      items.append(article);
+    });
+  }
+
+  form.addEventListener('submit', async event => {
+    event.preventDefault();
+    if (submit.disabled) return;
+    submit.disabled = true;
+    setStatus('Saving…');
+    try {
+      const data = new FormData(form);
+      const id = String(data.get('id') ?? '');
+      const result = await sendJson(
+        `/api/subjects-admin${id ? `?id=${encodeURIComponent(id)}` : ''}`,
+        id ? 'PUT' : 'POST',
+        { name_en: data.get('name_en'), name_fr: data.get('name_fr') },
+        'Unable to save subject.',
+      );
+      if (!result.ok) { setStatus(result.error!, 'err'); return; }
+      setStatus('Subject saved.');
+      reset(true);
+      await load();
+    } finally {
+      submit.disabled = false;
+    }
+  });
+
+  document.querySelector('#reset')?.addEventListener('click', () => reset());
+  window.addEventListener('beforeunload', event => { if (isDirty()) event.preventDefault(); });
+
+  pristine = snapshot();
+  load();
+</script>
+
+<style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}form{display:grid;gap:1rem}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.item button[disabled]{opacity:.55;cursor:not-allowed}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>

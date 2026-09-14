@@ -4,7 +4,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 <AdminLayout title="Catalogue" section="catalogue">
   <h1>Catalogue</h1><p>Manage bilingual titles as drafts, then publish only after editorial review.</p>
   <section class="card"><div class="toolbar"><h2 id="editorTitle">New title</h2><button class="button secondary" type="button" id="reset">New title</button></div>
-    <form id="editor"><input type="hidden" name="id" /><div class="two"><label>English title<input name="title_en" required /></label><label>French title<input name="title_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Level<select name="level" required><option value="primary">Primary</option><option value="secondary">Secondary</option></select></label><label>English description<textarea name="description_en" required></textarea></label><label>French description<textarea name="description_fr" required></textarea></label><label>English curriculum alignment<textarea name="curriculum_alignment_en"></textarea></label><label>French curriculum alignment<textarea name="curriculum_alignment_fr"></textarea></label></div><div class="checks"><label><input name="language_en" type="checkbox" checked /> English edition</label><label><input name="language_fr" type="checkbox" checked /> French edition</label><label><input name="featured" type="checkbox" /> Featured title</label><label><input name="published" type="checkbox" /> Publish now</label></div><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section>
+    <form id="editor"><input type="hidden" name="id" /><div class="two"><label>English title<input name="title_en" required /></label><label>French title<input name="title_fr" required /></label><label>Slug<input name="slug" required pattern="[a-z0-9-]+" /></label><label>Level<select name="level" required><option value="primary">Primary</option><option value="secondary">Secondary</option></select></label><label>Subject<select name="subject_id"><option value="">— No subject —</option></select></label><label>English description<textarea name="description_en" required></textarea></label><label>French description<textarea name="description_fr" required></textarea></label><label>English curriculum alignment<textarea name="curriculum_alignment_en"></textarea></label><label>French curriculum alignment<textarea name="curriculum_alignment_fr"></textarea></label></div><div class="checks"><label><input name="language_en" type="checkbox" checked /> English edition</label><label><input name="language_fr" type="checkbox" checked /> French edition</label><label><input name="featured" type="checkbox" /> Featured title</label><label><input name="published" type="checkbox" /> Publish now</label></div><button class="button">Save draft</button><p id="status" role="status" aria-live="polite"></p></form></section>
   <section class="card"><h2>Titles</h2><p id="empty">Loading catalogue…</p><div id="items" class="items"></div></section>
 </AdminLayout>
 <script>
@@ -49,6 +49,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       title_fr: data.get('title_fr'),
       slug: data.get('slug'),
       level: data.get('level'),
+      subject_id: data.get('subject_id') || null,
       description_en: data.get('description_en'),
       description_fr: data.get('description_fr'),
       curriculum_alignment_en: data.get('curriculum_alignment_en'),
@@ -75,6 +76,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         : [];
     (form.elements.namedItem('language_en') as HTMLInputElement).checked = languages.includes('en');
     (form.elements.namedItem('language_fr') as HTMLInputElement).checked = languages.includes('fr');
+    // Set explicitly: the loop above only assigns string values, so a title
+    // whose subject was cleared would otherwise keep the previous selection.
+    const subjectSelect = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
+    if (subjectSelect) subjectSelect.value = entry.subject_id ?? '';
     (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
     (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
     title.textContent = `Editing: ${entry.title_en}`;
@@ -82,6 +87,34 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     pristine = snapshot();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
+
+  /**
+   * Fill the subject dropdown from the taxonomy.
+   *
+   * Runs before the title list so that edit() can select an existing
+   * subject_id — setting a <select> value before its options exist silently
+   * leaves it blank, which would look like the title has no subject.
+   */
+  async function loadSubjects() {
+    const select = form.elements.namedItem('subject_id') as HTMLSelectElement | null;
+    if (!select) return;
+    const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
+    if (!result.ok) {
+      setStatus(`${result.error} Titles can still be saved without a subject.`, 'err');
+      return;
+    }
+    const rows = result.data ?? [];
+    for (const subject of rows) {
+      const option = document.createElement('option');
+      option.value = subject.id;
+      option.textContent = subject.name_fr ? `${subject.name_en} / ${subject.name_fr}` : subject.name_en;
+      select.append(option);
+    }
+    if (!rows.length) {
+      const option = select.querySelector('option');
+      if (option) option.textContent = '— No subjects defined yet —';
+    }
+  }
 
   async function load() {
     const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
@@ -171,6 +204,6 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   });
 
   pristine = snapshot();
-  load();
+  loadSubjects().then(() => { pristine = snapshot(); return load(); });
 </script>
 <style>.toolbar{display:flex;justify-content:space-between;align-items:center;gap:1rem}.two{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}.two label{display:grid;gap:.35rem;font-weight:600}.two input,.two textarea,.two select{font:inherit;padding:.65rem;border:1px solid #cdbebe;border-radius:.45rem}.two textarea{min-height:5rem;resize:vertical}.checks{display:flex;flex-wrap:wrap;gap:1rem;margin:1rem 0}.checks label{font-weight:600}.secondary{background:#695b5b}.items{display:grid;gap:.75rem}.item{display:grid;grid-template-columns:1fr auto auto auto;align-items:center;gap:.75rem;border-top:1px solid #eadede;padding:.85rem 0}.item span{color:#695b5b}.item strong{display:grid;gap:.15rem}.item .alt{font-weight:400;color:#7a6a6a;font-size:.85em}.item button[disabled]{opacity:.55;cursor:progress}.item button{border:0;border-radius:.4rem;padding:.45rem .65rem;cursor:pointer}.danger{color:#8b1e31;background:#fbe8eb}@media(max-width:720px){.two{grid-template-columns:1fr}.item{grid-template-columns:1fr auto auto}.item span{grid-column:1/-1;grid-row:2}}</style>
