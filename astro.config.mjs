@@ -28,7 +28,7 @@ export default defineConfig({
     plugins: [tailwindcss()],
     build: {
       rollupOptions: {
-        external: ['@netlify/database', '@netlify/blobs', '@netlify/identity', 'netlify-identity-widget'],
+        external: ['@netlify/database', '@netlify/blobs', 'netlify-identity-widget'],
       },
     },
     ssr: {
