@@ -56,6 +56,7 @@ ul, ol { list-style: none; padding: 0; }
   --cream-deep:      #F3EADD;
   --white:           #FFFFFF;
   --ink:             #1A1216;
+  --black:           #000000;
   --ink-soft:        #5A4C52;
   --line:            rgba(26, 18, 22, .12);
   --line-light:      rgba(255, 255, 255, .16);
@@ -613,7 +614,7 @@ em.accent, .accent {
 .map-embed__link:hover { background: #8AD45C; }
 
 /* --- Footer ------------------------------------------------------------ */
-.site-footer { background: var(--burgundy-deep); color: var(--white); padding-block: clamp(3rem, 2.2rem + 3vw, 5rem) 2rem; }
+.site-footer { background: var(--black); color: var(--white); padding-block: clamp(3rem, 2.2rem + 3vw, 5rem) 2rem; }
 .site-footer .brand__text { color: var(--white); }
 .site-footer .brand__text span { color: rgba(255,255,255,.55); }
 .site-footer .brand__logo { width: 11rem; }
