@@ -30,6 +30,7 @@ The bilingual Astro public-site shell is implemented and builds successfully. It
 | News at launch | Launch only with an owner and three approved articles; otherwise defer cleanly | Avoids empty/placeholder news | Client |
 | Admin registration | Invite-only | CMS configuration | Client approval |
 | Subject taxonomy | Approve seed taxonomy | Catalogue schema/content blocked | Client |
+| CMS rebuild trigger | Create a Netlify build hook and wire it to publish actions | **Blocks all CMS content reaching the live site** | Developer + Netlify account owner |
 | Roles | One `admin` role at launch | CMS authorization configuration | Client approval |
 | Initial admins | Name invite recipients | Handover and access blocked | Client |
 
