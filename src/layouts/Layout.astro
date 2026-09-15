@@ -136,6 +136,7 @@ const organizationSchema = {
         }
 
         if (toggle && nav) {
+          const backdrop = document.getElementById('navBackdrop');
           const navLinks = Array.from(nav.querySelectorAll<HTMLAnchorElement>('a'));
           const closeNav = (restoreFocus = false) => {
             toggle.setAttribute('aria-expanded', 'false');
@@ -159,6 +160,10 @@ const organizationSchema = {
               openNav();
             }
           });
+
+          if (backdrop) {
+            backdrop.addEventListener('click', () => closeNav());
+          }
 
           navLinks.forEach(link => link.addEventListener('click', () => closeNav()));
 

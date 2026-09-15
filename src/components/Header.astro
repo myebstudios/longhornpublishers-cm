@@ -36,6 +36,12 @@ const localeHref = (target: Locale) =>
             </a>
           );
         })}
+        <div class="nav__mobile-cta">
+          <a class="btn btn--dark btn--full" href={path('contact', locale)}>
+            <span>{t.nav.getInTouch}</span>
+            <span class="btn__icon" aria-hidden="true"><Icon name="arrow" /></span>
+          </a>
+        </div>
       </nav>
 
       <div class="header__actions">
@@ -60,7 +66,7 @@ const localeHref = (target: Locale) =>
           </a>
         </div>
 
-        <a class="btn btn--dark btn--sm header__contact" href={path('contact', locale)}>
+        <a class="btn btn--dark btn--sm header__contact" href={path('contact', locale)} aria-label={t.nav.getInTouch}>
           <span class="header__contact-label">{t.nav.getInTouch}</span>
           <span class="btn__icon" aria-hidden="true"><Icon name="arrow" /></span>
         </a>
@@ -71,6 +77,7 @@ const localeHref = (target: Locale) =>
       </div>
     </div>
   </div>
+  <div class="nav-backdrop" id="navBackdrop" aria-hidden="true"></div>
 </header>
 
 <style>
