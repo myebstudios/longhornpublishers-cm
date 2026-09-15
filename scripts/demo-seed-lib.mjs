@@ -2,6 +2,9 @@ import { isIP } from 'node:net';
 
 const DEPLOY_CONTEXTS = new Set(['production', 'deploy-preview', 'branch-deploy']);
 
+/** `netlify dev` reports this sentinel deploy id; a real deploy never does. */
+const LOCAL_DEPLOY_ID = '0';
+
 export function assertLocalSeedEnvironment(env) {
   const problems = [];
   if (env.NETLIFY_LOCAL !== 'true') problems.push('NETLIFY_LOCAL must equal true');
@@ -10,8 +13,14 @@ export function assertLocalSeedEnvironment(env) {
   if (env.NETLIFY === 'true') problems.push('NETLIFY must not equal true');
   if (env.CI) problems.push('CI must be unset');
   if (DEPLOY_CONTEXTS.has(env.CONTEXT ?? '')) problems.push(`deployment context ${env.CONTEXT} is forbidden`);
-  for (const key of ['DEPLOY_ID', 'DEPLOY_URL', 'DEPLOY_PRIME_URL']) {
-    if (env[key]) problems.push(`${key} must be unset`);
+
+  // `netlify dev` populates DEPLOY_ID/DEPLOY_URL/DEPLOY_PRIME_URL locally too, using
+  // the literal deploy id "0" and URLs derived from it. Rejecting them outright made
+  // this seed unrunnable by its own supported path. Only a real deploy id is evidence
+  // of a deploy; the URLs carry no signal locally and are not tested. The decisive
+  // guarantee is assertLoopbackConnection, which refuses any non-loopback database.
+  if (env.DEPLOY_ID !== undefined && env.DEPLOY_ID !== '' && env.DEPLOY_ID !== LOCAL_DEPLOY_ID) {
+    problems.push(`DEPLOY_ID ${env.DEPLOY_ID} indicates a real deploy`);
   }
   if (problems.length) {
     throw new Error(`Refusing demo seed: ${problems.join('; ')}.`);

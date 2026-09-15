@@ -105,3 +105,56 @@ test('every demo fixture is visibly labelled and marked is_demo', () => {
   assert.ok(headlines.length >= 10, `expected labelled fixtures, found ${headlines.length}`);
   assert.doesNotMatch(sql, /is_demo,?\s*\)?\s*VALUES[^;]*?,\s*false\s*\)\s*(,|\nON)/);
 });
+
+test('accepts the environment `netlify dev` actually produces', () => {
+  // Captured from `netlify dev:exec` on this project. Rejecting DEPLOY_ID/DEPLOY_URL/
+  // DEPLOY_PRIME_URL outright previously made the seed unrunnable by its own
+  // supported path, which is why no demo content ever appeared on the dev server.
+  assert.doesNotThrow(() => assertLocalSeedEnvironment({
+    NETLIFY_LOCAL: 'true',
+    CONTEXT: 'dev',
+    ALLOW_LOCAL_DEMO_SEED: 'yes',
+    DEPLOY_ID: '0',
+    DEPLOY_URL: 'https://0--longhornpublishers-cm.netlify.app',
+    DEPLOY_PRIME_URL: 'https://main--longhornpublishers-cm.netlify.app',
+    BRANCH: 'main',
+    URL: 'https://longhornpublishers-cm.netlify.app',
+  }));
+});
+
+test('still rejects a real deploy id even when every other gate looks local', () => {
+  assert.throws(() => assertLocalSeedEnvironment({
+    NETLIFY_LOCAL: 'true',
+    CONTEXT: 'dev',
+    ALLOW_LOCAL_DEMO_SEED: 'yes',
+    DEPLOY_ID: '6aa8e0ade8737c00089c144e',
+  }), /indicates a real deploy/);
+});
+
+test('demo content renders under the environment `netlify dev` actually produces', () => {
+  // netlify dev always sets DEPLOY_ID="0", DEPLOY_URL and DEPLOY_PRIME_URL.
+  // Treating those as deploy evidence made this return false in the only
+  // runtime permitted to render demo rows, so seeded content stayed invisible.
+  assert.equal(canRenderLocalDemoContent({
+    NETLIFY_LOCAL: 'true',
+    CONTEXT: 'dev',
+    DEPLOY_ID: '0',
+    DEPLOY_URL: 'https://0--longhornpublishers-cm.netlify.app',
+    DEPLOY_PRIME_URL: 'https://main--longhornpublishers-cm.netlify.app',
+  }), true);
+});
+
+test('demo content stays hidden on every deployed runtime', () => {
+  for (const env of [
+    { NETLIFY_LOCAL: 'true', CONTEXT: 'production', DEPLOY_ID: '6aa8e0ade8737c00089c144e' },
+    { NETLIFY_LOCAL: 'true', CONTEXT: 'deploy-preview', DEPLOY_ID: '6aa8e0ade8737c00089c144e' },
+    { NETLIFY_LOCAL: 'true', CONTEXT: 'branch-deploy', DEPLOY_ID: '6aa8e0ade8737c00089c144e' },
+    { NETLIFY_LOCAL: 'true', CONTEXT: 'dev', NETLIFY: 'true' },
+    { NETLIFY_LOCAL: 'true', CONTEXT: 'dev', CI: 'true' },
+    { NETLIFY_LOCAL: 'true', CONTEXT: 'dev', DEPLOY_ID: '6aa8e0ade8737c00089c144e' },
+    { CONTEXT: 'dev' },
+    {},
+  ]) {
+    assert.equal(canRenderLocalDemoContent(env), false, JSON.stringify(env));
+  }
+});

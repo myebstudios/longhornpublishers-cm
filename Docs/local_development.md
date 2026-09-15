@@ -13,9 +13,14 @@ development. It starts an **isolated local** Netlify Database and emulates Funct
 redirects, headers, and the Image CDN. It does not connect to production content or production
 media.
 
-Do not run plain `astro build` as a CMS integration test, and do not use the removed
-`dev:netlify` wrapper: recent Astro CLI releases background their dev process, which prevents
-the Netlify CLI from supervising it correctly.
+`npm run dev` runs `scripts/dev.mjs`, which launches `astro dev` with `NETLIFY_LOCAL=true`
+and `CONTEXT=dev`. Those two variables are what `canRenderLocalDemoContent()` checks, so
+**plain `astro dev` will start the site but will hide every seeded demo row.** If demo
+content is missing, confirm you started the server with `npm run dev` and not `astro dev`.
+
+Do not run plain `astro build` as a CMS integration test, and do not use `netlify dev`:
+recent Astro CLI releases background their dev process, so the Netlify CLI sees the command
+exit immediately, shuts down, and takes the local database proxy with it.
 
 The site is served at `http://localhost:4321`.
 
@@ -31,8 +36,9 @@ curl -i http://localhost:4321/api/catalogue
 
 Expected results:
 
-- `database status` reports a local `postgres://localhost:...` connection and the
-  `001_initial_content` migration as applied.
+- `database status` reports a local `postgres://localhost:...` connection with all
+  migrations applied. A freshly provisioned local database lists them as *pending*; apply
+  them with `npx netlify database migrations apply` before seeding.
 - The query returns `1`.
 - The catalogue API returns `200` and `[]` until local test content is created.
 
@@ -45,10 +51,21 @@ use the deliberately explicit opt-in command from another terminal:
 NETLIFY_LOCAL=true CONTEXT=dev ALLOW_LOCAL_DEMO_SEED=yes npm run seed:demo
 ```
 
-The command refuses CI, production, deploy-preview, branch-deploy, deploy-metadata,
-and non-loopback database connections. It creates two conspicuously labelled,
-published catalogue fixtures using fixed IDs, so rerunning it updates the same
-rows instead of duplicating them. The rows carry `is_demo = true`; production and
+The command refuses CI, production, deploy-preview, branch-deploy, a real deploy id,
+and non-loopback database connections. `netlify dev` sets `DEPLOY_ID=0` together with
+`DEPLOY_URL` and `DEPLOY_PRIME_URL` locally, so only a *real* deploy id is treated as
+evidence of a deploy; the decisive guarantee is the loopback database check.
+
+It creates conspicuously labelled fixtures using fixed IDs, so rerunning it updates the
+same rows instead of duplicating them:
+
+- 2 subjects and 2 published catalogue titles (`DEMO-CAT-001`, `DEMO-CAT-002`)
+- 3 news articles across different categories — 2 published, plus 1 deliberately
+  unpublished draft (`demo-unpublished-draft`) that must never appear in a list or
+  resolve as a detail route. If it does, the `published` filter has regressed.
+
+News fixtures require `004_news_demo_origin`. Until it is applied locally the seed skips
+news entirely and says so, rather than failing against an un-migrated database. The rows carry `is_demo = true`; production and
 preview queries exclude that marker even if a demo row were copied into their
 database branch accidentally. No media is uploaded and no production content is
 read or modified.
