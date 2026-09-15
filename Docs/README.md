@@ -19,6 +19,7 @@
 | [`local_development.md`](./local_development.md) | Developer | Local CMS, database, media, and production-preview test workflow |
 | [`implementation_plan.md`](./implementation_plan.md) | CEO / Project team | Delivery sequencing, decision register, dependencies, and progress log |
 | [`cms_rebuild_trigger.md`](./cms_rebuild_trigger.md) | Developer + CEO | Why published CMS content does not reach the live site until a build runs, and how to wire the Netlify build hook that fixes it |
+| [`catalogue_import_runbook.md`](./catalogue_import_runbook.md) | Developer + QA + CEO/client approver | Fail-closed validation, transactional draft import, QA-row disposition, per-title publication authorization, and live verification for the initial catalogue pack |
 | [`client_approval_packet.md`](./client_approval_packet.md) | Marketer / Executive | Client-facing approval request for 3 testimonials/logos & French URL slugs (`a-propos`, `services-edition`, `pourquoi-nous-choisir`, `actualites`) |
 
 **Reading order for a first pass:** `marketing_content_outline.md` → `sitemap.md` → `ui_ux_structure.md` → `wireframes.md` → `technical_architecture.md` → `admin_panel_spec.md` → `client_approval_packet.md`.
