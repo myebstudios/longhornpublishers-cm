@@ -20,9 +20,10 @@ export default defineConfig({
     },
   },
 
-  redirects: {
-    '/': '/en/',
-  },
+  // The root path is deliberately not redirected here. Astro would emit a static
+  // `/ -> /en/ 301` into _redirects, which matches before the Accept-Language
+  // rules in netlify.toml and sends French visitors to the English site. Root
+  // language negotiation is owned by netlify.toml.
 
   vite: {
     plugins: [tailwindcss()],
