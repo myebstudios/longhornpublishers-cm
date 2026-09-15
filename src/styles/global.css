@@ -13,6 +13,7 @@
   --color-green-deep:     #2F7A2A;
   --color-green-pale:     #EAF7E2;
   --color-mustard:        #E9A63B;
+  --color-orange:         #F47E27;
   --color-purple:         #6E4B9E;
   --color-cream:          #FBF6EE;
   --color-cream-deep:     #F3EADD;
@@ -49,6 +50,7 @@ ul, ol { list-style: none; padding: 0; }
   --green-deep:      #2F7A2A;
   --green-pale:      #EAF7E2;
   --mustard:         #E9A63B;
+  --orange:          #F47E27;
   --purple:          #6E4B9E;
 
   /* Neutrals */
@@ -132,10 +134,11 @@ em.accent, .accent {
   display: inline-flex; align-items: center; gap: .55rem;
   font-family: var(--font-display); font-size: var(--step--1);
   font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
-  color: var(--green-deep); margin-bottom: 1.15rem;
+  padding: .7rem 1rem; border-radius: 999px;
+  background: var(--orange); color: var(--white); margin-bottom: 1.15rem;
 }
-.eyebrow::before { content: ""; width: .5rem; height: .5rem; border-radius: 50%; background: var(--green); }
-.section--dark .eyebrow, .hero .eyebrow { color: var(--green); }
+.eyebrow::before { display: none; }
+.section--dark .eyebrow, .hero .eyebrow { color: var(--white); }
 .section-head--center .eyebrow { justify-content: center; }
 
 /* --- Buttons ----------------------------------------------------------- */
@@ -568,7 +571,8 @@ body.nav-open {
 .carousel__controls--header { margin-top: 0; align-self: flex-end; }
 @media (max-width: 860px) {
   .carousel__header { flex-direction: column; align-items: flex-start; gap: 1.25rem; }
-  .carousel__controls--header { align-self: flex-start; }
+  .carousel__controls { justify-content: flex-end; }
+  .carousel__controls--header { align-self: stretch; }
 }
 .carousel__viewport {
   overflow-x: auto;
@@ -581,8 +585,18 @@ body.nav-open {
   padding-block: .85rem;
 }
 .carousel__viewport::-webkit-scrollbar { display: none; }
-.carousel__track { display: flex; gap: 1.5rem; }
+.carousel__track {
+  display: flex; gap: 1.5rem;
+}
+.carousel__track::after {
+  content: "";
+  flex: 0 0 max(var(--gutter), calc((100vw - 1240px) / 2));
+  margin-inline-start: -1.5rem;
+}
 .carousel__track > * { flex: 0 0 clamp(290px, 32vw, 390px); scroll-snap-align: start; }
+@media (max-width: 639px) {
+  .carousel__track > * { flex-basis: 320px; }
+}
 .carousel__controls { display: flex; gap: .6rem; margin-top: 2.25rem; }
 .carousel__btn {
   display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 50%;
