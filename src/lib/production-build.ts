@@ -13,7 +13,12 @@ export function failIfProductionDatabaseUnavailable(
 ): void {
   if (process.env.CONTEXT !== 'production') return;
 
-  const cause = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
+  const chain: string[] = [];
+  for (let e: unknown = error; e !== undefined && e !== null && chain.length < 5; ) {
+    chain.push(e instanceof Error ? `${e.name}: ${e.message}` : String(e));
+    e = e instanceof Error ? (e as Error & { cause?: unknown }).cause : undefined;
+  }
+  const cause = chain.join('\n  caused by: ');
   const present = ['NETLIFY_DB_URL', 'NETLIFY_DB_DRIVER', 'CMS_DATABASE_URL']
     .map((name) => `${name}=${process.env[name] ? 'set' : 'unset'}`)
     .join(' ');
