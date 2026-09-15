@@ -60,9 +60,15 @@ It creates conspicuously labelled fixtures using fixed IDs, so rerunning it upda
 same rows instead of duplicating them:
 
 - 2 subjects and 2 published catalogue titles (`DEMO-CAT-001`, `DEMO-CAT-002`)
-- 3 news articles across different categories — 2 published, plus 1 deliberately
-  unpublished draft (`demo-unpublished-draft`) that must never appear in a list or
-  resolve as a detail route. If it does, the `published` filter has regressed.
+- 9 news articles — 8 published, plus 1 deliberately unpublished draft
+  (`demo-unpublished-draft`) that must never appear in a list or resolve as a
+  detail route. If it does, the `published` filter has regressed.
+
+The news page is a three-column grid with no pagination, so the published set is
+sized to wrap onto a second row and to cover all four categories, since each one
+drives a different pill label and card icon. One published row
+(`demo-undated-notice`) has no publish date, which exercises the conditional
+`<time>` element and the `NULLS LAST` ordering.
 
 News fixtures require `004_news_demo_origin`. Until it is applied locally the seed skips
 news entirely and says so, rather than failing against an un-migrated database. The rows carry `is_demo = true`; production and

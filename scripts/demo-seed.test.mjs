@@ -158,3 +158,45 @@ test('demo content stays hidden on every deployed runtime', () => {
     assert.equal(canRenderLocalDemoContent(env), false, JSON.stringify(env));
   }
 });
+
+test('news fixtures cover every category and fill more than one grid row', () => {
+  const sql = demoSeedSql(true, true);
+  const newsBlock = sql.slice(sql.indexOf('INSERT INTO news_articles'));
+
+  const categories = new Set(
+    [...newsBlock.matchAll(/'(company_news|new_titles|partnerships|events)'/g)].map((m) => m[1]),
+  );
+  assert.deepStrictEqual(
+    [...categories].sort(),
+    ['company_news', 'events', 'new_titles', 'partnerships'],
+    'every category drives a distinct pill label and card icon, so all four need a fixture',
+  );
+
+  // The news page is a three-column grid with no pagination; one row is not
+  // enough to show wrapping.
+  const published = [...newsBlock.matchAll(/,\s*(true|false),\s*true\s*\n\s*\)/g)].map((m) => m[1]);
+  const publishedCount = published.filter((p) => p === 'true').length;
+  assert.ok(publishedCount > 3, `expected more than one grid row, got ${publishedCount}`);
+  assert.strictEqual(published.filter((p) => p === 'false').length, 1);
+});
+
+test('one published fixture has no publish date', () => {
+  const sql = demoSeedSql(true, true);
+  const newsBlock = sql.slice(sql.indexOf('INSERT INTO news_articles'));
+  // publishedOn() returns '' for a null date and the card omits <time>;
+  // ORDER BY ... NULLS LAST must still place the row.
+  assert.match(newsBlock, /demo-undated-notice/);
+  const nullDates = [...newsBlock.matchAll(/^\s*NULL,\s*$/gm)];
+  assert.ok(nullDates.length >= 1, 'expected at least one NULL publish_date');
+});
+
+test('french apostrophes are escaped rather than breaking the statement', () => {
+  const sql = demoSeedSql(true, true);
+  // Every delimiter pair contributes two quotes and every escaped apostrophe
+  // contributes two more, so a correctly escaped statement always has an even
+  // count. A single unescaped apostrophe makes it odd and would terminate the
+  // string early, so this catches the failure without parsing SQL.
+  const quotes = (sql.match(/'/g) ?? []).length;
+  assert.strictEqual(quotes % 2, 0, 'unbalanced single quotes in generated SQL');
+  assert.match(sql, /d''actualit/, 'expected the straight apostrophe to be doubled');
+});
