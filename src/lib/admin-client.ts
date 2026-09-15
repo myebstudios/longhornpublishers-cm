@@ -128,6 +128,15 @@ export function sendJson<T = unknown>(
   );
 }
 
+/** Upload an image through the shared authenticated media endpoint. */
+export function uploadMedia(file: File): Promise<Result<{ id: string }>> {
+  return request<{ id: string }>('/api/media', {
+    method: 'POST',
+    headers: { 'Content-Type': file.type },
+    body: file,
+  }, 'Unable to upload image.');
+}
+
 /**
  * Blank strings are what an untouched `<input>` yields, but Postgres rejects
  * them for date and numeric columns. Normalise them to null before sending.

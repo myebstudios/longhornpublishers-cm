@@ -3,19 +3,26 @@ import type { Locale } from '../i18n';
 import { useTranslations, path, NAV_KEYS } from '../i18n';
 import Icon from './Icon.astro';
 import logo from '../../Assets/Longhorn CM logo.svg';
+import type { SiteSettings } from '../lib/cms-content';
+import { localized } from '../lib/cms-content';
 
 interface Props {
   locale: Locale;
+  settings: SiteSettings;
 }
 
-const { locale } = Astro.props;
+const { locale, settings } = Astro.props;
 const t = useTranslations(locale);
 const contactInfo = {
-  address: 'Total École de police, Tsinga — Yaoundé, Cameroon',
-  phone1: '+237 672 49 10 93',
-  phone2: '+237 657 51 92 03',
-  email: 'longhorncameroon@longhornpublishers.com',
+  address: settings.address,
+  phone1: settings.phone_1,
+  phone2: settings.phone_2,
+  email: settings.email,
 };
+const footerTagline = localized(locale, settings.footer_tagline_en, settings.footer_tagline_fr)
+  ?? localized(locale, settings.tagline_en, settings.tagline_fr);
+const newsletterCopy = localized(locale, settings.newsletter_copy_en, settings.newsletter_copy_fr)
+  ?? t.footer.newsletter;
 
 const serviceAnchors = [
   { en: 'Editing', fr: 'Révision', slug: 'editing' },
@@ -35,15 +42,13 @@ const serviceAnchors = [
           <img class="brand__logo brand__logo--footer" src={logo.src} alt="" aria-hidden="true" />
         </a>
         <p class="footer__blurb">
-          {locale === 'fr'
-            ? 'Créateurs de contenus et fournisseurs de solutions de plateforme pour l’Afrique centrale — services d’édition complets, du manuscrit au livre imprimé.'
-            : 'Content creators and platform business providers for Central Africa — end-to-end publishing services from manuscript to printed book, in English and French.'}
+          {footerTagline}
         </p>
         <form class="newsletter" name="newsletter" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field">
           <input type="hidden" name="form-name" value="newsletter" />
           <p class="visually-hidden"><label>{locale === 'fr' ? 'Ne remplissez pas ce champ :' : 'Do not fill this out:'} <input name="bot-field" /></label></p>
           <label class="visually-hidden" for={`footerEmail-${locale}`}>{locale === 'fr' ? 'Adresse e-mail' : 'Email address'}</label>
-          <input id={`footerEmail-${locale}`} type="email" name="email" placeholder={locale === 'fr' ? 'Votre e-mail pour nos actualités' : 'Your email for publishing insights'} required />
+          <input id={`footerEmail-${locale}`} type="email" name="email" placeholder={newsletterCopy} required />
           <button type="submit" aria-label={locale === 'fr' ? 'S’abonner' : 'Subscribe'}><Icon name="arrow" /></button>
           <p class="form__status" aria-live="polite"></p>
         </form>
@@ -71,10 +76,11 @@ const serviceAnchors = [
       <div class="footer__col">
         <h4>{t.nav.getInTouch}</h4>
         <ul>
-          <li><p>{contactInfo.address}</p></li>
-          <li><a href={`tel:${contactInfo.phone1.replace(/\s/g, '')}`}>{contactInfo.phone1}</a></li>
-          <li><a href={`tel:${contactInfo.phone2.replace(/\s/g, '')}`}>{contactInfo.phone2}</a></li>
-          <li><a href={`mailto:${contactInfo.email}`}>{contactInfo.email}</a></li>
+          {contactInfo.address && <li><p>{contactInfo.address}</p></li>}
+          {contactInfo.phone1 && <li><a href={`tel:${contactInfo.phone1.replace(/\s/g, '')}`}>{contactInfo.phone1}</a></li>}
+          {contactInfo.phone2 && <li><a href={`tel:${contactInfo.phone2.replace(/\s/g, '')}`}>{contactInfo.phone2}</a></li>}
+          {contactInfo.email && <li><a href={`mailto:${contactInfo.email}`}>{contactInfo.email}</a></li>}
+          {settings.social_links.map((link) => <li><a href={link.url} target="_blank" rel="noopener noreferrer">{link.platform}</a></li>)}
         </ul>
       </div>
     </div>
@@ -84,7 +90,7 @@ const serviceAnchors = [
       <div class="footer__legal">
         <a href={path('privacy', locale)}>{t.footer.privacy}</a>
         <a href={path('terms', locale)}>{t.footer.terms}</a>
-        <a href="https://longhornpublishers.com" target="_blank" rel="noopener">Longhorn Publishers PLC</a>
+        {settings.parent_company_url && <a href={settings.parent_company_url} target="_blank" rel="noopener">Longhorn Publishers PLC</a>}
       </div>
     </div>
   </div>

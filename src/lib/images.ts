@@ -31,6 +31,7 @@ const useCdn = import.meta.env.PROD;
  * before this helper existed.
  */
 export function imgPath(img: string): string {
+  if (img.startsWith('/')) return img;
   return img.includes('.') ? `/img/${img}` : `/img/${img}.svg`;
 }
 

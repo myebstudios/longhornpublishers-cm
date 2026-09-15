@@ -1,0 +1,126 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Site Settings" section="settings">
+  <div class="admin-page-head">
+    <div>
+      <h1>Site Settings</h1>
+      <p>Manage global bilingual identity, contact details, footer copy, social links, and SEO fallbacks.</p>
+    </div>
+  </div>
+
+  <section class="card editor-card">
+    <form id="settingsForm">
+      <h2>Identity</h2>
+      <div class="two">
+        <label>Company name — English<input name="company_name_en" required /></label>
+        <label>Company name — French<input name="company_name_fr" required /></label>
+        <label>Tagline — English<textarea name="tagline_en"></textarea></label>
+        <label>Tagline — French<textarea name="tagline_fr"></textarea></label>
+      </div>
+
+      <h2>Contact</h2>
+      <div class="two">
+        <label>Office address<textarea name="address"></textarea></label>
+        <label>Public email<input name="email" type="email" /></label>
+        <label>Primary phone<input name="phone_1" /></label>
+        <label>Secondary phone<input name="phone_2" /></label>
+      </div>
+
+      <h2>Footer and newsletter</h2>
+      <div class="two">
+        <label>Footer tagline — English<textarea name="footer_tagline_en"></textarea></label>
+        <label>Footer tagline — French<textarea name="footer_tagline_fr"></textarea></label>
+        <label>Newsletter prompt — English<input name="newsletter_copy_en" /></label>
+        <label>Newsletter prompt — French<input name="newsletter_copy_fr" /></label>
+        <label>Parent company URL<input name="parent_company_url" type="url" /></label>
+      </div>
+
+      <div class="toolbar"><h2>Social links</h2><button class="button secondary" type="button" id="addSocial">+ Add link</button></div>
+      <div id="socialLinks" class="repeat-list"></div>
+
+      <h2>SEO defaults</h2>
+      <div class="two">
+        <label>Default title<input name="seo_default_title" maxlength="160" /></label>
+        <label>Default description<textarea name="seo_default_description" maxlength="320"></textarea></label>
+        <label>Open Graph image
+          <input name="og_image_id" type="hidden" />
+          <input id="ogImageFile" type="file" accept="image/jpeg,image/png,image/webp" />
+          <span id="ogImageStatus"></span>
+        </label>
+        <div class="media-preview"><img id="ogImagePreview" alt="Open Graph preview" hidden /></div>
+      </div>
+
+      <div class="form-actions"><button class="button" type="submit">Save site settings</button></div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</AdminLayout>
+
+<script>
+  import { coverFileError, request, sendJson, uploadMedia } from '../../lib/admin-client';
+  const form = document.querySelector('#settingsForm') as HTMLFormElement;
+  const socialLinks = document.querySelector('#socialLinks')!;
+  const status = document.querySelector('#status')!;
+  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
+
+  function addSocial(platform = '', url = '') {
+    const row = document.createElement('div');
+    row.className = 'repeat-row';
+    row.innerHTML = '<label>Platform<input data-platform maxlength="60"></label><label>URL<input data-url type="url"></label><button class="button danger" type="button">Remove</button>';
+    (row.querySelector('[data-platform]') as HTMLInputElement).value = platform;
+    (row.querySelector('[data-url]') as HTMLInputElement).value = url;
+    row.querySelector('button')!.addEventListener('click', () => row.remove());
+    socialLinks.append(row);
+  }
+  document.querySelector('#addSocial')!.addEventListener('click', () => addSocial());
+
+  const ogId = form.elements.namedItem('og_image_id') as HTMLInputElement;
+  const ogFile = document.querySelector('#ogImageFile') as HTMLInputElement;
+  const ogStatus = document.querySelector('#ogImageStatus')!;
+  const ogPreview = document.querySelector('#ogImagePreview') as HTMLImageElement;
+  const renderOg = () => { ogPreview.hidden = !ogId.value; if (ogId.value) ogPreview.src = `/api/media/${ogId.value}`; };
+  ogFile.addEventListener('change', async () => {
+    const selected = ogFile.files?.[0]; if (!selected) return;
+    const error = coverFileError(selected); if (error) { ogStatus.textContent = error; return; }
+    ogStatus.textContent = 'Uploading…';
+    const res = await uploadMedia(selected);
+    if (!res.ok || !res.data?.id) { ogStatus.textContent = res.error ?? 'Upload failed.'; return; }
+    ogId.value = res.data.id; ogStatus.textContent = 'Image uploaded and attached.'; renderOg();
+  });
+
+  const set = (name: string, value: unknown) => { (form.elements.namedItem(name) as HTMLInputElement).value = String(value ?? ''); };
+  async function load() {
+    const res = await request<Record<string, any> | null>('/api/site-settings-admin', {}, 'Unable to load site settings.');
+    if (!res.ok) return setStatus(res.error!, 'err');
+    if (!res.data) return setStatus('No database row yet. Enter reviewed values to create it.');
+    for (const name of ['company_name_en','company_name_fr','tagline_en','tagline_fr','address','phone_1','phone_2','email','footer_tagline_en','footer_tagline_fr','newsletter_copy_en','newsletter_copy_fr','parent_company_url','seo_default_title','seo_default_description','og_image_id']) set(name, res.data[name]);
+    socialLinks.replaceChildren();
+    (Array.isArray(res.data.social_links) ? res.data.social_links : []).forEach((link: any) => addSocial(link.platform, link.url));
+    renderOg();
+    setStatus('Site settings loaded.');
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); submit.disabled = true; setStatus('Saving…');
+    const data = new FormData(form);
+    const payload: Record<string, unknown> = {};
+    for (const name of ['company_name_en','company_name_fr','tagline_en','tagline_fr','address','phone_1','phone_2','email','footer_tagline_en','footer_tagline_fr','newsletter_copy_en','newsletter_copy_fr','parent_company_url','seo_default_title','seo_default_description','og_image_id']) payload[name] = data.get(name);
+    payload.social_links = [...socialLinks.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({
+      platform: (row.querySelector('[data-platform]') as HTMLInputElement).value,
+      url: (row.querySelector('[data-url]') as HTMLInputElement).value,
+    })).filter((link) => link.platform || link.url);
+    const res = await sendJson('/api/site-settings-admin', 'PUT', payload, 'Unable to save site settings.');
+    setStatus(res.ok ? 'Site settings saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err');
+    submit.disabled = false;
+  });
+  load();
+</script>
+
+<style>
+  .repeat-list { display:grid; gap:12px; }
+  .repeat-row { display:grid; grid-template-columns:1fr 2fr auto; gap:12px; align-items:end; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
+  @media (max-width: 760px) { .repeat-row { grid-template-columns:1fr; } }
+  .media-preview img { width:240px; aspect-ratio:1200/630; object-fit:cover; border-radius:10px; border:1px solid var(--line); }
+</style>

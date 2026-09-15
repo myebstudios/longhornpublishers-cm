@@ -10,9 +10,10 @@ interface Props {
   /** Per-locale paths for pages nested under a route (e.g. a catalogue detail
    *  page), so switching language keeps the visitor on the same item. */
   alternates?: Record<Locale, string>;
+  siteName?: string;
 }
 
-const { locale, currentRouteKey, alternates } = Astro.props;
+const { locale, currentRouteKey, alternates, siteName } = Astro.props;
 const t = useTranslations(locale);
 /** Where each language button points for the page currently being rendered. */
 const localeHref = (target: Locale) =>
@@ -22,7 +23,7 @@ const localeHref = (target: Locale) =>
 <header class="site-header" id="siteHeader">
   <div class="wrap">
     <div class="site-header__inner">
-      <a class="brand" href={path('home', locale)} aria-label={`${t.brand.name} ${t.brand.sub} — ${t.nav.home}`}>
+      <a class="brand" href={path('home', locale)} aria-label={`${siteName ?? `${t.brand.name} ${t.brand.sub}`} — ${t.nav.home}`}>
         <img class="brand__logo" src={logo.src} alt="" aria-hidden="true" />
       </a>
 

@@ -14,6 +14,7 @@
     "audit:images": "node scripts/image-audit.mjs",
     "gen:image-sizes": "node scripts/gen-image-sizes.mjs",
     "test:product-code": "node --test tests/catalogue-product-code.test.mjs",
+    "test:cms": "node --experimental-strip-types --test tests/cms-validation.test.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
     "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs"
   },

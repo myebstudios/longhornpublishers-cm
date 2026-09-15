@@ -1,0 +1,132 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Homepage" section="homepage">
+  <div class="admin-page-head"><div><h1>Homepage</h1><p>Manage bilingual hero, trust, introduction, partner positioning, imagery, and featured catalogue titles.</p></div></div>
+  <section class="card editor-card">
+    <form id="homepageForm">
+      <h2>Hero</h2>
+      <div class="two">
+        <label>Headline — English<textarea name="hero_headline_en" required></textarea></label>
+        <label>Headline — French<textarea name="hero_headline_fr" required></textarea></label>
+        <label>Subheadline — English<textarea name="hero_subheadline_en" required></textarea></label>
+        <label>Subheadline — French<textarea name="hero_subheadline_fr" required></textarea></label>
+        <label>CTA label — English<input name="hero_cta_label_en" required /></label>
+        <label>CTA label — French<input name="hero_cta_label_fr" required /></label>
+      </div>
+      <div class="media-field" data-media="hero_image_id">
+        <label>Hero image<input name="hero_image_id" type="hidden" /><input data-file type="file" accept="image/jpeg,image/png,image/webp" /></label>
+        <img data-preview alt="Hero preview" hidden /><span data-media-status></span>
+      </div>
+
+      <h2>Who we are</h2>
+      <div class="two">
+        <label>Copy — English<textarea name="who_we_are_copy_en" required></textarea></label>
+        <label>Copy — French<textarea name="who_we_are_copy_fr" required></textarea></label>
+      </div>
+      <div class="media-field" data-media="who_we_are_image_id">
+        <label>Who we are image<input name="who_we_are_image_id" type="hidden" /><input data-file type="file" accept="image/jpeg,image/png,image/webp" /></label>
+        <img data-preview alt="Who we are preview" hidden /><span data-media-status></span>
+      </div>
+
+      <div class="toolbar"><h2>Trust stats</h2><button class="button secondary" type="button" id="addStat">+ Add stat</button></div>
+      <div id="trustStats" class="repeat-list"></div>
+
+      <h2>One partner positioning</h2>
+      <div class="two">
+        <label>Copy — English<textarea name="one_partner_copy_en" required></textarea></label>
+        <label>Copy — French<textarea name="one_partner_copy_fr" required></textarea></label>
+      </div>
+
+      <h2>Featured catalogue</h2>
+      <p>Select up to four published titles for the homepage showcase.</p>
+      <div id="catalogueChoices" class="choice-list"></div>
+
+      <div class="form-actions"><button class="button" type="submit">Save homepage</button></div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</AdminLayout>
+
+<script>
+  import { coverFileError, request, sendJson, uploadMedia } from '../../lib/admin-client';
+  const form = document.querySelector('#homepageForm') as HTMLFormElement;
+  const stats = document.querySelector('#trustStats')!;
+  const choices = document.querySelector('#catalogueChoices')!;
+  const status = document.querySelector('#status')!;
+  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
+
+  function addStat(value = '', labelEn = '', labelFr = '') {
+    const row = document.createElement('div'); row.className = 'repeat-row';
+    row.innerHTML = '<label>Value<input data-value maxlength="40"></label><label>English label<input data-en maxlength="160"></label><label>French label<input data-fr maxlength="160"></label><button class="button danger" type="button">Remove</button>';
+    (row.querySelector('[data-value]') as HTMLInputElement).value = value;
+    (row.querySelector('[data-en]') as HTMLInputElement).value = labelEn;
+    (row.querySelector('[data-fr]') as HTMLInputElement).value = labelFr;
+    row.querySelector('button')!.addEventListener('click', () => row.remove()); stats.append(row);
+  }
+  document.querySelector('#addStat')!.addEventListener('click', () => addStat());
+
+  document.querySelectorAll<HTMLElement>('[data-media]').forEach((field) => {
+    const name = field.dataset.media!;
+    const hidden = form.elements.namedItem(name) as HTMLInputElement;
+    const file = field.querySelector('[data-file]') as HTMLInputElement;
+    const preview = field.querySelector('[data-preview]') as HTMLImageElement;
+    const message = field.querySelector('[data-media-status]')!;
+    const render = () => { preview.hidden = !hidden.value; if (hidden.value) preview.src = `/api/media/${hidden.value}`; };
+    file.addEventListener('change', async () => {
+      const selected = file.files?.[0]; if (!selected) return;
+      const error = coverFileError(selected); if (error) { message.textContent = error; return; }
+      message.textContent = 'Uploading…';
+      const res = await uploadMedia(selected);
+      if (!res.ok || !res.data?.id) { message.textContent = res.error ?? 'Upload failed.'; return; }
+      hidden.value = res.data.id; message.textContent = 'Image uploaded and attached.'; render();
+    });
+    field.dataset.render = 'ready';
+    (field as any).renderMedia = render;
+  });
+
+  const set = (name: string, value: unknown) => { (form.elements.namedItem(name) as HTMLInputElement).value = String(value ?? ''); };
+  async function load() {
+    const res = await request<{ content: Record<string, any> | null; catalogue: any[] }>('/api/homepage-admin', {}, 'Unable to load homepage content.');
+    if (!res.ok || !res.data) return setStatus(res.error!, 'err');
+    const content = res.data.content;
+    if (content) {
+      for (const name of ['hero_headline_en','hero_headline_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) set(name, content[name]);
+      stats.replaceChildren(); (Array.isArray(content.trust_stats) ? content.trust_stats : []).forEach((row: any) => addStat(row.value, row.label_en, row.label_fr));
+    } else addStat();
+    document.querySelectorAll<HTMLElement>('[data-media]').forEach((field) => (field as any).renderMedia?.());
+    choices.replaceChildren();
+    const selected = new Set<string>(content?.featured_catalogue_ids ?? []);
+    res.data.catalogue.filter((title) => title.published).forEach((title) => {
+      const label = document.createElement('label'); label.className = 'choice';
+      const input = document.createElement('input'); input.type = 'checkbox'; input.value = title.id; input.checked = selected.has(title.id);
+      const text = document.createElement('span'); text.textContent = `${title.title_en} / ${title.title_fr} (${title.product_code})`;
+      label.append(input, text); choices.append(label);
+    });
+    setStatus(content ? 'Homepage content loaded.' : 'No database row yet. Enter complete bilingual content to create it.');
+  }
+
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault();
+    const selected = [...choices.querySelectorAll<HTMLInputElement>('input:checked')].map((input) => input.value);
+    if (selected.length > 4) return setStatus('Select no more than four featured titles.', 'err');
+    submit.disabled = true; setStatus('Saving…');
+    const data = new FormData(form); const payload: Record<string, unknown> = {};
+    for (const name of ['hero_headline_en','hero_headline_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) payload[name] = data.get(name);
+    payload.trust_stats = [...stats.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ value: (row.querySelector('[data-value]') as HTMLInputElement).value, label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value }));
+    payload.featured_catalogue_ids = selected;
+    const res = await sendJson('/api/homepage-admin', 'PUT', payload, 'Unable to save homepage content.');
+    setStatus(res.ok ? 'Homepage saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+  });
+  load();
+</script>
+
+<style>
+  .repeat-list,.choice-list { display:grid; gap:12px; }
+  .repeat-row { display:grid; grid-template-columns:.6fr 1fr 1fr auto; gap:12px; align-items:end; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
+  .choice { display:flex!important; grid-template-columns:none!important; flex-direction:row; align-items:center; gap:10px; padding:12px; border:1px solid var(--line); border-radius:10px; }
+  .media-field { display:flex; align-items:end; gap:16px; padding:14px; border:1px solid var(--line); border-radius:12px; }
+  .media-field img { width:120px; height:80px; object-fit:cover; border-radius:8px; }
+  @media (max-width: 760px) { .repeat-row { grid-template-columns:1fr; } }
+</style>

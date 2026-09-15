@@ -1,8 +1,10 @@
 ---
-interface Props { title: string; section?: 'dashboard' | 'catalogue' | 'subjects' | 'news'; }
+interface Props { title: string; section?: 'dashboard' | 'settings' | 'homepage' | 'catalogue' | 'subjects' | 'news'; }
 const { title, section = 'dashboard' } = Astro.props;
 const items = [
   ['dashboard', 'Overview', '/admin/', '◈'],
+  ['settings', 'Site settings', '/admin/site-settings/', '⚙'],
+  ['homepage', 'Homepage', '/admin/homepage/', '⌂'],
   ['catalogue', 'Catalogue', '/admin/catalogue/', '▤'],
   ['subjects', 'Subjects', '/admin/subjects/', '❖'],
   ['news', 'News & updates', '/admin/news/', '✦'],

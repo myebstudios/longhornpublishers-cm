@@ -4,6 +4,7 @@ import Footer from '../components/Footer.astro';
 import type { Locale, RouteKey } from '../i18n';
 import { useTranslations, path } from '../i18n';
 import { OG_HEIGHT, OG_WIDTH, ogImagePath } from '../lib/images';
+import { getSiteSettings, localized, mediaPath } from '../lib/cms-content';
 import '../styles/global.css';
 
 interface Props {
@@ -20,8 +21,12 @@ const { title, description, locale, routeKey, alternates, image, type } = Astro.
 const localePath = (target: Locale) =>
   alternates?.[target] ?? (routeKey ? path(routeKey, target) : '/');
 const t = useTranslations(locale);
+const siteSettings = await getSiteSettings();
 const canonicalUrl = new URL(localePath(locale), Astro.site);
-const ogImageUrl = new URL(ogImagePath(image ?? 'lh-share-card.jpg'), Astro.site).href;
+const effectiveTitle = title || siteSettings.seo_default_title || localized(locale, siteSettings.company_name_en, siteSettings.company_name_fr);
+const effectiveDescription = description || siteSettings.seo_default_description || localized(locale, siteSettings.tagline_en, siteSettings.tagline_fr) || '';
+const ogSource = image ?? mediaPath(siteSettings.og_image_id, 'lh-share-card.jpg');
+const ogImageUrl = new URL(ogImagePath(ogSource), Astro.site).href;
 
 const organizationSchema = {
   '@context': 'https://schema.org',
@@ -29,7 +34,7 @@ const organizationSchema = {
     {
       '@type': 'Organization',
       '@id': new URL('/#organization', Astro.site).href,
-      name: 'Longhorn Publishers Cameroon Ltd',
+      name: siteSettings.company_name_en,
       url: Astro.site?.href,
       logo: new URL('/favicon.svg', Astro.site).href,
       parentOrganization: { '@type': 'Organization', name: 'Longhorn Publishers PLC' },
@@ -37,13 +42,13 @@ const organizationSchema = {
     {
       '@type': 'ProfessionalService',
       '@id': new URL('/#local-business', Astro.site).href,
-      name: 'Longhorn Publishers Cameroon Ltd',
+      name: siteSettings.company_name_en,
       url: Astro.site?.href,
-      telephone: ['+237 672 49 10 93', '+237 657 51 92 03'],
-      email: 'longhorncameroon@longhornpublishers.com',
+      telephone: [siteSettings.phone_1, siteSettings.phone_2].filter(Boolean),
+      email: siteSettings.email,
       address: {
         '@type': 'PostalAddress',
-        streetAddress: 'Total École de police, Tsinga',
+        streetAddress: siteSettings.address,
         addressLocality: 'Yaoundé',
         addressCountry: 'CM',
       },
@@ -61,8 +66,8 @@ const organizationSchema = {
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>{title}</title>
-    <meta name="description" content={description} />
+    <title>{effectiveTitle}</title>
+    <meta name="description" content={effectiveDescription} />
     <meta name="theme-color" content="#5C1A2B" />
     {routeKey ? (
       <Fragment>
@@ -87,22 +92,22 @@ const organizationSchema = {
     <!-- Localized Open Graph / Social Sharing -->
     <meta property="og:site_name" content="Longhorn Publishers Cameroon" />
     <meta property="og:type" content={type || 'website'} />
-    <meta property="og:title" content={title} />
-    <meta property="og:description" content={description} />
+    <meta property="og:title" content={effectiveTitle} />
+    <meta property="og:description" content={effectiveDescription} />
     {routeKey && <meta property="og:url" content={canonicalUrl} />}
     <meta property="og:locale" content={locale === 'fr' ? 'fr_CM' : 'en_CM'} />
     {routeKey && <meta property="og:locale:alternate" content={locale === 'fr' ? 'en_CM' : 'fr_CM'} />}
     <meta property="og:image" content={ogImageUrl} />
     <meta property="og:image:width" content={String(OG_WIDTH)} />
     <meta property="og:image:height" content={String(OG_HEIGHT)} />
-    <meta property="og:image:alt" content={description} />
+    <meta property="og:image:alt" content={effectiveDescription} />
 
     <!-- Twitter Card Metadata -->
     <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content={title} />
-    <meta name="twitter:description" content={description} />
+    <meta name="twitter:title" content={effectiveTitle} />
+    <meta name="twitter:description" content={effectiveDescription} />
     <meta name="twitter:image" content={ogImageUrl} />
-    <meta name="twitter:image:alt" content={description} />
+    <meta name="twitter:image:alt" content={effectiveDescription} />
 
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -115,13 +120,13 @@ const organizationSchema = {
   <body>
     <a href="#main-content" class="skip-link">{t.nav.skip}</a>
 
-    <Header locale={locale} currentRouteKey={routeKey} alternates={alternates} />
+    <Header locale={locale} currentRouteKey={routeKey} alternates={alternates} siteName={localized(locale, siteSettings.company_name_en, siteSettings.company_name_fr)} />
 
     <main id="main-content">
       <slot />
     </main>
 
-    <Footer locale={locale} />
+    <Footer locale={locale} settings={siteSettings} />
 
     <script>
       function initHeader() {

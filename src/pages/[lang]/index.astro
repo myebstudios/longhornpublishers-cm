@@ -17,14 +17,29 @@ import {
   articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
 import { coverImage, getPublishedTitles, titleText } from '../../lib/catalogue';
+import { getHomepageContent, localized, mediaPath, paragraphs } from '../../lib/cms-content';
 
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
 const t = useTranslations(lang);
+const homepage = await getHomepageContent();
+const heroHeadline = homepage ? localized(lang, homepage.hero_headline_en, homepage.hero_headline_fr) : null;
+const heroSubheadline = homepage ? localized(lang, homepage.hero_subheadline_en, homepage.hero_subheadline_fr) : null;
+const heroCta = homepage ? localized(lang, homepage.hero_cta_label_en, homepage.hero_cta_label_fr) : null;
+const whoCopy = homepage ? paragraphs(localized(lang, homepage.who_we_are_copy_en, homepage.who_we_are_copy_fr)) : [];
+const partnerCopy = homepage ? localized(lang, homepage.one_partner_copy_en, homepage.one_partner_copy_fr) : null;
+const trustItems = homepage?.trust_stats.length
+  ? homepage.trust_stats.map((item) => ({ value: item.value, label: localized(lang, item.label_en, item.label_fr) }))
+  : t.home.trust.map((label) => ({ value: '', label }));
 
 // Catalogue showcase, newest/featured first. Omitted entirely when nothing is
 // published, like the news teaser below.
-const catalogueTitles = await getPublishedTitles(8);
+const allCatalogueTitles = await getPublishedTitles();
+const catalogueById = new Map(allCatalogueTitles.map((title) => [title.id, title]));
+const configuredFeatured = homepage?.featured_catalogue_ids
+  .map((id) => catalogueById.get(id))
+  .filter((title): title is NonNullable<typeof title> => Boolean(title)) ?? [];
+const catalogueTitles = configuredFeatured.length ? configuredFeatured : allCatalogueTitles.slice(0, 8);
 
 // Service carousel cards are clamp(290px, 32vw, 390px) wide and below the fold,
 // so they cap out at a 960w source and load lazily.
@@ -39,9 +54,13 @@ const latestNews = await getPublishedNews(3);
 
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
   <Hero
-    content={t.home.hero}
-    img="lh-hero.jpg"
-    primaryCtaText={t.common.partnerWithUs}
+    content={heroHeadline ? undefined : t.home.hero}
+    eyebrow={heroHeadline ? t.home.hero.eyebrowStat : undefined}
+    titleLead={heroHeadline ?? undefined}
+    titleAccent={heroHeadline ? '' : undefined}
+    lede={heroSubheadline ?? undefined}
+    img={mediaPath(homepage?.hero_image_id, 'lh-hero.jpg')}
+    primaryCtaText={heroCta ?? t.common.partnerWithUs}
     primaryCtaHref={path('contact', lang)}
     secondaryCtaText={t.common.exploreServices}
     secondaryCtaHref={path('services', lang)}
@@ -50,8 +69,8 @@ const latestNews = await getPublishedNews(3);
   <!-- Trust bar -->
   <section class="trust-bar">
     <div class="wrap trust-bar__inner">
-      {t.home.trust.map((item) => (
-        <div class="trust-item"><Icon name="check" size={18} /> {item}</div>
+      {trustItems.map((item) => (
+        <div class="trust-item"><Icon name="check" size={18} /> {item.value && <strong>{item.value}</strong>} {item.label}</div>
       ))}
     </div>
   </section>
@@ -71,10 +90,10 @@ const latestNews = await getPublishedNews(3);
   <!-- Who we are -->
   <section class="section section--cream">
     <div class="wrap">
-      <Split img="lh-editorial-collaboration.jpg" alt={t.home.whoWeAre.imgAlt}>
+      <Split img={mediaPath(homepage?.who_we_are_image_id, 'lh-editorial-collaboration.jpg')} alt={t.home.whoWeAre.imgAlt}>
         <span class="eyebrow">{t.home.whoWeAre.eyebrow}</span>
         <h2>{t.home.whoWeAre.titleLead} <em class="accent">{t.home.whoWeAre.titleAccent}</em></h2>
-        {t.home.whoWeAre.body.map((p) => <p>{p}</p>)}
+        {(whoCopy.length ? whoCopy : t.home.whoWeAre.body).map((p) => <p>{p}</p>)}
         <a class="link-arrow" href={path('about', lang)}>{t.home.whoWeAre.link}</a>
       </Split>
     </div>
@@ -153,7 +172,7 @@ const latestNews = await getPublishedNews(3);
         eyebrow={t.home.endToEnd.eyebrow}
         titleLead={t.home.endToEnd.titleLead}
         titleAccent={t.home.endToEnd.titleAccent}
-        lede={t.home.endToEnd.lede}
+        lede={partnerCopy ?? t.home.endToEnd.lede}
       />
       <div class="grid grid--3 reveal">
         {t.home.endToEnd.cards.map((card, i) => (

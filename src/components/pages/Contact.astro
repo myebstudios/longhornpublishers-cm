@@ -3,14 +3,18 @@ import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Icon from '../Icon.astro';
 import { type Locale, useTranslations, LOCALES } from '../../i18n';
-import { CONTACT } from '../../data/site';
+import { getSiteSettings } from '../../lib/cms-content';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
 const f = t.contact.form;
+const settings = await getSiteSettings();
+const addressLines = settings.address?.split(/\s*(?:—|\n)\s*/).filter(Boolean) ?? [];
+const phones = [settings.phone_1, settings.phone_2].filter((phone): phone is string => Boolean(phone));
+const email = settings.email;
 
-const mapsQuery = encodeURIComponent(`${CONTACT.addressLines.join(', ')}`);
+const mapsQuery = encodeURIComponent(addressLines.join(', '));
 const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
 const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=embed`;
 ---
@@ -26,19 +30,19 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
 
         <div class="contact-detail">
           <div class="contact-detail__label">{t.contact.labels.office}</div>
-          {CONTACT.addressLines.map((line) => <p>{line}</p>)}
+          {addressLines.map((line) => <p>{line}</p>)}
         </div>
 
         <div class="contact-detail">
           <div class="contact-detail__label">{t.contact.labels.telephone}</div>
-          {CONTACT.phones.map((phone) => (
+          {phones.map((phone) => (
             <p><a href={`tel:${phone.replace(/\s+/g, '')}`}>{phone}</a></p>
           ))}
         </div>
 
         <div class="contact-detail">
           <div class="contact-detail__label">{t.contact.labels.email}</div>
-          <p><a href={`mailto:${CONTACT.email}`}>{CONTACT.email}</a></p>
+          {email && <p><a href={`mailto:${email}`}>{email}</a></p>}
         </div>
 
         <div class="contact-detail">
@@ -131,14 +135,14 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
         <iframe
           class="map-embed__frame"
           src={mapsEmbedSrc}
-          title={`${t.contact.labels.office}: ${CONTACT.addressLines.join(', ')}`}
+          title={`${t.contact.labels.office}: ${addressLines.join(', ')}`}
           loading="lazy"
           referrerpolicy="no-referrer-when-downgrade"
           allowfullscreen
         />
         <div class="map-embed__body">
           <Icon name="pin" size={30} class="map-embed__pin" />
-          <h3>{CONTACT.addressLines.join(' — ')}</h3>
+          <h3>{addressLines.join(' — ')}</h3>
           <p class="map-embed__meta">{t.contact.addressLine}</p>
           <a class="map-embed__link" href={mapsHref} target="_blank" rel="noopener noreferrer">
             {t.contact.directions}

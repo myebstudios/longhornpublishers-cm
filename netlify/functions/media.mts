@@ -42,6 +42,10 @@ async function isPubliclyApproved(key: string): Promise<boolean> {
       SELECT 1 FROM catalogue_titles WHERE published = true AND is_demo = false AND cover_image_id = ${key}
       UNION ALL
       SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
+      UNION ALL
+      SELECT 1 FROM homepage_content WHERE id = 'default' AND (hero_image_id = ${key} OR who_we_are_image_id = ${key})
+      UNION ALL
+      SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
     )
   `;
   return Boolean(row);
@@ -105,8 +109,16 @@ export default async function handler(req: Request) {
   if (req.method !== 'POST') return methodNotAllowed();
 
   const denied = await requireAdmin(); if (denied) return denied;
-  const form = await req.formData();
-  const file = form.get('file');
+  const contentType = req.headers.get('content-type')?.split(';')[0]?.trim() ?? '';
+  let file: File | null = null;
+  if (contentType === 'multipart/form-data') {
+    const form = await req.formData();
+    const candidate = form.get('file');
+    file = candidate instanceof File ? candidate : null;
+  } else if (ALLOWED_TYPES.has(contentType)) {
+    const extension = contentType.split('/')[1];
+    file = new File([await req.arrayBuffer()], `upload.${extension}`, { type: contentType });
+  }
   if (!(file instanceof File) || !ALLOWED_TYPES.has(file.type) || file.size > MAX_UPLOAD_BYTES) {
     return json({ error: 'Upload a JPEG, PNG, or WebP image up to 8 MB.' }, { status: 400 });
   }
