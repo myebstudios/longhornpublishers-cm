@@ -517,44 +517,6 @@ body.nav-open {
   color: var(--white); font-weight: 600;
 }
 
-/* Book Cover Media Card styling */
-.media-card--cover {
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  perspective: 1000px;
-  transform-style: preserve-3d;
-  transition: transform .4s cubic-bezier(.22,.61,.36,1), box-shadow .4s ease;
-}
-@media (hover: hover) and (pointer: fine) {
-  .media-card--cover:hover {
-    transform: translateY(-6px) rotateY(-5deg) rotateX(2deg);
-    box-shadow: -12px 24px 40px rgba(38, 10, 18, 0.32);
-  }
-}
-.media-card__cover-art {
-  position: absolute; inset: 0; z-index: -2;
-  display: flex; flex-direction: column; align-items: center; justify-content: center;
-  padding: 4rem 1.75rem 9rem; text-align: center;
-  transition: transform 0.65s ease;
-}
-.media-card:hover .media-card__cover-art { transform: scale(1.06); }
-.media-card__cover-art::before {
-  content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 14px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.38) 0%, rgba(255,255,255,0.12) 50%, transparent 100%);
-  z-index: 1;
-}
-.media-card__cover-title {
-  font-family: var(--font-display); font-weight: 800;
-  font-size: clamp(1.35rem, 2.2vw, 1.7rem); color: #ffffff;
-  text-transform: uppercase; letter-spacing: -.01em; line-height: 1.15;
-  text-shadow: 0 2px 10px rgba(0,0,0,0.4);
-}
-.media-card__cover-subtitle {
-  display: block; margin-top: .4rem;
-  font-family: var(--font-accent); font-size: var(--step-0); font-weight: 400;
-  font-style: italic; color: var(--green); text-shadow: 0 1px 4px rgba(0,0,0,0.4);
-}
-
 /* --- Process steps ----------------------------------------------------- */
 .steps {
   position: relative;
@@ -690,20 +652,19 @@ body.nav-open {
   transition: transform .35s cubic-bezier(.22,.61,.36,1), box-shadow .35s ease, border-color .35s ease;
 }
 .book-card__cover {
-  position: relative;
   aspect-ratio: 3 / 4; display: grid; place-items: center;
-  padding: 1.5rem; text-align: center; background: var(--cream-deep);
+  text-align: center; background: var(--cream-deep);
   transform-style: preserve-3d;
-}
-.book-card__cover::before {
-  content: ""; position: absolute; top: 0; left: 0; bottom: 0; width: 12px;
-  background: linear-gradient(90deg, rgba(0,0,0,0.20) 0%, rgba(255,255,255,0.08) 50%, transparent 100%);
-  z-index: 2; pointer-events: none;
 }
 @media (hover: hover) and (pointer: fine) {
   .book-card:hover {
     transform: translateY(-6px) rotateY(-5deg) rotateX(2deg);
     box-shadow: -10px 18px 36px rgba(59, 15, 27, 0.18);
+  }
+  .book-card.is-tilting {
+    transform: translateY(-8px) rotateX(var(--cover-rotate-x, 0deg)) rotateY(var(--cover-rotate-y, 0deg));
+    box-shadow: -12px 24px 40px rgba(59, 15, 27, 0.24);
+    transition: transform .1s ease-out, box-shadow .2s ease;
   }
 }
 @media (prefers-reduced-motion: reduce) {
@@ -711,14 +672,14 @@ body.nav-open {
   .hero h1, .hero p.hero__lede, .hero .hero__cta, .hero .stat-card {
     animation: none;
   }
-  .media-card--cover:hover, .book-card:hover {
+  .book-card:hover {
     transform: translateY(-4px);
   }
 }
 .book-card__cover span { font-family: var(--font-display); font-weight: 700; font-size: var(--step-1); color: var(--burgundy); line-height: 1.2; }
-.book-card__cover img { width: 100%; height: 100%; object-fit: cover; }
-.book-card__body { padding: 1.15rem 1.25rem 1.4rem; display: flex; flex-direction: column; gap: .7rem; }
-.book-card__body h3 { font-size: var(--step-0); }
+.book-card__cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.book-card__link { display: block; color: inherit; text-decoration: none; }
+.book-card__link:focus-visible { outline: 3px solid var(--green); outline-offset: -3px; }
 .book-card.is-hidden { display: none; }
 .is-hidden, [hidden] { display: none !important; }
 

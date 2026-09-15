@@ -5,7 +5,7 @@ import Button from '../Button.astro';
 import CtaBand from '../CtaBand.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
-  coverImage, description, filterTags, getPublishedTitles, subjectFilters, subjectName, titleText,
+  coverImage, filterTags, getPublishedTitles, subjectFilters, titleText,
 } from '../../lib/catalogue';
 
 interface Props { locale: Locale }
@@ -86,34 +86,24 @@ const filterGroups = [
 
         <div class="grid grid--4 reveal">
           {titles.map((title) => (
-            <article class="book-card" data-tags={filterTags(title)}>
-              <div class="book-card__cover">
+            <article class="book-card" data-cover-tilt data-tags={filterTags(title)}>
+              <a
+                class="book-card__link"
+                href={`${cataloguePath}${title.slug}/`}
+                aria-label={titleText(title, lang)}
+              >
+                <div class="book-card__cover">
                 {coverImage(title)
                   ? <img
                       {...coverImage(title)!}
                       sizes="(min-width: 1240px) 280px, (min-width: 640px) 30vw, 45vw"
-                      alt={titleText(title, lang)}
+                      alt=""
                       loading="lazy"
                       decoding="async"
                     />
-                  : <span>{titleText(title, lang)}</span>}
-              </div>
-              <div class="book-card__body">
-                <div class="pill-row">
-                  <span class="pill pill--green">{t.catalogue.levels[title.level]}</span>
-                  {subjectName(title, lang) && <span class="pill">{subjectName(title, lang)}</span>}
-                  {title.languages.map((code) => (
-                    <span class="pill">{t.catalogue.languages[code]}</span>
-                  ))}
+                  : <span aria-hidden="true">{titleText(title, lang)}</span>}
                 </div>
-                <h3>{titleText(title, lang)}</h3>
-                <p style="color:var(--ink-soft);font-size:var(--step--1)">{description(title, lang)}</p>
-                <a
-                  class="link-arrow"
-                  style="font-size:var(--step--1)"
-                  href={`${cataloguePath}${title.slug}/`}
-                >{t.common.requestTitle}</a>
-              </div>
+              </a>
             </article>
           ))}
         </div>

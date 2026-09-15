@@ -444,6 +444,44 @@ const organizationSchema = {
         });
       }
 
+      function initCoverTilt() {
+        const canTilt = window.matchMedia('(hover: hover) and (pointer: fine)').matches
+          && !window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+        if (!canTilt) return;
+
+        document.querySelectorAll<HTMLElement>('[data-cover-tilt]').forEach(card => {
+          let frame: number | null = null;
+          let pointerX = 0;
+          let pointerY = 0;
+
+          const updateTilt = () => {
+            frame = null;
+            const rect = card.getBoundingClientRect();
+            const x = Math.max(0, Math.min(1, (pointerX - rect.left) / rect.width));
+            const y = Math.max(0, Math.min(1, (pointerY - rect.top) / rect.height));
+            card.style.setProperty('--cover-rotate-x', `${(0.5 - y) * 8}deg`);
+            card.style.setProperty('--cover-rotate-y', `${(x - 0.5) * 10}deg`);
+          };
+
+          const resetTilt = () => {
+            if (frame !== null) cancelAnimationFrame(frame);
+            frame = null;
+            card.classList.remove('is-tilting');
+            card.style.removeProperty('--cover-rotate-x');
+            card.style.removeProperty('--cover-rotate-y');
+          };
+
+          card.addEventListener('pointermove', event => {
+            if (event.pointerType !== 'mouse') return;
+            pointerX = event.clientX;
+            pointerY = event.clientY;
+            card.classList.add('is-tilting');
+            if (frame === null) frame = requestAnimationFrame(updateTilt);
+          });
+          card.addEventListener('pointerleave', resetTilt);
+        });
+      }
+
       function initNetlifyForms() {
         const requestedTitle = new URLSearchParams(window.location.search).get('title');
         if (requestedTitle) {
@@ -497,6 +535,7 @@ const organizationSchema = {
         initReveal();
         initCarousels();
         initFilters();
+        initCoverTilt();
         initNetlifyForms();
       });
     </script>

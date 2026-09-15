@@ -10,38 +10,21 @@ import Button from '../../components/Button.astro';
 import { LOCALES, path, type Locale, useTranslations } from '../../i18n';
 import { SERVICES, PROCESS } from '../../data/site';
 import {
-  SERVICE_IMG, COVER_GRADIENTS, DEFAULT_COVER_GRADIENT, SUBJECT_ICON, disciplineLabel,
+  SERVICE_IMG, disciplineLabel,
 } from '../../data/presentation';
 import { responsive } from '../../lib/images';
 import {
   articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
-import { description, getPublishedTitles, subjectName, titleText } from '../../lib/catalogue';
+import { coverImage, getPublishedTitles, titleText } from '../../lib/catalogue';
 
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
 const t = useTranslations(lang);
 
-const levelLabel = (level: 'primary' | 'secondary') => t.catalogue.levels[level];
-
 // Catalogue showcase, newest/featured first. Omitted entirely when nothing is
 // published, like the news teaser below.
 const catalogueTitles = await getPublishedTitles(8);
-
-/**
- * Cover art is keyed by subject, but subjects are free-text database rows while
- * COVER_GRADIENTS/SUBJECT_ICON are a fixed palette. Match on the English name
- * where we recognise it and fall back to the default treatment otherwise.
- */
-const SUBJECT_ALIAS: Record<string, string> = {
-  mathematics: 'maths', maths: 'maths', math: 'maths',
-  science: 'science', 'integrated science': 'science',
-  french: 'french', francais: 'french',
-  english: 'english', 'english language': 'english',
-  'social studies': 'social', social: 'social',
-};
-const subjectTheme = (subject: string | null) =>
-  SUBJECT_ALIAS[(subject ?? '').trim().toLowerCase()] ?? '';
 
 // Service carousel cards are clamp(290px, 32vw, 390px) wide and below the fold,
 // so they cap out at a 960w source and load lazily.
@@ -111,21 +94,24 @@ const latestNews = await getPublishedNews(3);
           />
         </div>
         {catalogueTitles.map((title) => (
-          <article class="media-card media-card--cover">
-            <div class="media-card__cover-art" style={`background: ${COVER_GRADIENTS[subjectTheme(title.subject_en)] ?? DEFAULT_COVER_GRADIENT}`}>
-              <div class="media-card__cover-title">
-                <span>{titleText(title, lang)}</span>
-                <span class="media-card__cover-subtitle">{subjectName(title, lang) ?? levelLabel(title.level)}</span>
+          <article class="book-card book-card--cover-only" data-cover-tilt>
+            <a
+              class="book-card__link"
+              href={`${path('catalogue', lang)}${title.slug}/`}
+              aria-label={titleText(title, lang)}
+            >
+              <div class="book-card__cover">
+                {coverImage(title)
+                  ? <img
+                      {...coverImage(title)!}
+                      sizes="(max-width: 906px) 290px, (min-width: 1220px) 390px, 32vw"
+                      alt=""
+                      loading="lazy"
+                      decoding="async"
+                    />
+                  : <span aria-hidden="true">{titleText(title, lang)}</span>}
               </div>
-            </div>
-            <span class="pill pill--glass media-card__tag">
-              {levelLabel(title.level)}
-              {title.languages.length > 0 && ` • ${title.languages.map((c) => t.catalogue.languages[c]).join(' / ')}`}
-            </span>
-            <div class="media-card__badge"><Icon name={SUBJECT_ICON[subjectTheme(title.subject_en)] ?? 'book'} size={18} /></div>
-            <h3>{titleText(title, lang)}</h3>
-            <p>{description(title, lang)}</p>
-            <Button href={`${path('catalogue', lang)}${title.slug}/`} variant="white" size="sm">{t.common.requestTitle}</Button>
+            </a>
           </article>
         ))}
       </Carousel>
