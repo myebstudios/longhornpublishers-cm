@@ -65,3 +65,43 @@ test('seed is deterministic and product-code compatible', () => {
   assert.match(withProductCode, /DEMO-CAT-001/);
   assert.match(withProductCode, /DEMO-CAT-002/);
 });
+
+test('news fixtures are emitted only when migration 004 is applied', () => {
+  const withoutNews = demoSeedSql(true, false);
+  const withNews = demoSeedSql(true, true);
+
+  // Without the is_demo column the seed must not reference news at all,
+  // otherwise it would fail against an un-migrated local database.
+  assert.doesNotMatch(withoutNews, /news_articles/);
+
+  assert.match(withNews, /INSERT INTO news_articles/);
+  for (const id of ['f001', 'f002', 'f003']) {
+    assert.match(withNews, new RegExp(`00000000-0000-4000-8000-00000000${id}`));
+  }
+  assert.match(withNews, /ON CONFLICT \(id\) DO UPDATE/);
+  // Idempotent: repeated seeding may only ever touch rows already marked demo.
+  assert.match(withNews, /WHERE news_articles\.is_demo = true/);
+});
+
+test('news fixtures exercise both publish states and stay inside the category constraint', () => {
+  const sql = demoSeedSql(true, true);
+  const newsBlock = sql.slice(sql.indexOf('INSERT INTO news_articles'));
+  const allowed = ['company_news', 'new_titles', 'partnerships', 'events'];
+  const used = [...newsBlock.matchAll(/'(company_news|new_titles|partnerships|events)'/g)].map((m) => m[1]);
+  assert.ok(used.length >= 3, 'expected at least three categorised fixtures');
+  for (const category of used) assert.ok(allowed.includes(category));
+
+  // One fixture must stay unpublished so the published filter is proven, not assumed.
+  const rows = newsBlock.split(/\n  \(\n/).slice(1);
+  const unpublished = rows.filter((r) => /,\s*false,\s*true\s*\n\s*\)/.test(r));
+  assert.strictEqual(unpublished.length, 1, 'expected exactly one unpublished news fixture');
+  assert.match(newsBlock, /demo-unpublished-draft/);
+});
+
+test('every demo fixture is visibly labelled and marked is_demo', () => {
+  const sql = demoSeedSql(true, true);
+  // Nothing seeded may be mistaken for real client content in a screenshot.
+  const headlines = [...sql.matchAll(/'(\[DEMO\]|\[DÉMO\])[^']*'/g)];
+  assert.ok(headlines.length >= 10, `expected labelled fixtures, found ${headlines.length}`);
+  assert.doesNotMatch(sql, /is_demo,?\s*\)?\s*VALUES[^;]*?,\s*false\s*\)\s*(,|\nON)/);
+});

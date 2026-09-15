@@ -9,6 +9,7 @@
  */
 import { path, type Locale } from '../i18n';
 import { getBuildDatabase } from './build-database';
+import { canRenderLocalDemoContent } from './demo-content';
 import { failIfProductionDatabaseUnavailable } from './production-build';
 
 /** Category values permitted by the news_articles CHECK constraint. */
@@ -116,13 +117,21 @@ export function publishedOn(article: NewsArticle, locale: Locale): string {
 export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
   try {
     const db = getBuildDatabase();
-    const rows = await db.sql`
-      SELECT id, slug, category, publish_date, headline_en, headline_fr,
-             excerpt_en, excerpt_fr, body_en, body_fr
-      FROM news_articles
-      WHERE published = true
-      ORDER BY publish_date DESC NULLS LAST, created_at DESC
-    `;
+    const rows = await (canRenderLocalDemoContent()
+      ? db.sql`
+          SELECT id, slug, category, publish_date, headline_en, headline_fr,
+                 excerpt_en, excerpt_fr, body_en, body_fr
+          FROM news_articles
+          WHERE published = true
+          ORDER BY publish_date DESC NULLS LAST, created_at DESC
+        `
+      : db.sql`
+          SELECT id, slug, category, publish_date, headline_en, headline_fr,
+                 excerpt_en, excerpt_fr, body_en, body_fr
+          FROM news_articles
+          WHERE published = true AND is_demo = false
+          ORDER BY publish_date DESC NULLS LAST, created_at DESC
+        `);
     return rows as unknown as NewsArticleDetail[];
   } catch (error) {
     failIfProductionDatabaseUnavailable('news', error);
@@ -137,12 +146,19 @@ export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
 export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
   try {
     const db = getBuildDatabase();
-    const rows = await db.sql<NewsArticle>`
-      SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr
-      FROM news_articles
-      WHERE published = true
-      ORDER BY publish_date DESC NULLS LAST, created_at DESC
-    `;
+    const rows = await (canRenderLocalDemoContent()
+      ? db.sql<NewsArticle>`
+          SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr
+          FROM news_articles
+          WHERE published = true
+          ORDER BY publish_date DESC NULLS LAST, created_at DESC
+        `
+      : db.sql<NewsArticle>`
+          SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr
+          FROM news_articles
+          WHERE published = true AND is_demo = false
+          ORDER BY publish_date DESC NULLS LAST, created_at DESC
+        `);
     const articles = rows as unknown as NewsArticle[];
     return typeof limit === 'number' ? articles.slice(0, limit) : articles;
   } catch (error) {
