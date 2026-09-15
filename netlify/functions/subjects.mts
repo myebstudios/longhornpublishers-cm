@@ -25,7 +25,8 @@ export default async function handler(req: Request) {
       SELECT s.id, s.name_en, s.name_fr, s.created_at,
              COUNT(c.id)::int AS title_count
       FROM subjects s
-      LEFT JOIN catalogue_titles c ON c.subject_id = s.id
+      LEFT JOIN catalogue_titles c ON c.subject_id = s.id AND c.is_demo = false
+      WHERE s.is_demo = false
       GROUP BY s.id
       ORDER BY s.name_en
     `);
@@ -36,7 +37,7 @@ export default async function handler(req: Request) {
 
   if (req.method === 'DELETE') {
     try {
-      const result = await db.sql`DELETE FROM subjects WHERE id = ${id} RETURNING id`;
+      const result = await db.sql`DELETE FROM subjects WHERE id = ${id} AND is_demo = false RETURNING id`;
       return result.length ? json({ deleted: id }) : json({ error: 'Subject not found.' }, { status: 404 });
     } catch (error) {
       // catalogue_titles.subject_id references subjects(id) with no ON DELETE
@@ -62,7 +63,7 @@ export default async function handler(req: Request) {
   try {
     if (req.method === 'PUT') {
       const [updated] = await db.sql`
-        UPDATE subjects SET name_en = ${nameEn}, name_fr = ${nameFr} WHERE id = ${id} RETURNING *
+        UPDATE subjects SET name_en = ${nameEn}, name_fr = ${nameFr} WHERE id = ${id} AND is_demo = false RETURNING *
       `;
       return updated ? json(updated) : json({ error: 'Subject not found.' }, { status: 404 });
     }

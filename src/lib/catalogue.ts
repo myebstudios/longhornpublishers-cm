@@ -8,6 +8,7 @@
  */
 import { getDatabase } from '@netlify/database';
 import type { Locale } from '../i18n';
+import { canRenderLocalDemoContent } from './demo-content';
 import { failIfProductionDatabaseUnavailable } from './production-build';
 
 export type Level = 'primary' | 'secondary';
@@ -118,16 +119,28 @@ function safeParse(value: string): unknown {
 export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle[]> {
   try {
     const db = getDatabase();
-    const rows = await db.sql`
-      SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
-             c.title_en, c.title_fr, c.description_en, c.description_fr,
-             c.curriculum_alignment_en, c.curriculum_alignment_fr,
-             c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr
-      FROM catalogue_titles c
-      LEFT JOIN subjects s ON s.id = c.subject_id
-      WHERE c.published = true
-      ORDER BY c.featured DESC, c.created_at DESC
-    `;
+    const selectPublished = canRenderLocalDemoContent()
+      ? db.sql`
+          SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
+                 c.title_en, c.title_fr, c.description_en, c.description_fr,
+                 c.curriculum_alignment_en, c.curriculum_alignment_fr,
+                 c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr
+          FROM catalogue_titles c
+          LEFT JOIN subjects s ON s.id = c.subject_id
+          WHERE c.published = true
+          ORDER BY c.featured DESC, c.created_at DESC
+        `
+      : db.sql`
+          SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
+                 c.title_en, c.title_fr, c.description_en, c.description_fr,
+                 c.curriculum_alignment_en, c.curriculum_alignment_fr,
+                 c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr
+          FROM catalogue_titles c
+          LEFT JOIN subjects s ON s.id = c.subject_id
+          WHERE c.published = true AND c.is_demo = false
+          ORDER BY c.featured DESC, c.created_at DESC
+        `;
+    const rows = await selectPublished;
     const titles = (rows as unknown as CatalogueTitle[]).map((row) => ({
       ...row,
       languages: toLanguages((row as { languages: unknown }).languages),

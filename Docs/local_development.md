@@ -36,6 +36,29 @@ Expected results:
 - The query returns `1`.
 - The catalogue API returns `200` and `[]` until local test content is created.
 
+## Seed local-only demo catalogue content
+
+With `npm run dev` running (so the local database and migrations are active),
+use the deliberately explicit opt-in command from another terminal:
+
+```bash
+NETLIFY_LOCAL=true CONTEXT=dev ALLOW_LOCAL_DEMO_SEED=yes npm run seed:demo
+```
+
+The command refuses CI, production, deploy-preview, branch-deploy, deploy-metadata,
+and non-loopback database connections. It creates two conspicuously labelled,
+published catalogue fixtures using fixed IDs, so rerunning it updates the same
+rows instead of duplicating them. The rows carry `is_demo = true`; production and
+preview queries exclude that marker even if a demo row were copied into their
+database branch accidentally. No media is uploaded and no production content is
+read or modified.
+
+Run the safeguard regression suite with:
+
+```bash
+npm run test:demo-seed
+```
+
 To reset only local CMS data, use:
 
 ```bash

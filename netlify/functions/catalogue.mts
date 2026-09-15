@@ -11,13 +11,15 @@ export default async function handler(req: Request) {
   const denied = await requireAdmin(); if (denied) return denied;
   const id = new URL(req.url).searchParams.get('id');
   if (req.method === 'GET') {
-    const rows = await db.sql`SELECT id, product_code, title_en, title_fr, slug, level, subject_id, languages, cover_image_id, description_en, description_fr, curriculum_alignment_en, curriculum_alignment_fr, featured, published, created_at, updated_at FROM catalogue_titles ORDER BY updated_at DESC`;
+    // Demo content is a local public-rendering fixture, not editorial content.
+    // Never expose it through a deployed admin contract.
+    const rows = await db.sql`SELECT id, product_code, title_en, title_fr, slug, level, subject_id, languages, cover_image_id, description_en, description_fr, curriculum_alignment_en, curriculum_alignment_fr, featured, published, created_at, updated_at FROM catalogue_titles WHERE is_demo = false ORDER BY updated_at DESC`;
     return json(rows);
   }
   if (!['POST', 'PUT', 'DELETE'].includes(req.method)) return methodNotAllowed();
   if (req.method !== 'POST' && !id) return json({ error: 'A catalogue id is required.' }, { status: 400 });
   if (req.method === 'DELETE') {
-    const [deleted] = await db.sql`DELETE FROM catalogue_titles WHERE id = ${id} RETURNING id, published`;
+    const [deleted] = await db.sql`DELETE FROM catalogue_titles WHERE id = ${id} AND is_demo = false RETURNING id, published`;
     if (!deleted) return json({ error: 'Catalogue title not found.' }, { status: 404 });
     await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'catalogue title deleted');
     return json({ deleted: id });
@@ -32,11 +34,11 @@ export default async function handler(req: Request) {
   const curriculumEn = body.curriculum_alignment_en || null;
   const curriculumFr = body.curriculum_alignment_fr || null;
   if (req.method === 'PUT') {
-    const [before] = await db.sql`SELECT published FROM catalogue_titles WHERE id = ${id}`;
+    const [before] = await db.sql`SELECT published FROM catalogue_titles WHERE id = ${id} AND is_demo = false`;
     if (!before) return json({ error: 'Catalogue title not found.' }, { status: 404 });
     let updated;
     try {
-      [updated] = await db.sql`UPDATE catalogue_titles SET product_code = ${productCode.value}, title_en = ${body.title_en}, title_fr = ${body.title_fr}, slug = ${body.slug}, level = ${body.level}, subject_id = ${subjectId}, languages = ${JSON.stringify(languages)}, cover_image_id = ${coverImageId}, description_en = ${body.description_en}, description_fr = ${body.description_fr}, curriculum_alignment_en = ${curriculumEn}, curriculum_alignment_fr = ${curriculumFr}, featured = ${Boolean(body.featured)}, published = ${Boolean(body.published)}, updated_at = now() WHERE id = ${id} RETURNING *`;
+      [updated] = await db.sql`UPDATE catalogue_titles SET product_code = ${productCode.value}, title_en = ${body.title_en}, title_fr = ${body.title_fr}, slug = ${body.slug}, level = ${body.level}, subject_id = ${subjectId}, languages = ${JSON.stringify(languages)}, cover_image_id = ${coverImageId}, description_en = ${body.description_en}, description_fr = ${body.description_fr}, curriculum_alignment_en = ${curriculumEn}, curriculum_alignment_fr = ${curriculumFr}, featured = ${Boolean(body.featured)}, published = ${Boolean(body.published)}, updated_at = now() WHERE id = ${id} AND is_demo = false RETURNING *`;
     } catch (error) {
       if (isProductCodeConflict(error)) {
         return json({ error: 'That ISBN / product code is already assigned to another title.' }, { status: 409 });

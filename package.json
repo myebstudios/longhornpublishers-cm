@@ -13,7 +13,9 @@
     "typecheck": "tsc --noEmit --strict --skipLibCheck --target es2022 --module esnext --moduleResolution bundler src/i18n/en.ts src/i18n/fr.ts src/data/site.ts src/data/presentation.ts",
     "audit:images": "node scripts/image-audit.mjs",
     "gen:image-sizes": "node scripts/gen-image-sizes.mjs",
-    "test:product-code": "node --test tests/catalogue-product-code.test.mjs"
+    "test:product-code": "node --test tests/catalogue-product-code.test.mjs",
+    "seed:demo": "node scripts/seed-demo.mjs",
+    "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.5",
