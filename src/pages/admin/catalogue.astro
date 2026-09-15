@@ -22,6 +22,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <label>English title<input name="title_en" required placeholder="e.g. Primary Mathematics Book 4" /></label>
         <label>French title<input name="title_fr" required placeholder="e.g. Mathématiques Élémentaires 4" /></label>
         <label>Slug<input name="slug" required pattern="[a-z0-9-]+" placeholder="primary-mathematics-book-4" /></label>
+        <label>ISBN / Product code<input name="product_code" required maxlength="64" autocomplete="off" placeholder="e.g. 978-1-4028-9462-6" /></label>
         <label>Level
           <select name="level" required>
             <option value="primary">Primary</option>
@@ -144,6 +145,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       id: data.get('id'),
       title_en: data.get('title_en'),
       title_fr: data.get('title_fr'),
+      product_code: data.get('product_code'),
       slug: data.get('slug'),
       level: data.get('level'),
       subject_id: data.get('subject_id') || null,
@@ -164,6 +166,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
     (form.elements.namedItem('title_en') as HTMLInputElement).value = entry.title_en ?? '';
     (form.elements.namedItem('title_fr') as HTMLInputElement).value = entry.title_fr ?? '';
+    (form.elements.namedItem('product_code') as HTMLInputElement).value = entry.product_code ?? '';
     (form.elements.namedItem('slug') as HTMLInputElement).value = entry.slug ?? '';
     (form.elements.namedItem('level') as HTMLSelectElement).value = entry.level ?? 'primary';
     (form.elements.namedItem('subject_id') as HTMLSelectElement).value = entry.subject_id ?? '';
@@ -310,6 +313,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const matchQuery = !query ||
         String(entry.title_en || '').toLowerCase().includes(query) ||
         String(entry.title_fr || '').toLowerCase().includes(query) ||
+        String(entry.product_code || '').toLowerCase().includes(query) ||
         String(entry.slug || '').toLowerCase().includes(query);
       const matchLevel = level === 'all' || String(entry.level).toLowerCase() === level;
       const matchStatus = statusVal === 'all' || (statusVal === 'published' ? entry.published : !entry.published);
@@ -384,10 +388,13 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const levelSpan = document.createElement('span');
       levelSpan.className = 'admin-badge admin-badge--purple';
       levelSpan.textContent = String(entry.level).toUpperCase();
+      const codeSpan = document.createElement('span');
+      codeSpan.className = 'admin-badge';
+      codeSpan.textContent = entry.product_code;
       const statusSpan = document.createElement('span');
       statusSpan.className = entry.published ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
       statusSpan.textContent = entry.published ? 'Published' : 'Draft';
-      meta.append(levelSpan, statusSpan);
+      meta.append(codeSpan, levelSpan, statusSpan);
 
       const actions = document.createElement('div');
       actions.className = 'item-actions';

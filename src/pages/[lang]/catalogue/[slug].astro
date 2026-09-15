@@ -71,6 +71,10 @@ const alternates = {
         <p class="catalogue-detail__lede">{description(title, lang)}</p>
         <dl class="catalogue-detail__facts">
           <div>
+            <dt>{lang === 'fr' ? 'ISBN / Code produit' : 'ISBN / Product code'}</dt>
+            <dd>{title.product_code}</dd>
+          </div>
+          <div>
             <dt>{lang === 'fr' ? 'Niveau' : 'Level'}</dt>
             <dd>{t.catalogue.levels[title.level]}</dd>
           </div>

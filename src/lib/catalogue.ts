@@ -15,6 +15,8 @@ export type Level = 'primary' | 'secondary';
 /** One published catalogue title, as consumed by the public pages. */
 export interface CatalogueTitle {
   id: string;
+  /** Client-approved ISBN or internal product identifier. */
+  product_code: string;
   slug: string;
   level: Level;
   /** Editions available, from the `languages` jsonb array. */
@@ -117,7 +119,7 @@ export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle
   try {
     const db = getDatabase();
     const rows = await db.sql`
-      SELECT c.id, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
+      SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
              c.title_en, c.title_fr, c.description_en, c.description_fr,
              c.curriculum_alignment_en, c.curriculum_alignment_fr,
              c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr
