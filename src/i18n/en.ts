@@ -377,7 +377,10 @@ export const en: Content = {
       titleAccent: 'materials',
       lede: 'Primary and secondary titles aligned to the national curricula of Cameroon and the DRC — published in English and French.',
     },
-    filters: { level: 'Level', subject: 'Subject', language: 'Language' },
+    filters: {
+      title: 'Filter titles', level: 'Level', subject: 'Subject', language: 'Language',
+      search: 'Search titles', searchPlaceholder: 'Title, subject or product code',
+    },
     levels: { primary: 'Primary', secondary: 'Secondary' },
     subjects: {
       maths: 'Mathematics',

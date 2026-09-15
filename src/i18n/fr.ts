@@ -382,7 +382,10 @@ export const fr: Content = {
       titleAccent: 'pédagogiques',
       lede: 'Des titres du primaire et du secondaire conformes aux programmes nationaux du Cameroun et de la RDC — publiés en anglais et en français.',
     },
-    filters: { level: 'Niveau', subject: 'Matière', language: 'Langue' },
+    filters: {
+      title: 'Filtrer les titres', level: 'Niveau', subject: 'Matière', language: 'Langue',
+      search: 'Rechercher des titres', searchPlaceholder: 'Titre, matière ou code produit',
+    },
     levels: { primary: 'Primaire', secondary: 'Secondaire' },
     subjects: {
       maths: 'Mathématiques',

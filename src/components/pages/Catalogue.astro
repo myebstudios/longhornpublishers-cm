@@ -56,37 +56,53 @@ const filterGroups = [
         </div>
       </div>
     ) : (
-      <div class="wrap" data-filter-scope>
-        <div class="filter-bar">
+      <div class="wrap catalogue-shop" data-filter-scope>
+        <aside class="catalogue-filters reveal" aria-label={t.catalogue.filters.title}>
+          <div class="catalogue-filters__head">
+            <h2>{t.catalogue.filters.title}</h2>
+            <p aria-live="polite"><strong data-filter-count>{titles.length}</strong> {t.common.titles}</p>
+          </div>
+
+          <div class="catalogue-search">
+            <label for="catalogue-search">{t.catalogue.filters.search}</label>
+            <input id="catalogue-search" type="search" autocomplete="off" placeholder={t.catalogue.filters.searchPlaceholder} data-filter-search />
+          </div>
+
           {filterGroups.map((group) => (
             <div class="filter-group" role="radiogroup" aria-label={group.label}>
               <span class="filter-group__label">{group.label}</span>
-              {group.options.map((option, i) => (
-                <button
-                  class:list={['chip', i === 0 && 'is-active']}
-                  type="button"
-                  role="radio"
-                  tabindex={i === 0 ? '0' : '-1'}
-                  aria-checked={i === 0 ? 'true' : 'false'}
-                  aria-pressed={i === 0 ? 'true' : 'false'}
-                  data-value={option.value}
-                >{option.label}</button>
-              ))}
+              <div class="filter-group__options">
+                {group.options.map((option, i) => (
+                  <button
+                    class:list={['chip', i === 0 && 'is-active']}
+                    type="button"
+                    role="radio"
+                    tabindex={i === 0 ? '0' : '-1'}
+                    aria-checked={i === 0 ? 'true' : 'false'}
+                    aria-pressed={i === 0 ? 'true' : 'false'}
+                    data-value={option.value}
+                  >{option.label}</button>
+                ))}
+              </div>
             </div>
           ))}
-          <p style="margin-left:auto;font-size:var(--step--1);color:var(--ink-soft)" aria-live="polite">
-            <strong data-filter-count>{titles.length}</strong> {t.common.titles}
-          </p>
-        </div>
+          <button class="catalogue-filters__reset" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
+        </aside>
 
-        <div class="filter-empty-state is-hidden" data-filter-empty hidden aria-hidden="true" style="text-align:center;padding:3rem 1.5rem;background:var(--white);border-radius:var(--radius-lg);border:1px solid var(--line);margin-top:1rem;">
-          <p style="font-size:var(--step-0);color:var(--ink-soft);margin-bottom:1.25rem;">{t.catalogue.empty.message}</p>
-          <button class="btn btn--ghost btn--sm" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
-        </div>
+        <div class="catalogue-results">
+          <div class="filter-empty-state is-hidden" data-filter-empty hidden aria-hidden="true">
+            <p>{t.catalogue.empty.message}</p>
+            <button class="btn btn--ghost btn--sm" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
+          </div>
 
-        <div class="grid grid--4 reveal">
+          <div class="catalogue-grid reveal">
           {titles.map((title) => (
-            <article class="book-card" data-cover-tilt data-tags={filterTags(title)}>
+            <article
+              class="book-card"
+              data-cover-tilt
+              data-tags={filterTags(title)}
+              data-search={[titleText(title, lang), title.description_en, title.description_fr, title.product_code, title.subject_en, title.subject_fr].filter(Boolean).join(' ').toLocaleLowerCase()}
+            >
               <a
                 class="book-card__link"
                 href={`${cataloguePath}${title.slug}/`}
@@ -104,8 +120,15 @@ const filterGroups = [
                   : <span aria-hidden="true">{titleText(title, lang)}</span>}
                 </div>
               </a>
+              <div class="book-card__body">
+                <h3>{titleText(title, lang)}</h3>
+                <Button href={`${path('contact', lang)}?title=${encodeURIComponent(titleText(title, lang))}`} variant="dark" size="sm">
+                  {t.common.requestTitle}
+                </Button>
+              </div>
             </article>
           ))}
+          </div>
         </div>
       </div>
     )}

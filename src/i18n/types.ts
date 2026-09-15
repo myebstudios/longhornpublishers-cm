@@ -96,7 +96,7 @@ export interface Content {
 
   catalogue: {
     hero: Titled;
-    filters: { level: string; subject: string; language: string };
+    filters: { title: string; level: string; subject: string; language: string; search: string; searchPlaceholder: string };
     levels: { primary: string; secondary: string };
     subjects: Record<'maths' | 'english' | 'french' | 'science' | 'social', string>;
     languages: { en: string; fr: string };

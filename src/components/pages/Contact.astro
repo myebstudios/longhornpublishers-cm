@@ -4,7 +4,6 @@ import Hero from '../Hero.astro';
 import Icon from '../Icon.astro';
 import { type Locale, useTranslations, LOCALES } from '../../i18n';
 import { CONTACT } from '../../data/site';
-import { responsive } from '../../lib/images';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
@@ -13,18 +12,13 @@ const f = t.contact.form;
 
 const mapsQuery = encodeURIComponent(`${CONTACT.addressLines.join(', ')}`);
 const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
-
-// The map sits behind the address block as a tinted wash, never as content —
-// the address and the directions link carry the meaning, so it is hidden from
-// assistive tech rather than given alt text that would repeat them.
-const mapImg = responsive('lh-contact-map.jpg', { maxWidth: 1280 });
-const MAP_SIZES = '(min-width: 1320px) 1240px, calc(100vw - 2.5rem)';
+const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=embed`;
 ---
 
 <Layout title={t.meta.contact.title} description={t.meta.contact.description} locale={lang} routeKey="contact">
   <Hero content={t.contact.hero} img="lh-reading-nook.jpg" compact />
 
-  <section class="section section--cream">
+  <section class="section section--cream contact-enquiry-section">
     <div class="wrap contact-layout">
       <div class="reveal">
         <span class="eyebrow">{t.contact.directEyebrow}</span>
@@ -53,7 +47,7 @@ const MAP_SIZES = '(min-width: 1320px) 1240px, calc(100vw - 2.5rem)';
         </div>
       </div>
 
-      <div class="reveal">
+      <div class="reveal contact-form-wrap">
         <form
           class="form"
           name="contact"
@@ -131,18 +125,16 @@ const MAP_SIZES = '(min-width: 1320px) 1240px, calc(100vw - 2.5rem)';
     </div>
   </section>
 
-  <section class="section section--white">
+  <section class="section section--white contact-map-section">
     <div class="wrap">
       <div class="map-embed reveal">
-        <img
-          class="map-embed__img"
-          src={mapImg.src}
-          srcset={mapImg.srcset}
-          sizes={mapImg.srcset ? MAP_SIZES : undefined}
-          alt=""
-          aria-hidden="true"
+        <iframe
+          class="map-embed__frame"
+          src={mapsEmbedSrc}
+          title={`${t.contact.labels.office}: ${CONTACT.addressLines.join(', ')}`}
           loading="lazy"
-          decoding="async"
+          referrerpolicy="no-referrer-when-downgrade"
+          allowfullscreen
         />
         <div class="map-embed__body">
           <Icon name="pin" size={30} class="map-embed__pin" />

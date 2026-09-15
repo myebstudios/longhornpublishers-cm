@@ -350,6 +350,7 @@ const organizationSchema = {
           const countEl = scope.querySelector('[data-filter-count]');
           const emptyStateEl = scope.querySelector('[data-filter-empty]') as HTMLElement | null;
           const resetBtn = scope.querySelector('[data-filter-reset]') as HTMLButtonElement | null;
+          const searchInput = scope.querySelector('[data-filter-search]') as HTMLInputElement | null;
 
           const apply = () => {
             const active: string[] = [];
@@ -359,11 +360,13 @@ const organizationSchema = {
                 active.push(on.dataset.value);
               }
             });
+            const query = searchInput?.value.trim().toLocaleLowerCase() ?? '';
             let shown = 0;
             targets.forEach(t => {
               const el = t as HTMLElement;
               const tags = (el.dataset.tags || '').split(' ');
-              const match = active.every(a => tags.includes(a));
+              const searchMatch = !query || (el.dataset.search || '').includes(query);
+              const match = active.every(a => tags.includes(a)) && searchMatch;
               el.classList.toggle('is-hidden', !match);
               if (match) {
                 el.removeAttribute('hidden');
@@ -432,13 +435,17 @@ const organizationSchema = {
           });
 
           if (resetBtn) {
-            resetBtn.addEventListener('click', () => {
+            scope.querySelectorAll<HTMLButtonElement>('[data-filter-reset]').forEach(button => button.addEventListener('click', () => {
               groups.forEach(group => {
                 const allChip = group.querySelector<HTMLButtonElement>('.chip[data-value="all"]');
                 if (allChip) selectChip(allChip);
               });
-            });
+              if (searchInput) searchInput.value = '';
+              apply();
+            }));
           }
+
+          searchInput?.addEventListener('input', apply);
 
           apply();
         });
