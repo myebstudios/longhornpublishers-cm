@@ -229,40 +229,117 @@ const organizationSchema = {
           const getBehavior = (): ScrollBehavior => (prefersReducedMotion ? 'auto' : 'smooth');
 
           const sync = () => {
-            const max = view.scrollWidth - view.clientWidth - 2;
+            const max = view.scrollWidth - view.clientWidth - 4;
             const atStart = view.scrollLeft <= 2;
             const atEnd = view.scrollLeft >= max;
             prev.setAttribute('aria-disabled', String(atStart));
             next.setAttribute('aria-disabled', String(atEnd));
           };
 
+          let autoSlideTimer: ReturnType<typeof setInterval> | null = null;
+          let isInteracting = false;
+          let resumeTimeout: ReturnType<typeof setTimeout> | null = null;
+
+          const startAutoSlide = () => {
+            if (autoSlideTimer || prefersReducedMotion) return;
+            autoSlideTimer = setInterval(() => {
+              if (isInteracting || document.hidden) return;
+              const max = view.scrollWidth - view.clientWidth - 4;
+              const atEnd = view.scrollLeft >= max;
+              if (atEnd) {
+                view.scrollTo({ left: 0, behavior: getBehavior() });
+              } else {
+                view.scrollBy({ left: step(), behavior: getBehavior() });
+              }
+            }, 4500);
+          };
+
+          const stopAutoSlide = () => {
+            if (autoSlideTimer) {
+              clearInterval(autoSlideTimer);
+              autoSlideTimer = null;
+            }
+          };
+
+          const pauseInteraction = () => {
+            isInteracting = true;
+            if (resumeTimeout) clearTimeout(resumeTimeout);
+            stopAutoSlide();
+          };
+
+          const resumeInteraction = () => {
+            isInteracting = false;
+            startAutoSlide();
+          };
+
+          const delayedResume = () => {
+            isInteracting = false;
+            if (resumeTimeout) clearTimeout(resumeTimeout);
+            resumeTimeout = setTimeout(() => {
+              startAutoSlide();
+            }, 3000);
+          };
+
           prev.addEventListener('click', () => {
-            if (prev.getAttribute('aria-disabled') === 'true') return;
+            pauseInteraction();
+            if (prev.getAttribute('aria-disabled') === 'true') {
+              delayedResume();
+              return;
+            }
             view.scrollBy({ left: -step(), behavior: getBehavior() });
+            delayedResume();
           });
 
           next.addEventListener('click', () => {
-            if (next.getAttribute('aria-disabled') === 'true') return;
+            pauseInteraction();
+            if (next.getAttribute('aria-disabled') === 'true') {
+              delayedResume();
+              return;
+            }
             view.scrollBy({ left: step(), behavior: getBehavior() });
+            delayedResume();
+          });
+
+          car.addEventListener('mouseenter', pauseInteraction);
+          car.addEventListener('mouseleave', resumeInteraction);
+          car.addEventListener('focusin', pauseInteraction);
+          car.addEventListener('focusout', resumeInteraction);
+          car.addEventListener('pointerdown', pauseInteraction);
+          car.addEventListener('pointerup', delayedResume);
+          car.addEventListener('touchstart', pauseInteraction, { passive: true });
+          car.addEventListener('touchend', delayedResume);
+
+          document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+              stopAutoSlide();
+            } else if (!isInteracting) {
+              startAutoSlide();
+            }
           });
 
           view.addEventListener('keydown', (event: KeyboardEvent) => {
             if (event.key === 'ArrowLeft') {
               event.preventDefault();
+              pauseInteraction();
               if (prev.getAttribute('aria-disabled') !== 'true') {
                 view.scrollBy({ left: -step(), behavior: getBehavior() });
               }
+              delayedResume();
             } else if (event.key === 'ArrowRight') {
               event.preventDefault();
+              pauseInteraction();
               if (next.getAttribute('aria-disabled') !== 'true') {
                 view.scrollBy({ left: step(), behavior: getBehavior() });
               }
+              delayedResume();
             }
           });
 
           view.addEventListener('scroll', sync, { passive: true });
           window.addEventListener('resize', sync);
           sync();
+
+          startAutoSlide();
         });
       }
 
