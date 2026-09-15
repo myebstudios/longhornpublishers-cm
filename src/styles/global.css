@@ -611,11 +611,12 @@ body.nav-open {
 .carousel__viewport {
   overflow-x: auto;
   scroll-snap-type: x mandatory;
-  scroll-padding-inline: 1.5rem;
+  scroll-padding-inline: max(var(--gutter), calc((100vw - 1240px) / 2));
   scrollbar-width: none;
-  padding-inline: 1.5rem;
+  margin-inline: calc(50% - 50vw);
+  width: 100vw;
+  padding-inline: max(var(--gutter), calc((100vw - 1240px) / 2));
   padding-block: .85rem;
-  border-radius: var(--radius-xl);
 }
 .carousel__viewport::-webkit-scrollbar { display: none; }
 .carousel__track { display: flex; gap: 1.5rem; }
