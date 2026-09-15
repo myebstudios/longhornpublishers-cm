@@ -147,7 +147,7 @@ export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle
     }));
     return typeof limit === 'number' ? titles.slice(0, limit) : titles;
   } catch (error) {
-    failIfProductionDatabaseUnavailable('catalogue');
+    failIfProductionDatabaseUnavailable('catalogue', error);
     console.warn(
       '[catalogue] Could not read published titles at build time; rendering the empty state instead.',
       error instanceof Error ? error.message : error,

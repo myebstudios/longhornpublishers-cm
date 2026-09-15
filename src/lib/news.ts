@@ -125,7 +125,7 @@ export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
     `;
     return rows as unknown as NewsArticleDetail[];
   } catch (error) {
-    failIfProductionDatabaseUnavailable('news');
+    failIfProductionDatabaseUnavailable('news', error);
     console.warn(
       '[news] Could not read article bodies at build time; no detail routes will be generated.',
       error instanceof Error ? error.message : error,
@@ -146,7 +146,7 @@ export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
     const articles = rows as unknown as NewsArticle[];
     return typeof limit === 'number' ? articles.slice(0, limit) : articles;
   } catch (error) {
-    failIfProductionDatabaseUnavailable('news');
+    failIfProductionDatabaseUnavailable('news', error);
     console.warn(
       '[news] Could not read published articles at build time; rendering the empty state instead.',
       error instanceof Error ? error.message : error,
