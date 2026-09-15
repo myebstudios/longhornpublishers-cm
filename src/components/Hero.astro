@@ -4,22 +4,12 @@ import Button from './Button.astro';
 import { responsive } from '../lib/images';
 import type { Titled } from '../i18n/types';
 
-interface Stat {
-  num: string;
-  label: string;
-}
-
 interface Props {
   content?: Titled;
   eyebrow?: string;
   titleLead?: string;
   titleAccent?: string;
   lede?: string;
-  eyebrowStat?: string;
-  eyebrowStatSuffix?: string;
-  badgeNumber?: string;
-  tags?: string[];
-  stats?: Stat[];
   img?: string;
   compact?: boolean;
   primaryCtaText?: string;
@@ -34,11 +24,6 @@ const {
   titleLead = content?.titleLead || '',
   titleAccent = content?.titleAccent || '',
   lede = content?.lede,
-  eyebrowStat,
-  eyebrowStatSuffix,
-  badgeNumber,
-  tags = [],
-  stats = [],
   img = 'hero',
   compact = false,
   primaryCtaText,
@@ -57,26 +42,6 @@ const { src, srcset } = responsive(img);
     <div class="hero__inner">
       <div>
         {eyebrow && <span class="eyebrow">{eyebrow}</span>}
-
-        {badgeNumber && (
-          <div class="badge-row" style="margin-bottom:1.5rem">
-            <div class="badge">
-              <span class="badge__icon">{badgeNumber}</span>
-              <span>
-                {eyebrowStat && <strong>{eyebrowStat} </strong>}
-                {eyebrowStatSuffix}
-              </span>
-            </div>
-          </div>
-        )}
-
-        {tags && tags.length > 0 && (
-          <div class="pill-row mb-4">
-            {tags.map((tag) => (
-              <span class="pill pill--glass">{tag}</span>
-            ))}
-          </div>
-        )}
 
         <h1>
           {titleLead} {titleAccent && <em class="accent">{titleAccent}</em>}
@@ -98,19 +63,6 @@ const { src, srcset } = responsive(img);
           <slot />
         </div>
       </div>
-
-      {stats && stats.length > 0 && (
-        <div>
-          <div class="stat-card">
-            {stats.map((s) => (
-              <div>
-                <div class="stat-card__num">{s.num}</div>
-                <div class="stat-card__label">{s.label}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
     </div>
   </div>
 </section>
