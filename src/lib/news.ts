@@ -7,8 +7,8 @@
  * article therefore appears after the next deploy, not instantly — see the
  * deploy dependency noted in `getPublishedNews`.
  */
-import { getDatabase } from '@netlify/database';
 import { path, type Locale } from '../i18n';
+import { getBuildDatabase } from './build-database';
 import { failIfProductionDatabaseUnavailable } from './production-build';
 
 /** Category values permitted by the news_articles CHECK constraint. */
@@ -115,7 +115,7 @@ export function publishedOn(article: NewsArticle, locale: Locale): string {
  */
 export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
   try {
-    const db = getDatabase();
+    const db = getBuildDatabase();
     const rows = await db.sql`
       SELECT id, slug, category, publish_date, headline_en, headline_fr,
              excerpt_en, excerpt_fr, body_en, body_fr
@@ -136,7 +136,7 @@ export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
 
 export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
   try {
-    const db = getDatabase();
+    const db = getBuildDatabase();
     const rows = await db.sql<NewsArticle>`
       SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr
       FROM news_articles

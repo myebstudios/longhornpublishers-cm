@@ -6,8 +6,8 @@
  * these run during `astro build` and a newly published title appears on the
  * next deploy rather than instantly.
  */
-import { getDatabase } from '@netlify/database';
 import type { Locale } from '../i18n';
+import { getBuildDatabase } from './build-database';
 import { canRenderLocalDemoContent } from './demo-content';
 import { failIfProductionDatabaseUnavailable } from './production-build';
 
@@ -118,7 +118,7 @@ function safeParse(value: string): unknown {
  */
 export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle[]> {
   try {
-    const db = getDatabase();
+    const db = getBuildDatabase();
     const selectPublished = canRenderLocalDemoContent()
       ? db.sql`
           SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
