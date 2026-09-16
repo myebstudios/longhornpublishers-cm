@@ -169,10 +169,10 @@ export const en: Content = {
       ],
     },
     trust: [
-      'Backed by Longhorn Publishers PLC',
-      'Aligned to national curricula',
-      'Fully bilingual English & French',
-      'One partner, manuscript to delivery',
+      '60+ years parent PLC experience across Africa',
+      'Local publishing team in Tsinga, Yaoundé',
+      '100% Bilingual EN & FR publishing capability',
+      'Aligned to Cameroon & DRC national curricula',
     ],
     whoWeAre: {
       eyebrow: 'Who we are',

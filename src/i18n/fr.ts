@@ -174,10 +174,10 @@ export const fr: Content = {
       ],
     },
     trust: [
-      'Soutenu par Longhorn Publishers PLC',
-      'Conforme aux programmes nationaux',
-      'Entièrement bilingue anglais et français',
-      'Un seul partenaire, du manuscrit à la livraison',
+      '60+ ans d’expérience du groupe PLC en Afrique',
+      'Équipe d’édition basée à Tsinga, Yaoundé',
+      'Capacité d’édition 100% bilingue EN & FR',
+      'Conforme aux programmes nationaux Cameroun & RDC',
     ],
     whoWeAre: {
       eyebrow: 'Qui nous sommes',
