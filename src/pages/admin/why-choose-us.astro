@@ -26,9 +26,15 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const status = document.querySelector('#status')!;
   const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
-  function addItem(icon = '', titleEn = '', titleFr = '', descriptionEn = '', descriptionFr = '') {
+  const splitTags = (value: string) => value.split(',').map((tag) => tag.trim()).filter(Boolean);
+  function addItem(icon = '', titleEn = '', titleFr = '', descriptionEn = '', descriptionFr = '', item: any = {}) {
     const row = document.createElement('div'); row.className = 'repeat-row';
-    row.innerHTML = '<label>Icon key<input data-icon maxlength="60"></label><label>English title<input data-title-en maxlength="160"></label><label>French title<input data-title-fr maxlength="160"></label><label>English description<textarea data-description-en></textarea></label><label>French description<textarea data-description-fr></textarea></label><button class="button danger" type="button">Remove</button>';
+    row.innerHTML = '<label>Icon key<input data-icon maxlength="60"></label><label>English title<input data-title-en maxlength="160"></label><label>French title<input data-title-fr maxlength="160"></label><label>English description<textarea data-description-en></textarea></label><label>French description<textarea data-description-fr></textarea></label><label>English eyebrow<input data-eyebrow-en maxlength="160"></label><label>French eyebrow<input data-eyebrow-fr maxlength="160"></label><label>English heading lead<input data-lead-en maxlength="160"></label><label>French heading lead<input data-lead-fr maxlength="160"></label><label>English heading accent<input data-accent-en maxlength="160"></label><label>French heading accent<input data-accent-fr maxlength="160"></label><label>English tags<input data-tags-en placeholder="Comma separated"></label><label>French tags<input data-tags-fr placeholder="Separes par des virgules"></label><button class="button danger" type="button">Remove</button>';
+    for (const [key, field] of [['eyebrow_en','eyebrow-en'],['eyebrow_fr','eyebrow-fr'],['title_lead_en','lead-en'],['title_lead_fr','lead-fr'],['title_accent_en','accent-en'],['title_accent_fr','accent-fr']] as const) {
+      (row.querySelector(`[data-${field}]`) as HTMLInputElement).value = item?.[key] ?? '';
+    }
+    (row.querySelector('[data-tags-en]') as HTMLInputElement).value = (item?.tags_en ?? []).join(', ');
+    (row.querySelector('[data-tags-fr]') as HTMLInputElement).value = (item?.tags_fr ?? []).join(', ');
     (row.querySelector('[data-icon]') as HTMLInputElement).value = icon;
     (row.querySelector('[data-title-en]') as HTMLInputElement).value = titleEn;
     (row.querySelector('[data-title-fr]') as HTMLInputElement).value = titleFr;
@@ -44,7 +50,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     (form.elements.namedItem('local_presence_copy_en') as HTMLTextAreaElement).value = res.data.local_presence_copy_en ?? '';
     (form.elements.namedItem('local_presence_copy_fr') as HTMLTextAreaElement).value = res.data.local_presence_copy_fr ?? '';
     (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(res.data.published);
-    items.replaceChildren(); (res.data.quality_commitment_items ?? []).forEach((item: any) => addItem(item.icon, item.title_en, item.title_fr, item.description_en, item.description_fr));
+    items.replaceChildren(); (res.data.quality_commitment_items ?? []).forEach((item: any) => addItem(item.icon, item.title_en, item.title_fr, item.description_en, item.description_fr, item));
     setStatus('Why Choose Us content loaded.');
   }
   form.addEventListener('submit', async (event) => {
@@ -59,6 +65,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         title_fr: (row.querySelector('[data-title-fr]') as HTMLInputElement).value,
         description_en: (row.querySelector('[data-description-en]') as HTMLTextAreaElement).value,
         description_fr: (row.querySelector('[data-description-fr]') as HTMLTextAreaElement).value,
+        eyebrow_en: (row.querySelector('[data-eyebrow-en]') as HTMLInputElement).value,
+        eyebrow_fr: (row.querySelector('[data-eyebrow-fr]') as HTMLInputElement).value,
+        title_lead_en: (row.querySelector('[data-lead-en]') as HTMLInputElement).value,
+        title_lead_fr: (row.querySelector('[data-lead-fr]') as HTMLInputElement).value,
+        title_accent_en: (row.querySelector('[data-accent-en]') as HTMLInputElement).value,
+        title_accent_fr: (row.querySelector('[data-accent-fr]') as HTMLInputElement).value,
+        tags_en: splitTags((row.querySelector('[data-tags-en]') as HTMLInputElement).value),
+        tags_fr: splitTags((row.querySelector('[data-tags-fr]') as HTMLInputElement).value),
       })),
       published: (form.elements.namedItem('published') as HTMLInputElement).checked,
     };

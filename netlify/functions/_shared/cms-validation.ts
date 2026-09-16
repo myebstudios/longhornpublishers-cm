@@ -34,6 +34,9 @@ function pair(
   return { ok: true, value: { en: en.value, fr: fr.value } };
 }
 
+/** `pair` reads `${stem}_en`/`_fr` off a record; repeat rows are already that shape. */
+const body_block = (row: Record<string, unknown>): Record<string, unknown> => row;
+
 function url(value: unknown, label: string): Validation<string | null> {
   const result = text(value, label, false, 2_000);
   if (!result.ok || !result.value) return result;
@@ -52,6 +55,20 @@ function mediaKey(value: unknown, label: string): Validation<string | null> {
   return MEDIA_KEY.test(result.value)
     ? result
     : { ok: false, error: `${label} must be an uploaded media key.` };
+}
+
+/** Optional bilingual pill list. Absent and empty are both stored as null. */
+function tagList(value: unknown, label: string): Validation<string[] | null> {
+  if (value === undefined || value === null) return { ok: true, value: null };
+  if (!Array.isArray(value)) return { ok: false, error: `${label} must be a list.` };
+  if (value.length > 12) return { ok: false, error: `${label} must be 12 items or fewer.` };
+  const tags: string[] = [];
+  for (const [index, item] of value.entries()) {
+    const tag = text(item, `${label} item ${index + 1}`, false, 80);
+    if (!tag.ok) return tag;
+    if (tag.value) tags.push(tag.value);
+  }
+  return { ok: true, value: tags.length ? tags : null };
 }
 
 export interface SiteSettingsInput {
@@ -126,6 +143,10 @@ export function validateSiteSettings(value: unknown): Validation<SiteSettingsInp
 export interface HomepageInput {
   hero_headline_en: string;
   hero_headline_fr: string;
+  hero_headline_accent_en: string | null;
+  hero_headline_accent_fr: string | null;
+  hero_eyebrow_en: string | null;
+  hero_eyebrow_fr: string | null;
   hero_subheadline_en: string;
   hero_subheadline_fr: string;
   hero_image_id: string | null;
@@ -145,6 +166,8 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
   if (!value || typeof value !== 'object') return { ok: false, error: 'Homepage payload is required.' };
   const body = value as Record<string, unknown>;
   const heroHeadline = pair(body, 'hero_headline', 'Hero headline', true, 300); if (!heroHeadline.ok) return heroHeadline;
+  const heroAccent = pair(body, 'hero_headline_accent', 'Hero headline accent', false, 300); if (!heroAccent.ok) return heroAccent;
+  const heroEyebrow = pair(body, 'hero_eyebrow', 'Hero eyebrow', false, 160); if (!heroEyebrow.ok) return heroEyebrow;
   const heroSubheadline = pair(body, 'hero_subheadline', 'Hero subheadline', true, 1_000); if (!heroSubheadline.ok) return heroSubheadline;
   const heroCta = pair(body, 'hero_cta_label', 'Hero CTA label', true, 100); if (!heroCta.ok) return heroCta;
   const who = pair(body, 'who_we_are_copy', 'Who we are copy', true, 5_000); if (!who.ok) return who;
@@ -159,10 +182,12 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
   for (const [index, item] of body.trust_stats.entries()) {
     if (!item || typeof item !== 'object') return { ok: false, error: `Trust stat ${index + 1} is invalid.` };
     const row = item as Record<string, unknown>;
-    const statValue = text(row.value, `Trust stat ${index + 1} value`, true, 40); if (!statValue.ok) return statValue;
+    // Optional: the live trust bar renders four label-only statements and emits
+    // no <strong>. Requiring a value here would make the live bar unseedable.
+    const statValue = text(row.value, `Trust stat ${index + 1} value`, false, 40); if (!statValue.ok) return statValue;
     const labelEn = text(row.label_en, `Trust stat ${index + 1} English label`, true, 160); if (!labelEn.ok) return labelEn;
     const labelFr = text(row.label_fr, `Trust stat ${index + 1} French label`, true, 160); if (!labelFr.ok) return labelFr;
-    trustStats.push({ value: statValue.value!, label_en: labelEn.value!, label_fr: labelFr.value! });
+    trustStats.push({ value: statValue.value ?? '', label_en: labelEn.value!, label_fr: labelFr.value! });
   }
 
   if (!Array.isArray(body.featured_catalogue_ids) || body.featured_catalogue_ids.length > 4) {
@@ -175,6 +200,8 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
 
   return { ok: true, value: {
     hero_headline_en: heroHeadline.value.en!, hero_headline_fr: heroHeadline.value.fr!,
+    hero_headline_accent_en: heroAccent.value.en, hero_headline_accent_fr: heroAccent.value.fr,
+    hero_eyebrow_en: heroEyebrow.value.en, hero_eyebrow_fr: heroEyebrow.value.fr,
     hero_subheadline_en: heroSubheadline.value.en!, hero_subheadline_fr: heroSubheadline.value.fr!,
     hero_image_id: heroImage.value,
     hero_cta_label_en: heroCta.value.en!, hero_cta_label_fr: heroCta.value.fr!,
@@ -198,7 +225,16 @@ export interface AboutInput {
   mission_fr: string;
   values_en: string;
   values_fr: string;
-  team_capacity_blocks: Array<{ title: string; icon: string | null; description_en: string; description_fr: string }>;
+  team_capacity_blocks: Array<{
+    title: string;
+    title_en: string | null;
+    title_fr: string | null;
+    icon: string | null;
+    description_en: string;
+    description_fr: string;
+    tags_en: string[] | null;
+    tags_fr: string[] | null;
+  }>;
   published: boolean;
 }
 
@@ -217,11 +253,20 @@ export function validateAbout(value: unknown): Validation<AboutInput> {
   for (const [index, item] of body.team_capacity_blocks.entries()) {
     if (!item || typeof item !== 'object') return { ok: false, error: `Team capacity block ${index + 1} is invalid.` };
     const row = item as Record<string, unknown>;
-    const title = text(row.title, `Team capacity block ${index + 1} title`, true, 160); if (!title.ok) return title;
+    const titlePair = pair(body_block(row), 'title', `Team capacity block ${index + 1} title`, false, 160); if (!titlePair.ok) return titlePair;
+    // Legacy single-language title stays required so older clients keep working;
+    // when the bilingual pair is supplied it is what the page renders.
+    const title = text(row.title ?? titlePair.value.en, `Team capacity block ${index + 1} title`, true, 160); if (!title.ok) return title;
     const icon = text(row.icon, `Team capacity block ${index + 1} icon`, false, 60); if (!icon.ok) return icon;
     const en = text(row.description_en, `Team capacity block ${index + 1} English description`, true, 2_000); if (!en.ok) return en;
     const fr = text(row.description_fr, `Team capacity block ${index + 1} French description`, true, 2_000); if (!fr.ok) return fr;
-    blocks.push({ title: title.value!, icon: icon.value, description_en: en.value!, description_fr: fr.value! });
+    const tagsEn = tagList(row.tags_en, `Team capacity block ${index + 1} English tags`); if (!tagsEn.ok) return tagsEn;
+    const tagsFr = tagList(row.tags_fr, `Team capacity block ${index + 1} French tags`); if (!tagsFr.ok) return tagsFr;
+    blocks.push({
+      title: title.value!, title_en: titlePair.value.en, title_fr: titlePair.value.fr,
+      icon: icon.value, description_en: en.value!, description_fr: fr.value!,
+      tags_en: tagsEn.value, tags_fr: tagsFr.value,
+    });
   }
   return { ok: true, value: {
     heritage_copy_en: heritage.value.en!, heritage_copy_fr: heritage.value.fr!,
@@ -243,6 +288,14 @@ export interface WhyInput {
     title_fr: string;
     description_en: string;
     description_fr: string;
+    eyebrow_en: string | null;
+    eyebrow_fr: string | null;
+    title_lead_en: string | null;
+    title_lead_fr: string | null;
+    title_accent_en: string | null;
+    title_accent_fr: string | null;
+    tags_en: string[] | null;
+    tags_fr: string[] | null;
   }>;
   published: boolean;
 }
@@ -263,7 +316,19 @@ export function validateWhy(value: unknown): Validation<WhyInput> {
     const titleFr = text(row.title_fr, `Quality commitment item ${index + 1} French title`, true, 160); if (!titleFr.ok) return titleFr;
     const descriptionEn = text(row.description_en, `Quality commitment item ${index + 1} English description`, true, 2_000); if (!descriptionEn.ok) return descriptionEn;
     const descriptionFr = text(row.description_fr, `Quality commitment item ${index + 1} French description`, true, 2_000); if (!descriptionFr.ok) return descriptionFr;
-    items.push({ icon: icon.value, title_en: titleEn.value!, title_fr: titleFr.value!, description_en: descriptionEn.value!, description_fr: descriptionFr.value! });
+    const eyebrow = pair(body_block(row), 'eyebrow', `Quality commitment item ${index + 1} eyebrow`, false, 160); if (!eyebrow.ok) return eyebrow;
+    const lead = pair(body_block(row), 'title_lead', `Quality commitment item ${index + 1} heading lead`, false, 160); if (!lead.ok) return lead;
+    const accent = pair(body_block(row), 'title_accent', `Quality commitment item ${index + 1} heading accent`, false, 160); if (!accent.ok) return accent;
+    const tagsEn = tagList(row.tags_en, `Quality commitment item ${index + 1} English tags`); if (!tagsEn.ok) return tagsEn;
+    const tagsFr = tagList(row.tags_fr, `Quality commitment item ${index + 1} French tags`); if (!tagsFr.ok) return tagsFr;
+    items.push({
+      icon: icon.value, title_en: titleEn.value!, title_fr: titleFr.value!,
+      description_en: descriptionEn.value!, description_fr: descriptionFr.value!,
+      eyebrow_en: eyebrow.value.en, eyebrow_fr: eyebrow.value.fr,
+      title_lead_en: lead.value.en, title_lead_fr: lead.value.fr,
+      title_accent_en: accent.value.en, title_accent_fr: accent.value.fr,
+      tags_en: tagsEn.value, tags_fr: tagsFr.value,
+    });
   }
   return { ok: true, value: {
     local_presence_copy_en: local.value.en!, local_presence_copy_fr: local.value.fr!,
@@ -273,6 +338,9 @@ export function validateWhy(value: unknown): Validation<WhyInput> {
 }
 
 export interface ServiceInput {
+  slug: string | null;
+  short_en: string | null;
+  short_fr: string | null;
   name_en: string;
   name_fr: string;
   category: 'editorial' | 'creative' | 'production';
@@ -292,11 +360,19 @@ export function validateService(value: unknown): Validation<ServiceInput> {
     return { ok: false, error: 'Service category must be editorial, creative, or production.' };
   }
   const icon = text(body.icon, 'Service icon', false, 60); if (!icon.ok) return icon;
+  // The slug keys the per-service photograph and the on-page anchor. Without it
+  // the uuid is used and every service falls back to its category image.
+  const slug = text(body.slug, 'Service slug', false, 80); if (!slug.ok) return slug;
+  if (slug.value && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.value)) {
+    return { ok: false, error: 'Service slug must be lowercase letters, numbers and hyphens.' };
+  }
+  const short = pair(body, 'short', 'Service summary', false, 500); if (!short.ok) return short;
   const sortOrder = Number(body.sort_order);
   if (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 10_000) {
     return { ok: false, error: 'Service sort order must be an integer from 0 to 10000.' };
   }
   return { ok: true, value: {
+    slug: slug.value, short_en: short.value.en, short_fr: short.value.fr,
     name_en: name.value.en!, name_fr: name.value.fr!, category: body.category as ServiceInput['category'],
     description_en: description.value.en!, description_fr: description.value.fr!, icon: icon.value,
     sort_order: sortOrder, published: body.published === true,

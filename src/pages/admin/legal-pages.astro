@@ -2,7 +2,7 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="Legal pages" section="legal">
-  <div class="admin-page-head"><div><h1>Legal Pages</h1><p>Manage complete bilingual bodies for the Privacy Policy and Terms of Use.</p></div></div>
+  <div class="admin-page-head"><div><h1>Legal Pages</h1><p>Manage complete bilingual bodies for the Privacy Policy and Terms of Use. Start a line with <code>##</code> to make a section heading.</p></div></div>
   <div class="two legal-editors">
     <section class="card editor-card"><form data-page="privacy_policy"><h2>Privacy Policy</h2><label>Body — English<textarea name="body_en" required></textarea></label><label>Body — French<textarea name="body_fr" required></textarea></label><label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label><div class="form-actions"><button class="button" type="submit">Save Privacy Policy</button></div><p data-status role="status" aria-live="polite"></p></form></section>
     <section class="card editor-card"><form data-page="terms_of_use"><h2>Terms of Use</h2><label>Body — English<textarea name="body_en" required></textarea></label><label>Body — French<textarea name="body_fr" required></textarea></label><label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label><div class="form-actions"><button class="button" type="submit">Save Terms of Use</button></div><p data-status role="status" aria-live="polite"></p></form></section>

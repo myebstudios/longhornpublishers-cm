@@ -25,6 +25,12 @@ const homepage = await getHomepageContent();
 const heroHeadline = homepage ? localized(lang, homepage.hero_headline_en, homepage.hero_headline_fr) : null;
 const heroSubheadline = homepage ? localized(lang, homepage.hero_subheadline_en, homepage.hero_subheadline_fr) : null;
 const heroCta = homepage ? localized(lang, homepage.hero_cta_label_en, homepage.hero_cta_label_fr) : null;
+// The hero heading renders as `{lead} <em class="accent">{accent}</em>`.
+// The eyebrow is intentionally NOT defaulted: t.home.hero has no `eyebrow`
+// key, so the fallback hero renders none, and substituting `eyebrowStat` here
+// would make a seeded hero differ from the live one by an extra line.
+const heroAccent = homepage ? localized(lang, homepage.hero_headline_accent_en, homepage.hero_headline_accent_fr) : null;
+const heroEyebrow = homepage ? localized(lang, homepage.hero_eyebrow_en, homepage.hero_eyebrow_fr) : null;
 const whoCopy = homepage ? paragraphs(localized(lang, homepage.who_we_are_copy_en, homepage.who_we_are_copy_fr)) : [];
 const partnerCopy = homepage ? localized(lang, homepage.one_partner_copy_en, homepage.one_partner_copy_fr) : null;
 const trustItems = homepage?.trust_stats.length
@@ -56,9 +62,9 @@ const latestNews = await getPublishedNews(3);
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
   <Hero
     content={heroHeadline ? undefined : t.home.hero}
-    eyebrow={heroHeadline ? t.home.hero.eyebrowStat : undefined}
+    eyebrow={heroHeadline ? (heroEyebrow ?? undefined) : undefined}
     titleLead={heroHeadline ?? undefined}
-    titleAccent={heroHeadline ? '' : undefined}
+    titleAccent={heroHeadline ? (heroAccent ?? '') : undefined}
     lede={heroSubheadline ?? undefined}
     img={mediaPath(homepage?.hero_image_id, 'lh-hero.jpg')}
     primaryCtaText={heroCta ?? t.common.partnerWithUs}

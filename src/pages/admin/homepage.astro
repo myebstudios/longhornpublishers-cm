@@ -9,6 +9,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       <div class="two">
         <label>Headline — English<textarea name="hero_headline_en" required></textarea></label>
         <label>Headline — French<textarea name="hero_headline_fr" required></textarea></label>
+        <label>Headline accent — English<input name="hero_headline_accent_en" maxlength="300" /><small>Shown in the accent colour after the headline.</small></label>
+        <label>Headline accent — French<input name="hero_headline_accent_fr" maxlength="300" /></label>
+        <label>Eyebrow — English<input name="hero_eyebrow_en" maxlength="160" /><small>Small line above the headline. Leave blank for none.</small></label>
+        <label>Eyebrow — French<input name="hero_eyebrow_fr" maxlength="160" /></label>
         <label>Subheadline — English<textarea name="hero_subheadline_en" required></textarea></label>
         <label>Subheadline — French<textarea name="hero_subheadline_fr" required></textarea></label>
         <label>CTA label — English<input name="hero_cta_label_en" required /></label>
@@ -60,7 +64,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   function addStat(value = '', labelEn = '', labelFr = '') {
     const row = document.createElement('div'); row.className = 'repeat-row';
-    row.innerHTML = '<label>Value<input data-value maxlength="40"></label><label>English label<input data-en maxlength="160"></label><label>French label<input data-fr maxlength="160"></label><button class="button danger" type="button">Remove</button>';
+    row.innerHTML = '<label>Value<input data-value maxlength="40" placeholder="optional"></label><label>English label<input data-en maxlength="160"></label><label>French label<input data-fr maxlength="160"></label><button class="button danger" type="button">Remove</button>';
     (row.querySelector('[data-value]') as HTMLInputElement).value = value;
     (row.querySelector('[data-en]') as HTMLInputElement).value = labelEn;
     (row.querySelector('[data-fr]') as HTMLInputElement).value = labelFr;
@@ -93,7 +97,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (!res.ok || !res.data) return setStatus(res.error!, 'err');
     const content = res.data.content;
     if (content) {
-      for (const name of ['hero_headline_en','hero_headline_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) set(name, content[name]);
+      for (const name of ['hero_headline_en','hero_headline_fr','hero_headline_accent_en','hero_headline_accent_fr','hero_eyebrow_en','hero_eyebrow_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) set(name, content[name]);
       stats.replaceChildren(); (Array.isArray(content.trust_stats) ? content.trust_stats : []).forEach((row: any) => addStat(row.value, row.label_en, row.label_fr));
       (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(content.published);
     } else addStat();
@@ -115,7 +119,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (selected.length > 4) return setStatus('Select no more than four featured titles.', 'err');
     submit.disabled = true; setStatus('Saving…');
     const data = new FormData(form); const payload: Record<string, unknown> = {};
-    for (const name of ['hero_headline_en','hero_headline_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) payload[name] = data.get(name);
+    for (const name of ['hero_headline_en','hero_headline_fr','hero_headline_accent_en','hero_headline_accent_fr','hero_eyebrow_en','hero_eyebrow_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) payload[name] = data.get(name);
     payload.trust_stats = [...stats.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ value: (row.querySelector('[data-value]') as HTMLInputElement).value, label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value }));
     payload.featured_catalogue_ids = selected;
     payload.published = (form.elements.namedItem('published') as HTMLInputElement).checked;

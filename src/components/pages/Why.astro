@@ -13,14 +13,28 @@ const t = useTranslations(lang);
 const why = await getWhyContent();
 const localPresence = why ? paragraphs(localized(lang, why.local_presence_copy_en, why.local_presence_copy_fr)) : null;
 const firstPillar = localPresence?.length ? { ...t.why.pillars[0], body: localPresence } : t.why.pillars[0];
+/**
+ * A managed pillar reproduces the full rendered shape when the optional fields
+ * are present: numbered eyebrow, split heading with an accented second half,
+ * and pill tags. When they are absent the row is an older flat-title record, so
+ * fall back to the i18n eyebrow and render the flat title with no accent.
+ */
 const pillars = why?.quality_commitment_items.length
-  ? [firstPillar, ...why.quality_commitment_items.map((item, index) => ({
-      ...(t.why.pillars[index + 1] ?? t.why.pillars.at(-1)!),
-      titleLead: localized(lang, item.title_en, item.title_fr),
-      titleAccent: '',
-      body: paragraphs(localized(lang, item.description_en, item.description_fr)),
-      tags: undefined,
-    }))]
+  ? [firstPillar, ...why.quality_commitment_items.map((item, index) => {
+      const base = t.why.pillars[index + 1] ?? t.why.pillars.at(-1)!;
+      const lead = localized(lang, item.title_lead_en, item.title_lead_fr);
+      const accent = localized(lang, item.title_accent_en, item.title_accent_fr);
+      const eyebrow = localized(lang, item.eyebrow_en, item.eyebrow_fr);
+      const tags = localized(lang, item.tags_en, item.tags_fr);
+      return {
+        ...base,
+        eyebrow: eyebrow || base.eyebrow,
+        titleLead: lead || localized(lang, item.title_en, item.title_fr),
+        titleAccent: accent ?? '',
+        body: paragraphs(localized(lang, item.description_en, item.description_fr)),
+        tags: tags?.length ? tags : undefined,
+      };
+    })]
   : [firstPillar, ...t.why.pillars.slice(1)];
 
 /** Photograph per pillar, in order. */

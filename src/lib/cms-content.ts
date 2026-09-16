@@ -24,8 +24,17 @@ export interface SiteSettings {
 }
 
 export interface HomepageContent {
+  /**
+   * The hero heading is rendered as `{lead} <em class="accent">{accent}</em>`.
+   * Storing only the lead collapsed it into one flat heading and emitted an
+   * empty <em>, which is why the hero was left unseeded before now.
+   */
   hero_headline_en: string | null;
   hero_headline_fr: string | null;
+  hero_headline_accent_en: string | null;
+  hero_headline_accent_fr: string | null;
+  hero_eyebrow_en: string | null;
+  hero_eyebrow_fr: string | null;
   hero_subheadline_en: string | null;
   hero_subheadline_fr: string | null;
   hero_image_id: string | null;
@@ -34,6 +43,7 @@ export interface HomepageContent {
   who_we_are_copy_en: string | null;
   who_we_are_copy_fr: string | null;
   who_we_are_image_id: string | null;
+  /** `value` is optional: the live trust bar is label-only and emits no <strong>. */
   trust_stats: Array<{ value: string; label_en: string; label_fr: string }>;
   one_partner_copy_en: string | null;
   one_partner_copy_fr: string | null;
@@ -51,18 +61,46 @@ export interface AboutContent {
   mission_fr: string;
   values_en: string;
   values_fr: string;
-  team_capacity_blocks: Array<{ title: string; icon: string | null; description_en: string; description_fr: string }>;
+  /**
+   * `title` is the legacy single-language field, kept so existing rows keep
+   * rendering. `title_en`/`title_fr` supersede it — the live site shows
+   * "Editorial Team" in EN and "Équipe éditoriale" in FR, which one column
+   * cannot represent.
+   */
+  team_capacity_blocks: Array<{
+    title: string;
+    title_en?: string | null;
+    title_fr?: string | null;
+    icon: string | null;
+    description_en: string;
+    description_fr: string;
+    tags_en?: string[] | null;
+    tags_fr?: string[] | null;
+  }>;
 }
 
 export interface WhyContent {
   local_presence_copy_en: string;
   local_presence_copy_fr: string;
+  /**
+   * `title_en`/`title_fr` remain the flat heading. The optional fields below
+   * reproduce what the page actually renders: a split heading with an accented
+   * second half, a numbered eyebrow, and pill tags.
+   */
   quality_commitment_items: Array<{
     icon: string | null;
     title_en: string;
     title_fr: string;
     description_en: string;
     description_fr: string;
+    eyebrow_en?: string | null;
+    eyebrow_fr?: string | null;
+    title_lead_en?: string | null;
+    title_lead_fr?: string | null;
+    title_accent_en?: string | null;
+    title_accent_fr?: string | null;
+    tags_en?: string[] | null;
+    tags_fr?: string[] | null;
   }>;
 }
 
@@ -223,9 +261,14 @@ export function getPublishingContent(): Promise<{ services: Service[]; process: 
         const enBody = paragraphs(String(row.description_en ?? ''));
         const frBody = paragraphs(String(row.description_fr ?? ''));
         return {
-          id: String(row.id), icon: String(row.icon ?? 'check'), discipline: row.category as Service['discipline'], img: String(row.category),
-          en: { name: String(row.name_en), short: enBody[0] ?? String(row.description_en), body: enBody },
-          fr: { name: String(row.name_fr), short: frBody[0] ?? String(row.description_fr), body: frBody },
+          // The slug, not the uuid: SERVICE_DETAIL_IMG and the on-page
+          // anchors are both keyed by it, so a uuid here silently swaps every
+          // service photograph for its category default.
+          id: String(row.slug ?? row.id), icon: String(row.icon ?? 'check'), discipline: row.category as Service['discipline'], img: String(row.category),
+          // `short` is the overview-card line and is NOT the first paragraph of
+          // the detail body — on the live site they differ for every service.
+          en: { name: String(row.name_en), short: String(row.short_en ?? '') || enBody[0] || String(row.description_en), body: enBody },
+          fr: { name: String(row.name_fr), short: String(row.short_fr ?? '') || frBody[0] || String(row.description_fr), body: frBody },
         };
       });
       const process: Step[] = processRows.map((row) => ({
@@ -287,3 +330,30 @@ export const localized = <T>(locale: Locale, en: T, fr: T): T => locale === 'fr'
 export const mediaPath = (id: string | null | undefined, fallback: string): string => id ? `/api/media/${id}` : fallback;
 export const paragraphs = (value: string | null | undefined): string[] =>
   value?.split(/\n\s*\n/).map((part) => part.trim()).filter(Boolean) ?? [];
+
+/**
+ * Split a legal body into headed sections.
+ *
+ * The legal templates render `<h2>` section titles, but the CMS stores one flat
+ * text column — so seeding the live policies into it used to drop every
+ * heading. A line beginning `## ` marks a heading, which is Markdown's own
+ * convention, types cleanly into a textarea, and leaves bodies with no headings
+ * rendering exactly as they did before (one untitled section of paragraphs).
+ */
+export const legalSections = (
+  value: string | null | undefined,
+): Array<{ title: string | null; body: string[] }> => {
+  const sections: Array<{ title: string | null; body: string[] }> = [];
+  for (const block of paragraphs(value)) {
+    const heading = /^##\s+(.*)$/.exec(block.split('\n')[0]!);
+    if (heading) {
+      const rest = block.split('\n').slice(1).join('\n').trim();
+      sections.push({ title: heading[1]!.trim(), body: rest ? [rest] : [] });
+      continue;
+    }
+    const current = sections.at(-1);
+    if (current) current.body.push(block);
+    else sections.push({ title: null, body: [block] });
+  }
+  return sections.filter((section) => section.title || section.body.length);
+};

@@ -21,12 +21,20 @@ const identityItems = about
       body: localized(lang, about[`${identityKeys[index]}_en`], about[`${identityKeys[index]}_fr`]),
     }))
   : t.about.identity.items;
+/**
+ * `title_en`/`title_fr` when present, else the legacy single-language `title`.
+ * Without the bilingual pair a French visitor was shown the English team name.
+ */
 const teamItems = about?.team_capacity_blocks.length
-  ? about.team_capacity_blocks.map((item) => ({
-      title: item.title,
-      body: localized(lang, item.description_en, item.description_fr),
-      icon: item.icon ?? 'users',
-    }))
+  ? about.team_capacity_blocks.map((item) => {
+      const tags = localized(lang, item.tags_en, item.tags_fr);
+      return {
+        title: localized(lang, item.title_en, item.title_fr) || item.title,
+        body: localized(lang, item.description_en, item.description_fr),
+        icon: item.icon ?? 'users',
+        tags: tags?.length ? tags : undefined,
+      };
+    })
   : t.about.team.items;
 
 /** Accent rotation for the four identity cards, matching the original design. */

@@ -59,13 +59,13 @@ export default async function handler(req: Request) {
     const parsed = validateService(payload); if (!parsed.ok) return json({ error: parsed.error }, { status: 400 });
     const value = parsed.value;
     if (req.method === 'POST') {
-      const [created] = await db.sql`INSERT INTO services (name_en, name_fr, category, description_en, description_fr, icon, sort_order, published) VALUES (${value.name_en}, ${value.name_fr}, ${value.category}, ${value.description_en}, ${value.description_fr}, ${value.icon}, ${value.sort_order}, ${value.published}) RETURNING *`;
+      const [created] = await db.sql`INSERT INTO services (slug, short_en, short_fr, name_en, name_fr, category, description_en, description_fr, icon, sort_order, published) VALUES (${value.slug}, ${value.short_en}, ${value.short_fr}, ${value.name_en}, ${value.name_fr}, ${value.category}, ${value.description_en}, ${value.description_fr}, ${value.icon}, ${value.sort_order}, ${value.published}) RETURNING *`;
       await rebuildIfPublic('create', { isPublished: created.published }, 'publishing service created');
       return json(created, { status: 201 });
     }
     const [before] = await db.sql`SELECT published FROM services WHERE id = ${id}`;
     if (!before) return json({ error: 'Service not found.' }, { status: 404 });
-    const [updated] = await db.sql`UPDATE services SET name_en = ${value.name_en}, name_fr = ${value.name_fr}, category = ${value.category}, description_en = ${value.description_en}, description_fr = ${value.description_fr}, icon = ${value.icon}, sort_order = ${value.sort_order}, published = ${value.published}, updated_at = now() WHERE id = ${id} RETURNING *`;
+    const [updated] = await db.sql`UPDATE services SET slug = ${value.slug}, short_en = ${value.short_en}, short_fr = ${value.short_fr}, name_en = ${value.name_en}, name_fr = ${value.name_fr}, category = ${value.category}, description_en = ${value.description_en}, description_fr = ${value.description_fr}, icon = ${value.icon}, sort_order = ${value.sort_order}, published = ${value.published}, updated_at = now() WHERE id = ${id} RETURNING *`;
     await rebuildIfPublic('update', { wasPublished: before.published, isPublished: updated.published }, 'publishing service updated');
     return json(updated);
   }

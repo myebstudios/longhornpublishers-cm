@@ -10,6 +10,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <input type="hidden" name="id" />
         <div class="two">
           <label>Name — English<input name="name_en" required /></label><label>Name — French<input name="name_fr" required /></label>
+          <label>Slug<input name="slug" maxlength="80" pattern="[a-z0-9]+(-[a-z0-9]+)*" /><small>Keys the detail photograph and the on-page anchor, e.g. editing.</small></label>
+          <label>Summary — English<input name="short_en" maxlength="500" /><small>One line on the overview card. Separate from the detail body below.</small></label>
+          <label>Summary — French<input name="short_fr" maxlength="500" /></label>
           <label>Category<select name="category"><option value="editorial">Editorial</option><option value="creative">Creative</option><option value="production">Production</option></select></label>
           <label>Icon key<input name="icon" maxlength="60" /></label>
           <label>Description — English<textarea name="description_en" required></textarea></label><label>Description — French<textarea name="description_fr" required></textarea></label>
