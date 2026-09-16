@@ -130,19 +130,35 @@ export function getSiteSettings(): Promise<SiteSettings> {
 }
 
 /**
- * The managed-content readers below filter on `published`.
+ * The managed-content readers below do NOT yet filter on `published`.
  *
- * Migration 005 gave these tables draft state, so an unpublished row must read
- * as absent — which drops each page onto its reviewed static fallback rather
- * than rendering a half-written draft. site_settings is deliberately NOT
- * filtered: it has no draft state, because unpublishing global configuration
- * would silently revert company details and SEO across every page.
+ * Migrations 005/006 add draft state to these six tables, but Netlify applies
+ * migrations to production immediately BEFORE PUBLISH — after the build has
+ * already run. Prerendering happens inside that build, so a reader that
+ * filters on `published` in the same deploy that introduces the column queries
+ * a column the production database does not have yet, and the build dies with
+ * `column "published" does not exist`. The deploy then never publishes, so the
+ * migration never applies: the two failed deploys of 2026-09-16 were that
+ * deadlock, and no additional migration can break it.
+ *
+ * So this is the EXPAND half of expand-and-contract. This deploy ships the
+ * columns and builds without reading them; the migration applies at publish.
+ * The follow-up deploy restores `AND published = true` here — by then the
+ * column exists at build time and the filter is safe.
+ *
+ * Behaviour is unchanged for visitors either way: every row on production
+ * predates draft state and the migration backfills it to published = true.
+ *
+ * services is untouched — it has had `published` since migration 001.
+ * site_settings is deliberately never filtered: it has no draft state, because
+ * unpublishing global configuration would silently revert company details and
+ * SEO across every page.
  */
 let homepagePromise: Promise<HomepageContent | null> | undefined;
 export function getHomepageContent(): Promise<HomepageContent | null> {
   homepagePromise ??= (async () => {
     try {
-      const [row] = await getBuildDatabase().sql`SELECT * FROM homepage_content WHERE id = 'default' AND published = true`;
+      const [row] = await getBuildDatabase().sql`SELECT * FROM homepage_content WHERE id = 'default'`;
       if (!row) return null;
       return {
         ...(row as unknown as HomepageContent),
@@ -162,7 +178,7 @@ let aboutPromise: Promise<AboutContent | null> | undefined;
 export function getAboutContent(): Promise<AboutContent | null> {
   aboutPromise ??= (async () => {
     try {
-      const [row] = await getBuildDatabase().sql`SELECT * FROM about_page WHERE id = 'default' AND published = true`;
+      const [row] = await getBuildDatabase().sql`SELECT * FROM about_page WHERE id = 'default'`;
       if (!row) return null;
       return {
         ...(row as unknown as AboutContent),
@@ -181,7 +197,7 @@ let whyPromise: Promise<WhyContent | null> | undefined;
 export function getWhyContent(): Promise<WhyContent | null> {
   whyPromise ??= (async () => {
     try {
-      const [row] = await getBuildDatabase().sql`SELECT * FROM why_choose_us WHERE id = 'default' AND published = true`;
+      const [row] = await getBuildDatabase().sql`SELECT * FROM why_choose_us WHERE id = 'default'`;
       if (!row) return null;
       return {
         ...(row as unknown as WhyContent),
@@ -202,7 +218,7 @@ export function getPublishingContent(): Promise<{ services: Service[]; process: 
     try {
       const db = getBuildDatabase();
       const serviceRows = await db.sql`SELECT * FROM services WHERE published = true ORDER BY sort_order, created_at`;
-      const processRows = await db.sql`SELECT * FROM process_steps WHERE published = true ORDER BY step_number`;
+      const processRows = await db.sql`SELECT * FROM process_steps ORDER BY step_number`;
       const services: Service[] = serviceRows.map((row) => {
         const enBody = paragraphs(String(row.description_en ?? ''));
         const frBody = paragraphs(String(row.description_fr ?? ''));
@@ -231,7 +247,7 @@ let contactPromise: Promise<ContactContent | null> | undefined;
 export function getContactContent(): Promise<ContactContent | null> {
   contactPromise ??= (async () => {
     try {
-      const [row] = await getBuildDatabase().sql`SELECT * FROM contact_settings WHERE id = 'default' AND published = true`;
+      const [row] = await getBuildDatabase().sql`SELECT * FROM contact_settings WHERE id = 'default'`;
       if (!row) return null;
       return {
         ...(row as unknown as ContactContent),
@@ -254,7 +270,7 @@ export function getLegalPage(page: LegalPageContent['page']): Promise<LegalPageC
   if (!pending) {
     pending = (async () => {
       try {
-        const [row] = await getBuildDatabase().sql`SELECT * FROM legal_pages WHERE page = ${page} AND published = true`;
+        const [row] = await getBuildDatabase().sql`SELECT * FROM legal_pages WHERE page = ${page}`;
         return row ? row as unknown as LegalPageContent : null;
       } catch (error) {
         failIfProductionDatabaseUnavailable(`legal page: ${page}`, error);
