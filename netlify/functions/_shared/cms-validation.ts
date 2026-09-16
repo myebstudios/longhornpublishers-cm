@@ -138,6 +138,7 @@ export interface HomepageInput {
   one_partner_copy_en: string;
   one_partner_copy_fr: string;
   featured_catalogue_ids: string[];
+  published: boolean;
 }
 
 export function validateHomepage(value: unknown): Validation<HomepageInput> {
@@ -182,6 +183,7 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
     trust_stats: trustStats,
     one_partner_copy_en: partner.value.en!, one_partner_copy_fr: partner.value.fr!,
     featured_catalogue_ids: featuredIds,
+    published: body.published === true,
   } };
 }
 
@@ -197,6 +199,7 @@ export interface AboutInput {
   values_en: string;
   values_fr: string;
   team_capacity_blocks: Array<{ title: string; icon: string | null; description_en: string; description_fr: string }>;
+  published: boolean;
 }
 
 export function validateAbout(value: unknown): Validation<AboutInput> {
@@ -227,6 +230,7 @@ export function validateAbout(value: unknown): Validation<AboutInput> {
     mission_en: mission.value.en!, mission_fr: mission.value.fr!,
     values_en: values.value.en!, values_fr: values.value.fr!,
     team_capacity_blocks: blocks,
+    published: body.published === true,
   } };
 }
 
@@ -240,6 +244,7 @@ export interface WhyInput {
     description_en: string;
     description_fr: string;
   }>;
+  published: boolean;
 }
 
 export function validateWhy(value: unknown): Validation<WhyInput> {
@@ -263,6 +268,7 @@ export function validateWhy(value: unknown): Validation<WhyInput> {
   return { ok: true, value: {
     local_presence_copy_en: local.value.en!, local_presence_copy_fr: local.value.fr!,
     quality_commitment_items: items,
+    published: body.published === true,
   } };
 }
 
@@ -303,6 +309,7 @@ export interface ProcessStepInput {
   title_fr: string;
   description_en: string;
   description_fr: string;
+  published: boolean;
 }
 
 export function validateProcessStep(value: unknown): Validation<ProcessStepInput> {
@@ -317,6 +324,7 @@ export function validateProcessStep(value: unknown): Validation<ProcessStepInput
   return { ok: true, value: {
     step_number: stepNumber, title_en: title.value.en!, title_fr: title.value.fr!,
     description_en: description.value.en!, description_fr: description.value.fr!,
+    published: body.published === true,
   } };
 }
 
@@ -326,6 +334,7 @@ export interface ContactInput {
   project_type_options: Array<{ label_en: string; label_fr: string }>;
   map_lat: number | null;
   map_lng: number | null;
+  published: boolean;
 }
 
 export function validateContact(value: unknown): Validation<ContactInput> {
@@ -351,6 +360,7 @@ export function validateContact(value: unknown): Validation<ContactInput> {
   return { ok: true, value: {
     hero_copy_en: hero.value.en!, hero_copy_fr: hero.value.fr!, project_type_options: options,
     map_lat: latitude, map_lng: longitude,
+    published: body.published === true,
   } };
 }
 
@@ -358,6 +368,7 @@ export interface LegalPageInput {
   page: 'privacy_policy' | 'terms_of_use';
   body_en: string;
   body_fr: string;
+  published: boolean;
 }
 
 export function validateLegalPage(value: unknown): Validation<LegalPageInput> {
@@ -365,5 +376,5 @@ export function validateLegalPage(value: unknown): Validation<LegalPageInput> {
   const body = value as Record<string, unknown>;
   if (!['privacy_policy', 'terms_of_use'].includes(String(body.page))) return { ok: false, error: 'Legal page must be privacy_policy or terms_of_use.' };
   const content = pair(body, 'body', 'Legal body', true, 50_000); if (!content.ok) return content;
-  return { ok: true, value: { page: body.page as LegalPageInput['page'], body_en: content.value.en!, body_fr: content.value.fr! } };
+  return { ok: true, value: { page: body.page as LegalPageInput['page'], body_en: content.value.en!, body_fr: content.value.fr!, published: body.published === true } };
 }

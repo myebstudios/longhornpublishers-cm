@@ -26,9 +26,9 @@ export default async function handler(req: Request) {
       if (!deleted) return json({ error: 'Service not found.' }, { status: 404 });
       await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'publishing service deleted');
     } else {
-      const [deleted] = await db.sql`DELETE FROM process_steps WHERE id = ${id} RETURNING id`;
+      const [deleted] = await db.sql`DELETE FROM process_steps WHERE id = ${id} RETURNING id, published`;
       if (!deleted) return json({ error: 'Process step not found.' }, { status: 404 });
-      await requestRebuild('publishing process step deleted');
+      await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'publishing process step deleted');
     }
     return json({ deleted: id });
   }
@@ -45,12 +45,12 @@ export default async function handler(req: Request) {
       for (const [index, serviceId] of ids.entries()) await db.sql`UPDATE services SET sort_order = ${index}, updated_at = now() WHERE id = ${serviceId}`;
       if (current.some((row) => row.published)) await requestRebuild('publishing services reordered');
     } else {
-      const current = await db.sql`SELECT id FROM process_steps`;
+      const current = await db.sql`SELECT id, published FROM process_steps`;
       const currentIds = new Set(current.map((row) => String(row.id)));
       if (ids.length !== currentIds.size || ids.some((value) => !currentIds.has(value))) return json({ error: 'Reorder ids must include every process step exactly once.' }, { status: 400 });
       await db.sql`UPDATE process_steps SET step_number = step_number + 10000`;
       for (const [index, stepId] of ids.entries()) await db.sql`UPDATE process_steps SET step_number = ${index + 1} WHERE id = ${stepId}`;
-      await requestRebuild('publishing process reordered');
+      if (current.some((row) => row.published)) await requestRebuild('publishing process reordered');
     }
     return json({ reordered: ids });
   }
@@ -72,13 +72,14 @@ export default async function handler(req: Request) {
   const parsed = validateProcessStep(payload); if (!parsed.ok) return json({ error: parsed.error }, { status: 400 });
   const value = parsed.value;
   if (req.method === 'POST') {
-    const [created] = await db.sql`INSERT INTO process_steps (step_number, title_en, title_fr, description_en, description_fr) VALUES (${value.step_number}, ${value.title_en}, ${value.title_fr}, ${value.description_en}, ${value.description_fr}) RETURNING *`;
-    await requestRebuild('publishing process step created');
+    const [created] = await db.sql`INSERT INTO process_steps (step_number, title_en, title_fr, description_en, description_fr, published) VALUES (${value.step_number}, ${value.title_en}, ${value.title_fr}, ${value.description_en}, ${value.description_fr}, ${value.published}) RETURNING *`;
+    await rebuildIfPublic('create', { isPublished: created.published }, 'publishing process step created');
     return json(created, { status: 201 });
   }
-  const [updated] = await db.sql`UPDATE process_steps SET step_number = ${value.step_number}, title_en = ${value.title_en}, title_fr = ${value.title_fr}, description_en = ${value.description_en}, description_fr = ${value.description_fr} WHERE id = ${id} RETURNING *`;
+  const [beforeStep] = await db.sql`SELECT published FROM process_steps WHERE id = ${id}`;
+  const [updated] = await db.sql`UPDATE process_steps SET step_number = ${value.step_number}, title_en = ${value.title_en}, title_fr = ${value.title_fr}, description_en = ${value.description_en}, description_fr = ${value.description_fr}, published = ${value.published} WHERE id = ${id} RETURNING *`;
   if (!updated) return json({ error: 'Process step not found.' }, { status: 404 });
-  await requestRebuild('publishing process step updated');
+  await rebuildIfPublic('update', { wasPublished: beforeStep?.published === true, isPublished: updated.published === true }, 'publishing process step updated');
   return json(updated);
 }
 

@@ -23,6 +23,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
       <div class="toolbar"><h2>Team capacity blocks</h2><button class="button secondary" type="button" id="addBlock">+ Add block</button></div>
       <div id="blocks" class="repeat-list"></div>
+      <label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label>
       <div class="form-actions"><button class="button" type="submit">Save About page</button></div>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
@@ -52,6 +53,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (!res.ok) return setStatus(res.error!, 'err');
     if (!res.data) return setStatus('No database row yet. Enter complete bilingual content to create it.');
     names.forEach((name) => (form.elements.namedItem(name) as HTMLInputElement).value = String(res.data?.[name] ?? ''));
+    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(res.data.published);
     blocks.replaceChildren(); (res.data.team_capacity_blocks ?? []).forEach((item: any) => addBlock(item.title, item.icon, item.description_en, item.description_fr));
     setStatus('About content loaded.');
   }
@@ -59,6 +61,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     event.preventDefault(); submit.disabled = true; setStatus('Saving…');
     const data = new FormData(form); const payload: Record<string, unknown> = {};
     names.forEach((name) => payload[name] = data.get(name));
+    payload.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
     payload.team_capacity_blocks = [...blocks.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({
       title: (row.querySelector('[data-title]') as HTMLInputElement).value,
       icon: (row.querySelector('[data-icon]') as HTMLInputElement).value,
@@ -66,7 +69,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       description_fr: (row.querySelector('[data-fr]') as HTMLTextAreaElement).value,
     }));
     const res = await sendJson('/api/about-admin', 'PUT', payload, 'Unable to save About content.');
-    setStatus(res.ok ? 'About page saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'About page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
   });
   load();
 </script>

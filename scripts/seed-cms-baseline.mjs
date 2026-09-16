@@ -19,6 +19,12 @@
  * This is NOT demo seeding. Nothing here is demo content, no is_demo row is
  * written, and the seed-demo path is deliberately not reused.
  *
+ * Seeded rows are written published = true, because they reproduce copy that
+ * is ALREADY live. Migration 005 gave these tables draft state; a seed that
+ * left them as drafts would blank the public pages onto their fallbacks, which
+ * the round-trip diff would catch. site_settings has no published column and is
+ * deliberately excluded from draft state.
+ *
  * Scope: Site Settings, Homepage (partial), About (partial), Why (partial),
  * Contact (partial). Catalogue, subjects and news are out of scope pending
  * approved client content. Legal Pages and Services/Process are HELD — the
@@ -197,27 +203,27 @@ ON CONFLICT (id) DO UPDATE SET company_name_en = EXCLUDED.company_name_en, compa
     },
     {
       label: 'homepage_content (who-we-are + one-partner only)',
-      sql: `INSERT INTO homepage_content (id, who_we_are_copy_en, who_we_are_copy_fr, one_partner_copy_en, one_partner_copy_fr)
-VALUES ('default', ${quote(joinParagraphs(en.home.whoWeAre.body))}, ${quote(joinParagraphs(fr.home.whoWeAre.body))}, ${quote(en.home.endToEnd.lede)}, ${quote(fr.home.endToEnd.lede)})
-ON CONFLICT (id) DO UPDATE SET who_we_are_copy_en = EXCLUDED.who_we_are_copy_en, who_we_are_copy_fr = EXCLUDED.who_we_are_copy_fr, one_partner_copy_en = EXCLUDED.one_partner_copy_en, one_partner_copy_fr = EXCLUDED.one_partner_copy_fr, updated_at = now()`,
+      sql: `INSERT INTO homepage_content (id, who_we_are_copy_en, who_we_are_copy_fr, one_partner_copy_en, one_partner_copy_fr, published)
+VALUES ('default', ${quote(joinParagraphs(en.home.whoWeAre.body))}, ${quote(joinParagraphs(fr.home.whoWeAre.body))}, ${quote(en.home.endToEnd.lede)}, ${quote(fr.home.endToEnd.lede)}, true)
+ON CONFLICT (id) DO UPDATE SET who_we_are_copy_en = EXCLUDED.who_we_are_copy_en, who_we_are_copy_fr = EXCLUDED.who_we_are_copy_fr, one_partner_copy_en = EXCLUDED.one_partner_copy_en, one_partner_copy_fr = EXCLUDED.one_partner_copy_fr, published = true, updated_at = now()`,
     },
     {
       label: 'about_page (heritage + identity; team blocks intentionally empty)',
-      sql: `INSERT INTO about_page (id, heritage_copy_en, heritage_copy_fr, purpose_en, purpose_fr, vision_en, vision_fr, mission_en, mission_fr, values_en, values_fr, team_capacity_blocks)
-VALUES ('default', ${quote(joinParagraphs(en.about.heritage.body))}, ${quote(joinParagraphs(fr.about.heritage.body))}, ${quote(identity.purpose_en)}, ${quote(identity.purpose_fr)}, ${quote(identity.vision_en)}, ${quote(identity.vision_fr)}, ${quote(identity.mission_en)}, ${quote(identity.mission_fr)}, ${quote(identity.values_en)}, ${quote(identity.values_fr)}, '[]'::jsonb)
-ON CONFLICT (id) DO UPDATE SET heritage_copy_en = EXCLUDED.heritage_copy_en, heritage_copy_fr = EXCLUDED.heritage_copy_fr, purpose_en = EXCLUDED.purpose_en, purpose_fr = EXCLUDED.purpose_fr, vision_en = EXCLUDED.vision_en, vision_fr = EXCLUDED.vision_fr, mission_en = EXCLUDED.mission_en, mission_fr = EXCLUDED.mission_fr, values_en = EXCLUDED.values_en, values_fr = EXCLUDED.values_fr, updated_at = now()`,
+      sql: `INSERT INTO about_page (id, heritage_copy_en, heritage_copy_fr, purpose_en, purpose_fr, vision_en, vision_fr, mission_en, mission_fr, values_en, values_fr, team_capacity_blocks, published)
+VALUES ('default', ${quote(joinParagraphs(en.about.heritage.body))}, ${quote(joinParagraphs(fr.about.heritage.body))}, ${quote(identity.purpose_en)}, ${quote(identity.purpose_fr)}, ${quote(identity.vision_en)}, ${quote(identity.vision_fr)}, ${quote(identity.mission_en)}, ${quote(identity.mission_fr)}, ${quote(identity.values_en)}, ${quote(identity.values_fr)}, '[]'::jsonb, true)
+ON CONFLICT (id) DO UPDATE SET heritage_copy_en = EXCLUDED.heritage_copy_en, heritage_copy_fr = EXCLUDED.heritage_copy_fr, purpose_en = EXCLUDED.purpose_en, purpose_fr = EXCLUDED.purpose_fr, vision_en = EXCLUDED.vision_en, vision_fr = EXCLUDED.vision_fr, mission_en = EXCLUDED.mission_en, mission_fr = EXCLUDED.mission_fr, values_en = EXCLUDED.values_en, values_fr = EXCLUDED.values_fr, published = true, updated_at = now()`,
     },
     {
       label: 'why_choose_us (local presence; quality items intentionally empty)',
-      sql: `INSERT INTO why_choose_us (id, local_presence_copy_en, local_presence_copy_fr, quality_commitment_items)
-VALUES ('default', ${quote(joinParagraphs(en.why.pillars[0].body))}, ${quote(joinParagraphs(fr.why.pillars[0].body))}, '[]'::jsonb)
-ON CONFLICT (id) DO UPDATE SET local_presence_copy_en = EXCLUDED.local_presence_copy_en, local_presence_copy_fr = EXCLUDED.local_presence_copy_fr, updated_at = now()`,
+      sql: `INSERT INTO why_choose_us (id, local_presence_copy_en, local_presence_copy_fr, quality_commitment_items, published)
+VALUES ('default', ${quote(joinParagraphs(en.why.pillars[0].body))}, ${quote(joinParagraphs(fr.why.pillars[0].body))}, '[]'::jsonb, true)
+ON CONFLICT (id) DO UPDATE SET local_presence_copy_en = EXCLUDED.local_presence_copy_en, local_presence_copy_fr = EXCLUDED.local_presence_copy_fr, published = true, updated_at = now()`,
     },
     {
       label: 'contact_settings (hero + project types; map coordinates intentionally null)',
-      sql: `INSERT INTO contact_settings (id, hero_copy_en, hero_copy_fr, project_type_options, map_lat, map_lng)
-VALUES ('default', ${quote(en.contact.hero.lede)}, ${quote(fr.contact.hero.lede)}, ${quoteJson(projectTypeOptions)}, NULL, NULL)
-ON CONFLICT (id) DO UPDATE SET hero_copy_en = EXCLUDED.hero_copy_en, hero_copy_fr = EXCLUDED.hero_copy_fr, project_type_options = EXCLUDED.project_type_options, updated_at = now()`,
+      sql: `INSERT INTO contact_settings (id, hero_copy_en, hero_copy_fr, project_type_options, map_lat, map_lng, published)
+VALUES ('default', ${quote(en.contact.hero.lede)}, ${quote(fr.contact.hero.lede)}, ${quoteJson(projectTypeOptions)}, NULL, NULL, true)
+ON CONFLICT (id) DO UPDATE SET hero_copy_en = EXCLUDED.hero_copy_en, hero_copy_fr = EXCLUDED.hero_copy_fr, project_type_options = EXCLUDED.project_type_options, published = true, updated_at = now()`,
     },
   ];
 }

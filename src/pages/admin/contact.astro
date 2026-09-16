@@ -13,6 +13,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
       <div class="toolbar"><h2>Project type options</h2><button class="button secondary" type="button" id="addOption">+ Add option</button></div>
       <div id="options" class="repeat-list"></div>
+      <label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label>
       <div class="form-actions"><button class="button" type="submit">Save Contact page</button></div>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
@@ -38,13 +39,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (!res.ok) return setStatus(res.error!, 'err');
     if (!res.data) return setStatus('No database row yet. Enter complete bilingual content to create it.');
     for (const name of ['hero_copy_en', 'hero_copy_fr', 'map_lat', 'map_lng']) (form.elements.namedItem(name) as HTMLInputElement).value = String(res.data[name] ?? '');
+    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(res.data.published);
     options.replaceChildren(); (res.data.project_type_options ?? []).forEach((item: any) => addOption(item.label_en, item.label_fr)); setStatus('Contact settings loaded.');
   }
   form.addEventListener('submit', async (event) => {
     event.preventDefault(); submit.disabled = true; setStatus('Saving…'); const data = new FormData(form);
-    const payload = { hero_copy_en: data.get('hero_copy_en'), hero_copy_fr: data.get('hero_copy_fr'), map_lat: data.get('map_lat'), map_lng: data.get('map_lng'), project_type_options: [...options.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value })) };
+    const payload = { hero_copy_en: data.get('hero_copy_en'), hero_copy_fr: data.get('hero_copy_fr'), map_lat: data.get('map_lat'), map_lng: data.get('map_lng'), project_type_options: [...options.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value })), published: (form.elements.namedItem('published') as HTMLInputElement).checked };
     const res = await sendJson('/api/contact-settings-admin', 'PUT', payload, 'Unable to save Contact settings.');
-    setStatus(res.ok ? 'Contact page saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'Contact page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
   });
   load();
 </script>

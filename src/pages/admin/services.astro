@@ -28,6 +28,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
           <label>Title — English<input name="title_en" required /></label><label>Title — French<input name="title_fr" required /></label>
           <label>Description — English<textarea name="description_en" required></textarea></label><label>Description — French<textarea name="description_fr" required></textarea></label>
         </div>
+        <label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label>
         <div class="form-actions"><button class="button" type="submit">Save process step</button></div>
       </form>
     </section>
@@ -63,7 +64,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   }
   function render() {
     serviceList.replaceChildren(); services.forEach((row, index) => serviceList.append(item(row.name_en, row.name_fr, row.published ? 'Published' : 'Draft', () => { setFields(serviceForm, row); (serviceForm.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); document.querySelector('#serviceTitle')!.textContent = `Editing: ${row.name_en}`; }, () => move('service', services, index, -1), () => move('service', services, index, 1), () => remove('service', row))));
-    processList.replaceChildren(); process.forEach((row, index) => processList.append(item(`${row.step_number}. ${row.title_en}`, row.title_fr, 'Public', () => { setFields(processForm, row); document.querySelector('#processTitle')!.textContent = `Editing: ${row.title_en}`; }, () => move('process', process, index, -1), () => move('process', process, index, 1), () => remove('process', row))));
+    processList.replaceChildren(); process.forEach((row, index) => processList.append(item(`${row.step_number}. ${row.title_en}`, row.title_fr, row.published ? 'Published' : 'Draft', () => { setFields(processForm, row); (processForm.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); document.querySelector('#processTitle')!.textContent = `Editing: ${row.title_en}`; }, () => move('process', process, index, -1), () => move('process', process, index, 1), () => remove('process', row))));
   }
   function item(primary: string, secondary: string, badge: string, edit: () => void, up: () => void, down: () => void, removeItem: () => void) {
     const article = document.createElement('article'); article.className = 'ordered-item';
@@ -83,7 +84,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     const res = await sendJson(`/api/services-admin?kind=service${id ? `&id=${encodeURIComponent(id)}` : ''}`, id ? 'PUT' : 'POST', payload, 'Unable to save service.'); setStatus(res.ok ? 'Service saved.' : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) load();
   });
   processForm.addEventListener('submit', async (event) => {
-    event.preventDefault(); const data = new FormData(processForm); const id = String(data.get('id') ?? ''); const payload = Object.fromEntries(data.entries()) as Row; payload.step_number = Number(payload.step_number);
+    event.preventDefault(); const data = new FormData(processForm); const id = String(data.get('id') ?? ''); const payload = Object.fromEntries(data.entries()) as Row; payload.step_number = Number(payload.step_number); payload.published = (processForm.elements.namedItem('published') as HTMLInputElement).checked;
     const res = await sendJson(`/api/services-admin?kind=process${id ? `&id=${encodeURIComponent(id)}` : ''}`, id ? 'PUT' : 'POST', payload, 'Unable to save process step.'); setStatus(res.ok ? 'Process step saved.' : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) load();
   });
   load();

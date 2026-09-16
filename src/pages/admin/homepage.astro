@@ -42,6 +42,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       <p>Select up to four published titles for the homepage showcase.</p>
       <div id="catalogueChoices" class="choice-list"></div>
 
+      <label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label>
       <div class="form-actions"><button class="button" type="submit">Save homepage</button></div>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
@@ -94,6 +95,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (content) {
       for (const name of ['hero_headline_en','hero_headline_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) set(name, content[name]);
       stats.replaceChildren(); (Array.isArray(content.trust_stats) ? content.trust_stats : []).forEach((row: any) => addStat(row.value, row.label_en, row.label_fr));
+      (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(content.published);
     } else addStat();
     document.querySelectorAll<HTMLElement>('[data-media]').forEach((field) => (field as any).renderMedia?.());
     choices.replaceChildren();
@@ -116,8 +118,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     for (const name of ['hero_headline_en','hero_headline_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) payload[name] = data.get(name);
     payload.trust_stats = [...stats.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ value: (row.querySelector('[data-value]') as HTMLInputElement).value, label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value }));
     payload.featured_catalogue_ids = selected;
+    payload.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
     const res = await sendJson('/api/homepage-admin', 'PUT', payload, 'Unable to save homepage content.');
-    setStatus(res.ok ? 'Homepage saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'Homepage published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
   });
   load();
 </script>
