@@ -136,6 +136,9 @@ const filterGroups = [
                 </div>
               </a>
               <div class="book-card__body">
+                {title.languages && title.languages.includes('en') && title.languages.includes('fr') && (
+                  <span class="cat-badge cat-badge--creative" style="font-size:11px;padding:.2rem .6rem;margin-bottom:.35rem;width:fit-content;">EN &amp; FR Edition</span>
+                )}
                 <h3>{titleText(title, lang)}</h3>
                 <Button href={`${path('contact', lang)}?title=${encodeURIComponent(titleText(title, lang))}`} variant="dark" size="sm">
                   {t.common.requestTitle}
