@@ -37,7 +37,7 @@ const alternates = {
   <article class="section section--white">
     <div class="wrap wrap--narrow article-detail">
       <div class="pill-row article-detail__meta">
-        <span class="pill pill--green">{t.news.categories[categoryKey(article.category)]}</span>
+        <span class:list={['cat-badge', `cat-badge--${categoryKey(article.category)}`]}>{t.news.categories[categoryKey(article.category)]}</span>
         {date && <time datetime={article.publish_date!}>{date}</time>}
       </div>
 

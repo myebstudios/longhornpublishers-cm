@@ -42,7 +42,7 @@ const articles = await getPublishedNews();
               </div>
               <div class="article-card__body">
                 <div class="article-card__meta">
-                  <span class="pill pill--green">{t.news.categories[categoryKey(article.category)]}</span>
+                  <span class:list={['cat-badge', `cat-badge--${categoryKey(article.category)}`]}>{t.news.categories[categoryKey(article.category)]}</span>
                   {publishedOn(article, lang) && (
                     <time datetime={article.publish_date!}>{publishedOn(article, lang)}</time>
                   )}
