@@ -276,7 +276,27 @@ export function getPublishingContent(): Promise<{ services: Service[]; process: 
         en: { title: String(row.title_en), body: String(row.description_en) },
         fr: { title: String(row.title_fr), body: String(row.description_fr) },
       }));
-      return { services, process };
+      /**
+       * An EMPTY table falls back, exactly as a missing single row does.
+       *
+       * Every other reader here treats "no CMS content" as "render the reviewed
+       * static copy". This one did not: it returned the empty arrays straight
+       * through, so an empty `services` table rendered the Services overview
+       * with no cards, an empty marquee, and an "Our Process" heading above
+       * nothing. That is what a visitor saw on the live site.
+       *
+       * It is not hypothetical or transient. Netlify applies migrations on
+       * publish, AFTER the build, so the deploy that first seeds these tables
+       * always prerenders against them while they are still empty — the blank
+       * sections ship every time. Deleting the last service would do the same.
+       *
+       * Falling back per-list, not together: services and process are separate
+       * sections and an editor may legitimately manage one and not the other.
+       */
+      return {
+        services: services.length ? services : FALLBACK_SERVICES,
+        process: process.length ? process : FALLBACK_PROCESS,
+      };
     } catch (error) {
       failIfProductionDatabaseUnavailable('publishing services and process', error);
       console.warn('[publishing services] Database unavailable; using reviewed static fallback.');
