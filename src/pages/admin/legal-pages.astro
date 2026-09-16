@@ -10,19 +10,21 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { request, sendJson } from '../../lib/admin-client';
+  import { guardUnsavedChanges, request, sendJson } from '../../lib/admin-client';
   const forms = [...document.querySelectorAll<HTMLFormElement>('form[data-page]')];
+  // Each legal page is its own form and saves independently, so each gets its own baseline.
+  const guards = new Map(forms.map((form) => [form, guardUnsavedChanges(form)]));
   const setStatus = (form: HTMLFormElement, message: string, tone: 'ok' | 'err' = 'ok') => { const target = form.querySelector('[data-status]')!; target.textContent = message; target.className = message ? `status status--${tone}` : ''; };
   async function load() {
     const res = await request<Array<Record<string, any>>>('/api/legal-pages-admin', {}, 'Unable to load legal pages.');
     if (!res.ok) { forms.forEach((form) => setStatus(form, res.error!, 'err')); return; }
-    forms.forEach((form) => { const row = res.data?.find((item) => item.page === form.dataset.page); if (!row) return setStatus(form, 'No database row yet. Enter both languages to create it.'); (form.elements.namedItem('body_en') as HTMLTextAreaElement).value = row.body_en; (form.elements.namedItem('body_fr') as HTMLTextAreaElement).value = row.body_fr; (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); setStatus(form, 'Content loaded.'); });
+    forms.forEach((form) => { const row = res.data?.find((item) => item.page === form.dataset.page); if (!row) return setStatus(form, 'No database row yet. Enter both languages to create it.'); (form.elements.namedItem('body_en') as HTMLTextAreaElement).value = row.body_en; (form.elements.namedItem('body_fr') as HTMLTextAreaElement).value = row.body_fr; (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); setStatus(form, 'Content loaded.'); guards.get(form)!.markClean(); });
   }
   forms.forEach((form) => form.addEventListener('submit', async (event) => {
     event.preventDefault(); const button = form.querySelector('button') as HTMLButtonElement; button.disabled = true; setStatus(form, 'Saving…'); const data = new FormData(form);
     const published = (form.elements.namedItem('published') as HTMLInputElement).checked;
     const res = await sendJson('/api/legal-pages-admin', 'PUT', { page: form.dataset.page, body_en: data.get('body_en'), body_fr: data.get('body_fr'), published }, 'Unable to save legal page.');
-    setStatus(form, res.ok ? (published ? 'Legal page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); button.disabled = false;
+    setStatus(form, res.ok ? (published ? 'Legal page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guards.get(form)!.markClean(); button.disabled = false;
   }));
   load();
 </script>

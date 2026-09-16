@@ -42,16 +42,20 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { confirmAction, request, sendJson } from '../../lib/admin-client';
+  import { confirmAction, guardUnsavedChanges, request, sendJson } from '../../lib/admin-client';
   type Row = Record<string, any>;
   const serviceForm = document.querySelector('#serviceForm') as HTMLFormElement;
   const processForm = document.querySelector('#processForm') as HTMLFormElement;
   const serviceList = document.querySelector('#services')!; const processList = document.querySelector('#process')!;
   const status = document.querySelector('#status')!; let services: Row[] = []; let process: Row[] = [];
+  // Two independent editors on one screen, so each keeps its own baseline: a
+  // dirty service form must still warn while the process form is untouched.
+  const serviceGuard = guardUnsavedChanges(serviceForm);
+  const processGuard = guardUnsavedChanges(processForm);
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
   const setFields = (form: HTMLFormElement, row: Row) => Object.entries(row).forEach(([key, value]) => { const field = form.elements.namedItem(key) as HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement | null; if (field && key !== 'published') field.value = String(value ?? ''); });
-  const resetService = () => { serviceForm.reset(); (serviceForm.elements.namedItem('id') as HTMLInputElement).value = ''; (serviceForm.elements.namedItem('sort_order') as HTMLInputElement).value = String(services.length); document.querySelector('#serviceTitle')!.textContent = 'New service'; };
-  const resetProcess = () => { processForm.reset(); (processForm.elements.namedItem('id') as HTMLInputElement).value = ''; (processForm.elements.namedItem('step_number') as HTMLInputElement).value = String(process.length + 1); document.querySelector('#processTitle')!.textContent = 'New process step'; };
+  const resetService = () => { serviceForm.reset(); (serviceForm.elements.namedItem('id') as HTMLInputElement).value = ''; (serviceForm.elements.namedItem('sort_order') as HTMLInputElement).value = String(services.length); document.querySelector('#serviceTitle')!.textContent = 'New service'; serviceGuard.markClean(); };
+  const resetProcess = () => { processForm.reset(); (processForm.elements.namedItem('id') as HTMLInputElement).value = ''; (processForm.elements.namedItem('step_number') as HTMLInputElement).value = String(process.length + 1); document.querySelector('#processTitle')!.textContent = 'New process step'; processGuard.markClean(); };
   document.querySelector('#resetService')!.addEventListener('click', resetService); document.querySelector('#resetProcess')!.addEventListener('click', resetProcess);
 
   async function remove(kind: 'service' | 'process', row: Row) {
@@ -66,8 +70,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     setStatus(res.ok ? 'Order saved.' : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) load();
   }
   function render() {
-    serviceList.replaceChildren(); services.forEach((row, index) => serviceList.append(item(row.name_en, row.name_fr, row.published ? 'Published' : 'Draft', () => { setFields(serviceForm, row); (serviceForm.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); document.querySelector('#serviceTitle')!.textContent = `Editing: ${row.name_en}`; }, () => move('service', services, index, -1), () => move('service', services, index, 1), () => remove('service', row))));
-    processList.replaceChildren(); process.forEach((row, index) => processList.append(item(`${row.step_number}. ${row.title_en}`, row.title_fr, row.published ? 'Published' : 'Draft', () => { setFields(processForm, row); (processForm.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); document.querySelector('#processTitle')!.textContent = `Editing: ${row.title_en}`; }, () => move('process', process, index, -1), () => move('process', process, index, 1), () => remove('process', row))));
+    serviceList.replaceChildren(); services.forEach((row, index) => serviceList.append(item(row.name_en, row.name_fr, row.published ? 'Published' : 'Draft', () => { setFields(serviceForm, row); (serviceForm.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); document.querySelector('#serviceTitle')!.textContent = `Editing: ${row.name_en}`; serviceGuard.markClean(); }, () => move('service', services, index, -1), () => move('service', services, index, 1), () => remove('service', row))));
+    processList.replaceChildren(); process.forEach((row, index) => processList.append(item(`${row.step_number}. ${row.title_en}`, row.title_fr, row.published ? 'Published' : 'Draft', () => { setFields(processForm, row); (processForm.elements.namedItem('published') as HTMLInputElement).checked = Boolean(row.published); document.querySelector('#processTitle')!.textContent = `Editing: ${row.title_en}`; processGuard.markClean(); }, () => move('process', process, index, -1), () => move('process', process, index, 1), () => remove('process', row))));
   }
   function item(primary: string, secondary: string, badge: string, edit: () => void, up: () => void, down: () => void, removeItem: () => void) {
     const article = document.createElement('article'); article.className = 'ordered-item';

@@ -58,10 +58,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { coverFileError, request, sendJson, uploadMedia } from '../../lib/admin-client';
+  import { coverFileError, guardUnsavedChanges, request, sendJson, uploadMedia } from '../../lib/admin-client';
   const form = document.querySelector('#settingsForm') as HTMLFormElement;
   const socialLinks = document.querySelector('#socialLinks')!;
   const status = document.querySelector('#status')!;
+  const guard = guardUnsavedChanges(form, socialLinks);
   const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
 
@@ -99,7 +100,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     socialLinks.replaceChildren();
     (Array.isArray(res.data.social_links) ? res.data.social_links : []).forEach((link: any) => addSocial(link.platform, link.url));
     renderOg();
-    setStatus('Site settings loaded.');
+    setStatus('Site settings loaded.'); guard.markClean();
   }
 
   form.addEventListener('submit', async (event) => {
@@ -113,6 +114,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     })).filter((link) => link.platform || link.url);
     const res = await sendJson('/api/site-settings-admin', 'PUT', payload, 'Unable to save site settings.');
     setStatus(res.ok ? 'Site settings saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err');
+    if (res.ok) guard.markClean();
     submit.disabled = false;
   });
   load();

@@ -54,11 +54,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { coverFileError, request, sendJson, uploadMedia } from '../../lib/admin-client';
+  import { coverFileError, guardUnsavedChanges, request, sendJson, uploadMedia } from '../../lib/admin-client';
   const form = document.querySelector('#homepageForm') as HTMLFormElement;
   const stats = document.querySelector('#trustStats')!;
   const choices = document.querySelector('#catalogueChoices')!;
   const status = document.querySelector('#status')!;
+  const guard = guardUnsavedChanges(form, stats, choices);
   const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
 
@@ -111,6 +112,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       label.append(input, text); choices.append(label);
     });
     setStatus(content ? 'Homepage content loaded.' : 'No database row yet. Enter complete bilingual content to create it.');
+    guard.markClean();
   }
 
   form.addEventListener('submit', async (event) => {
@@ -124,7 +126,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     payload.featured_catalogue_ids = selected;
     payload.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
     const res = await sendJson('/api/homepage-admin', 'PUT', payload, 'Unable to save homepage content.');
-    setStatus(res.ok ? (payload.published ? 'Homepage published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'Homepage published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
   load();
 </script>

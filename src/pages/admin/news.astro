@@ -76,7 +76,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { confirmAction, emptyToNull, request, sendJson } from '../../lib/admin-client';
+  import { confirmAction, emptyToNull, registerDirtyCheck, request, sendJson } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
 
@@ -341,9 +341,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     }
   });
 
-  window.addEventListener('beforeunload', event => {
-    if (isDirty()) event.preventDefault();
-  });
+  // These screens track their own baseline around load/reset, so they register
+  // that check rather than taking a second one. registerDirtyCheck also installs
+  // the shared beforeunload and in-app navigation interception.
+  registerDirtyCheck(isDirty);
 
   pristine = snapshot();
   load();

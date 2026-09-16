@@ -31,11 +31,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { request, sendJson } from '../../lib/admin-client';
+  import { guardUnsavedChanges, request, sendJson } from '../../lib/admin-client';
   const form = document.querySelector('#aboutForm') as HTMLFormElement;
   const blocks = document.querySelector('#blocks')!;
   const status = document.querySelector('#status')!;
   const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+  const guard = guardUnsavedChanges(form, blocks);
   const names = ['heritage_copy_en','heritage_copy_fr','purpose_en','purpose_fr','vision_en','vision_fr','mission_en','mission_fr','values_en','values_fr'];
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
   const splitTags = (value: string) => value.split(',').map((tag) => tag.trim()).filter(Boolean);
@@ -60,6 +61,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(res.data.published);
     blocks.replaceChildren(); (res.data.team_capacity_blocks ?? []).forEach((item: any) => addBlock(item.title, item.icon, item.description_en, item.description_fr, item.title_en, item.title_fr, item.tags_en, item.tags_fr));
     setStatus('About content loaded.');
+    guard.markClean();
   }
   form.addEventListener('submit', async (event) => {
     event.preventDefault(); submit.disabled = true; setStatus('Saving…');
@@ -77,7 +79,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       description_fr: (row.querySelector('[data-fr]') as HTMLTextAreaElement).value,
     }));
     const res = await sendJson('/api/about-admin', 'PUT', payload, 'Unable to save About content.');
-    setStatus(res.ok ? (payload.published ? 'About page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'About page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
   load();
 </script>

@@ -195,3 +195,108 @@ export function coverViewState(id: string | null, previewSrc?: string | null): C
     fileLabel: src ? 'Replace cover image' : 'Choose a cover image',
   };
 }
+
+/**
+ * Unsaved-changes guard for the admin editors.
+ *
+ * Seven of the eleven editor screens write to tables that had no draft state
+ * before migration 005, and losing a half-written form to a stray sidebar
+ * click is the cheapest way to lose real editorial work. Every editor form
+ * registers here.
+ *
+ * `beforeunload` alone is not enough: the admin is a multi-page app and the
+ * sidebar links are ordinary anchors, so an in-app navigation is exactly the
+ * case Z's audit reported and the one the native prompt handles least
+ * reliably. The capture-phase click interception covers it, and
+ * `confirmAction` is reused rather than `window.confirm` for the event-loop
+ * reason documented above it.
+ */
+export interface FormGuard {
+  /** True when the form differs from the last `markClean()` baseline. */
+  isDirty(): boolean;
+  /** Re-baselines after a load or a successful save. */
+  markClean(): void;
+}
+
+const dirtyChecks = new Set<() => boolean>();
+let navGuardInstalled = false;
+/** Set while a confirmed navigation is in flight, so the guard does not re-prompt. */
+let leaving = false;
+
+const anyDirty = () => !leaving && [...dirtyChecks].some((check) => check());
+
+/**
+ * Registers an existing dirty-check so screens that already track their own
+ * baseline (catalogue, news, subjects) gain in-app navigation interception
+ * without rewriting their load and reset bookkeeping.
+ */
+export function registerDirtyCheck(isDirty: () => boolean): void {
+  dirtyChecks.add(isDirty);
+  installNavGuard();
+}
+
+/**
+ * Snapshots a form plus any repeatable-row containers whose fields live
+ * outside it. Those rows are built as detached DOM and serialised by hand at
+ * submit time, so `FormData` alone does not see them — without the containers
+ * an editor could lose every team block or project-type option unwarned.
+ */
+export function guardUnsavedChanges(
+  form: HTMLFormElement,
+  ...containers: (Element | null)[]
+): FormGuard {
+  const snapshot = () => {
+    const fields = new URLSearchParams(new FormData(form) as unknown as Record<string, string>).toString();
+    const rows = containers
+      .filter((container): container is Element => Boolean(container))
+      .flatMap((container) => [
+        ...container.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input, textarea, select'),
+      ])
+      .map((field) =>
+        field instanceof HTMLInputElement && (field.type === 'checkbox' || field.type === 'radio')
+          ? String(field.checked)
+          : field.value,
+      )
+      .join('|');
+    return `${fields}::${rows}`;
+  };
+
+  let pristine = snapshot();
+  const guard: FormGuard = {
+    isDirty: () => snapshot() !== pristine,
+    markClean: () => { pristine = snapshot(); },
+  };
+  dirtyChecks.add(guard.isDirty);
+  installNavGuard();
+  return guard;
+}
+
+function installNavGuard(): void {
+  if (navGuardInstalled) return;
+  navGuardInstalled = true;
+
+  window.addEventListener('beforeunload', (event) => {
+    if (anyDirty()) event.preventDefault();
+  });
+
+  document.addEventListener('click', (event) => {
+    if (event.defaultPrevented || event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    const link = (event.target as Element | null)?.closest?.('a[href]') as HTMLAnchorElement | null;
+    if (!link || link.target === '_blank' || link.hasAttribute('download')) return;
+
+    const url = new URL(link.href, location.href);
+    // Same-document fragments and external targets are not a loss of work.
+    if (url.origin !== location.origin) return;
+    if (url.pathname === location.pathname && url.search === location.search) return;
+    if (!anyDirty()) return;
+
+    event.preventDefault();
+    void confirmAction('You have unsaved changes. Leave without saving?').then((confirmed) => {
+      if (!confirmed) return;
+      // Suppress the native prompt that would otherwise fire for the same
+      // navigation the editor has just explicitly approved.
+      leaving = true;
+      location.href = link.href;
+    });
+  }, true);
+}
