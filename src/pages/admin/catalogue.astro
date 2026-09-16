@@ -59,8 +59,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </fieldset>
 
       <div class="checks">
-        <label><input name="language_en" type="checkbox" checked /> English edition</label>
-        <label><input name="language_fr" type="checkbox" checked /> French edition</label>
+        <!-- Unchecked by default: an edition is a publishing claim, so it must be
+             asserted deliberately rather than inherited from a form default. The
+             public card badges these, so a stray default is a visible false claim. -->
+        <label><input name="language_en" type="checkbox" /> English edition</label>
+        <label><input name="language_fr" type="checkbox" /> French edition</label>
         <label><input name="featured" type="checkbox" /> Featured title</label>
         <label><input name="published" type="checkbox" /> Publish now</label>
       </div>
