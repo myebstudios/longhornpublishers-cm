@@ -1,0 +1,27 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { type Locale, useTranslations } from '../../i18n';
+import { getLegalPage, localized, paragraphs } from '../../lib/cms-content';
+
+interface Props { locale: Locale; page: 'privacy_policy' | 'terms_of_use' }
+const { locale, page } = Astro.props;
+const t = useTranslations(locale);
+const key = page === 'privacy_policy' ? 'privacy' : 'terms';
+const copy = t.legal[key];
+const managed = await getLegalPage(page);
+const body = managed ? paragraphs(localized(locale, managed.body_en, managed.body_fr)) : [];
+const updated = managed?.updated_at ? new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(new Date(managed.updated_at)) : t.legal.lastUpdatedValue;
+---
+<Layout title={t.meta[key].title} description={t.meta[key].description} locale={locale} routeKey={key}>
+  <section class="section section--cream">
+    <div class="wrap" style="max-width: 72ch;">
+      <div class="section-head"><h1>{copy.heading}</h1><p class="hero__lede">{copy.intro}</p></div>
+      <p style="margin-bottom: 2rem; color: var(--ink-soft); font-size: var(--step--1);"><strong>{t.legal.lastUpdatedLabel}{locale === 'fr' ? ' :' : ':'}</strong> {updated}</p>
+      <div class="legal-content" style="display: grid; gap: 2rem; line-height: 1.7;">
+        {body.length ? body.map((content) => <p>{content}</p>) : copy.sections.map((section) => (
+          <article><h2 style="font-size: var(--step-1); margin-bottom: 0.5rem; color: var(--burgundy-deep);">{section.title}</h2><p>{section.content}</p></article>
+        ))}
+      </div>
+    </div>
+  </section>
+</Layout>

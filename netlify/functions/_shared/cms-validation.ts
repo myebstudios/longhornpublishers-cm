@@ -319,3 +319,51 @@ export function validateProcessStep(value: unknown): Validation<ProcessStepInput
     description_en: description.value.en!, description_fr: description.value.fr!,
   } };
 }
+
+export interface ContactInput {
+  hero_copy_en: string;
+  hero_copy_fr: string;
+  project_type_options: Array<{ label_en: string; label_fr: string }>;
+  map_lat: number | null;
+  map_lng: number | null;
+}
+
+export function validateContact(value: unknown): Validation<ContactInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Contact settings payload is required.' };
+  const body = value as Record<string, unknown>;
+  const hero = pair(body, 'hero_copy', 'Hero copy', true, 2_000); if (!hero.ok) return hero;
+  if (!Array.isArray(body.project_type_options) || body.project_type_options.length > 30) {
+    return { ok: false, error: 'Project type options must be a list of 30 items or fewer.' };
+  }
+  const options: ContactInput['project_type_options'] = [];
+  for (const [index, item] of body.project_type_options.entries()) {
+    if (!item || typeof item !== 'object') return { ok: false, error: `Project type option ${index + 1} is invalid.` };
+    const row = item as Record<string, unknown>;
+    const en = text(row.label_en, `Project type option ${index + 1} English label`, true, 160); if (!en.ok) return en;
+    const fr = text(row.label_fr, `Project type option ${index + 1} French label`, true, 160); if (!fr.ok) return fr;
+    options.push({ label_en: en.value!, label_fr: fr.value! });
+  }
+  const latitude = body.map_lat === '' || body.map_lat === null || body.map_lat === undefined ? null : Number(body.map_lat);
+  const longitude = body.map_lng === '' || body.map_lng === null || body.map_lng === undefined ? null : Number(body.map_lng);
+  if ((latitude === null) !== (longitude === null)) return { ok: false, error: 'Map latitude and longitude must both be provided, or both left blank.' };
+  if (latitude !== null && (!Number.isFinite(latitude) || latitude < -90 || latitude > 90)) return { ok: false, error: 'Map latitude must be between -90 and 90.' };
+  if (longitude !== null && (!Number.isFinite(longitude) || longitude < -180 || longitude > 180)) return { ok: false, error: 'Map longitude must be between -180 and 180.' };
+  return { ok: true, value: {
+    hero_copy_en: hero.value.en!, hero_copy_fr: hero.value.fr!, project_type_options: options,
+    map_lat: latitude, map_lng: longitude,
+  } };
+}
+
+export interface LegalPageInput {
+  page: 'privacy_policy' | 'terms_of_use';
+  body_en: string;
+  body_fr: string;
+}
+
+export function validateLegalPage(value: unknown): Validation<LegalPageInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Legal page payload is required.' };
+  const body = value as Record<string, unknown>;
+  if (!['privacy_policy', 'terms_of_use'].includes(String(body.page))) return { ok: false, error: 'Legal page must be privacy_policy or terms_of_use.' };
+  const content = pair(body, 'body', 'Legal body', true, 50_000); if (!content.ok) return content;
+  return { ok: true, value: { page: body.page as LegalPageInput['page'], body_en: content.value.en!, body_fr: content.value.fr! } };
+}

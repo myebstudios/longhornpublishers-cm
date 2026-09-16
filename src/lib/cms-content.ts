@@ -66,6 +66,21 @@ export interface WhyContent {
   }>;
 }
 
+export interface ContactContent {
+  hero_copy_en: string | null;
+  hero_copy_fr: string | null;
+  project_type_options: Array<{ label_en: string; label_fr: string }>;
+  map_lat: number | null;
+  map_lng: number | null;
+}
+
+export interface LegalPageContent {
+  page: 'privacy_policy' | 'terms_of_use';
+  body_en: string;
+  body_fr: string;
+  updated_at: string;
+}
+
 const FALLBACK_SITE_SETTINGS: SiteSettings = {
   company_name_en: 'Longhorn Publishers Cameroon Ltd',
   company_name_fr: 'Longhorn Publishers Cameroun Ltd',
@@ -201,6 +216,46 @@ export function getPublishingContent(): Promise<{ services: Service[]; process: 
     }
   })();
   return publishingPromise;
+}
+
+let contactPromise: Promise<ContactContent | null> | undefined;
+export function getContactContent(): Promise<ContactContent | null> {
+  contactPromise ??= (async () => {
+    try {
+      const [row] = await getBuildDatabase().sql`SELECT * FROM contact_settings WHERE id = 'default'`;
+      if (!row) return null;
+      return {
+        ...(row as unknown as ContactContent),
+        map_lat: row.map_lat === null ? null : Number(row.map_lat),
+        map_lng: row.map_lng === null ? null : Number(row.map_lng),
+        project_type_options: parseArray<ContactContent['project_type_options'][number]>((row as { project_type_options?: unknown }).project_type_options),
+      };
+    } catch (error) {
+      failIfProductionDatabaseUnavailable('contact page', error);
+      console.warn('[contact page] Database unavailable; using reviewed static fallback.');
+      return null;
+    }
+  })();
+  return contactPromise;
+}
+
+const legalPromises = new Map<LegalPageContent['page'], Promise<LegalPageContent | null>>();
+export function getLegalPage(page: LegalPageContent['page']): Promise<LegalPageContent | null> {
+  let pending = legalPromises.get(page);
+  if (!pending) {
+    pending = (async () => {
+      try {
+        const [row] = await getBuildDatabase().sql`SELECT * FROM legal_pages WHERE page = ${page}`;
+        return row ? row as unknown as LegalPageContent : null;
+      } catch (error) {
+        failIfProductionDatabaseUnavailable(`legal page: ${page}`, error);
+        console.warn(`[legal page: ${page}] Database unavailable; using reviewed static fallback.`);
+        return null;
+      }
+    })();
+    legalPromises.set(page, pending);
+  }
+  return pending;
 }
 
 export const localized = <T>(locale: Locale, en: T, fr: T): T => locale === 'fr' ? fr : en;

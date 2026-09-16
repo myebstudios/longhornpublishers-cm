@@ -1,0 +1,32 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="Legal pages" section="legal">
+  <div class="admin-page-head"><div><h1>Legal Pages</h1><p>Manage complete bilingual bodies for the Privacy Policy and Terms of Use.</p></div></div>
+  <div class="two legal-editors">
+    <section class="card editor-card"><form data-page="privacy_policy"><h2>Privacy Policy</h2><label>Body — English<textarea name="body_en" required></textarea></label><label>Body — French<textarea name="body_fr" required></textarea></label><div class="form-actions"><button class="button" type="submit">Save Privacy Policy</button></div><p data-status role="status" aria-live="polite"></p></form></section>
+    <section class="card editor-card"><form data-page="terms_of_use"><h2>Terms of Use</h2><label>Body — English<textarea name="body_en" required></textarea></label><label>Body — French<textarea name="body_fr" required></textarea></label><div class="form-actions"><button class="button" type="submit">Save Terms of Use</button></div><p data-status role="status" aria-live="polite"></p></form></section>
+  </div>
+</AdminLayout>
+
+<script>
+  import { request, sendJson } from '../../lib/admin-client';
+  const forms = [...document.querySelectorAll<HTMLFormElement>('form[data-page]')];
+  const setStatus = (form: HTMLFormElement, message: string, tone: 'ok' | 'err' = 'ok') => { const target = form.querySelector('[data-status]')!; target.textContent = message; target.className = message ? `status status--${tone}` : ''; };
+  async function load() {
+    const res = await request<Array<Record<string, any>>>('/api/legal-pages-admin', {}, 'Unable to load legal pages.');
+    if (!res.ok) { forms.forEach((form) => setStatus(form, res.error!, 'err')); return; }
+    forms.forEach((form) => { const row = res.data?.find((item) => item.page === form.dataset.page); if (!row) return setStatus(form, 'No database row yet. Enter both languages to create it.'); (form.elements.namedItem('body_en') as HTMLTextAreaElement).value = row.body_en; (form.elements.namedItem('body_fr') as HTMLTextAreaElement).value = row.body_fr; setStatus(form, 'Content loaded.'); });
+  }
+  forms.forEach((form) => form.addEventListener('submit', async (event) => {
+    event.preventDefault(); const button = form.querySelector('button') as HTMLButtonElement; button.disabled = true; setStatus(form, 'Saving…'); const data = new FormData(form);
+    const res = await sendJson('/api/legal-pages-admin', 'PUT', { page: form.dataset.page, body_en: data.get('body_en'), body_fr: data.get('body_fr') }, 'Unable to save legal page.');
+    setStatus(form, res.ok ? 'Legal page saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err'); button.disabled = false;
+  }));
+  load();
+</script>
+
+<style>
+  .legal-editors textarea { min-height:26rem; }
+  @media (max-width: 980px) { .legal-editors { grid-template-columns:1fr; } }
+</style>

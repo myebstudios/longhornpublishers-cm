@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateAbout, validateHomepage, validateProcessStep, validateService, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
+import { validateAbout, validateContact, validateHomepage, validateLegalPage, validateProcessStep, validateService, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
 
 const site = {
   company_name_en: 'Longhorn Cameroon', company_name_fr: 'Longhorn Cameroun',
@@ -102,4 +102,17 @@ test('publishing service rejects unsupported categories', () => {
 test('process step requires a positive integer order and bilingual copy', () => {
   assert.equal(validateProcessStep({ step_number: 1, title_en: 'Plan', title_fr: 'Planifier', description_en: 'English', description_fr: 'Français' }).ok, true);
   assert.equal(validateProcessStep({ step_number: 0, title_en: 'Plan', title_fr: 'Planifier', description_en: 'English', description_fr: 'Français' }).ok, false);
+});
+
+test('contact settings require bilingual options and valid coordinate pairs', () => {
+  const contact = { hero_copy_en: 'Tell us about the project.', hero_copy_fr: 'Parlez-nous du projet.', project_type_options: [{ label_en: 'Book', label_fr: 'Livre' }], map_lat: 3.8667, map_lng: 11.5167 };
+  assert.equal(validateContact(contact).ok, true);
+  assert.equal(validateContact({ ...contact, map_lng: '' }).ok, false);
+  assert.equal(validateContact({ ...contact, project_type_options: [{ label_en: 'Book', label_fr: '' }] }).ok, false);
+});
+
+test('legal pages accept only known pages with complete bilingual bodies', () => {
+  assert.equal(validateLegalPage({ page: 'privacy_policy', body_en: 'English policy', body_fr: 'Politique française' }).ok, true);
+  assert.equal(validateLegalPage({ page: 'cookies', body_en: 'English', body_fr: 'Français' }).ok, false);
+  assert.equal(validateLegalPage({ page: 'terms_of_use', body_en: 'English', body_fr: '' }).ok, false);
 });

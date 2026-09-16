@@ -3,24 +3,30 @@ import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Icon from '../Icon.astro';
 import { type Locale, useTranslations, LOCALES } from '../../i18n';
-import { getSiteSettings } from '../../lib/cms-content';
+import { getContactContent, getSiteSettings, localized } from '../../lib/cms-content';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
 const f = t.contact.form;
 const settings = await getSiteSettings();
+const contact = await getContactContent();
 const addressLines = settings.address?.split(/\s*(?:—|\n)\s*/).filter(Boolean) ?? [];
 const phones = [settings.phone_1, settings.phone_2].filter((phone): phone is string => Boolean(phone));
 const email = settings.email;
 
-const mapsQuery = encodeURIComponent(addressLines.join(', '));
+const heroCopy = contact ? localized(lang, contact.hero_copy_en, contact.hero_copy_fr) : null;
+const projectTypes = contact?.project_type_options.length
+  ? contact.project_type_options.map((option) => localized(lang, option.label_en, option.label_fr))
+  : f.projectTypes;
+const coordinates = contact?.map_lat != null && contact.map_lng != null ? `${contact.map_lat},${contact.map_lng}` : null;
+const mapsQuery = encodeURIComponent(coordinates ?? addressLines.join(', '));
 const mapsHref = `https://www.google.com/maps/search/?api=1&query=${mapsQuery}`;
 const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=embed`;
 ---
 
 <Layout title={t.meta.contact.title} description={t.meta.contact.description} locale={lang} routeKey="contact">
-  <Hero content={t.contact.hero} img="lh-reading-nook.jpg" compact />
+  <Hero content={t.contact.hero} lede={heroCopy ?? t.contact.hero.lede} img="lh-reading-nook.jpg" compact />
 
   <section class="section section--cream contact-enquiry-section">
     <div class="wrap contact-layout">
@@ -94,7 +100,7 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
               <label for="projectType">{f.projectType}</label>
               <select id="projectType" name="projectType">
                 <option value="">{f.projectTypePlaceholder}</option>
-                {f.projectTypes.map((option) => <option>{option}</option>)}
+                {projectTypes.map((option) => <option>{option}</option>)}
               </select>
             </div>
 

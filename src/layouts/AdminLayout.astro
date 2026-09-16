@@ -1,5 +1,5 @@
 ---
-interface Props { title: string; section?: 'dashboard' | 'settings' | 'homepage' | 'about' | 'services' | 'why' | 'catalogue' | 'subjects' | 'news'; }
+interface Props { title: string; section?: 'dashboard' | 'settings' | 'homepage' | 'about' | 'services' | 'why' | 'catalogue' | 'subjects' | 'news' | 'contact' | 'legal'; }
 const { title, section = 'dashboard' } = Astro.props;
 const items = [
   ['dashboard', 'Overview', '/admin/', '◈'],
@@ -11,6 +11,8 @@ const items = [
   ['catalogue', 'Catalogue', '/admin/catalogue/', '▤'],
   ['subjects', 'Subjects', '/admin/subjects/', '❖'],
   ['news', 'News & updates', '/admin/news/', '✦'],
+  ['contact', 'Contact', '/admin/contact/', '☎'],
+  ['legal', 'Legal pages', '/admin/legal-pages/', '§'],
 ] as const;
 ---
 <!doctype html>
