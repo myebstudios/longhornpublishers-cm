@@ -177,7 +177,7 @@ export const fr: Content = {
       '60+ ans d’expérience du groupe PLC en Afrique',
       'Équipe d’édition basée à Tsinga, Yaoundé',
       'Capacité d’édition 100% bilingue EN & FR',
-      'Conforme aux programmes nationaux Cameroun & RDC',
+      'Conforme aux programmes nationaux',
     ],
     whoWeAre: {
       eyebrow: 'Qui nous sommes',

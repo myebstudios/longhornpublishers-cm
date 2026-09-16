@@ -172,7 +172,7 @@ export const en: Content = {
       '60+ years parent PLC experience across Africa',
       'Local publishing team in Tsinga, Yaoundé',
       '100% Bilingual EN & FR publishing capability',
-      'Aligned to Cameroon & DRC national curricula',
+      'Aligned to national curricula',
     ],
     whoWeAre: {
       eyebrow: 'Who we are',
