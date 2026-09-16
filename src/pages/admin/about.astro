@@ -1,0 +1,78 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+---
+<AdminLayout title="About us" section="about">
+  <div class="admin-page-head"><div><h1>About Us</h1><p>Manage bilingual heritage, identity statements, and team capacity blocks.</p></div></div>
+  <section class="card editor-card">
+    <form id="aboutForm">
+      <h2>Heritage</h2>
+      <div class="two">
+        <label>Heritage copy — English<textarea name="heritage_copy_en" required></textarea></label>
+        <label>Heritage copy — French<textarea name="heritage_copy_fr" required></textarea></label>
+      </div>
+      <h2>Identity</h2>
+      <div class="two">
+        <label>Purpose — English<textarea name="purpose_en" required></textarea></label>
+        <label>Purpose — French<textarea name="purpose_fr" required></textarea></label>
+        <label>Vision — English<textarea name="vision_en" required></textarea></label>
+        <label>Vision — French<textarea name="vision_fr" required></textarea></label>
+        <label>Mission — English<textarea name="mission_en" required></textarea></label>
+        <label>Mission — French<textarea name="mission_fr" required></textarea></label>
+        <label>Values — English<textarea name="values_en" required></textarea></label>
+        <label>Values — French<textarea name="values_fr" required></textarea></label>
+      </div>
+      <div class="toolbar"><h2>Team capacity blocks</h2><button class="button secondary" type="button" id="addBlock">+ Add block</button></div>
+      <div id="blocks" class="repeat-list"></div>
+      <div class="form-actions"><button class="button" type="submit">Save About page</button></div>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
+  </section>
+</AdminLayout>
+
+<script>
+  import { request, sendJson } from '../../lib/admin-client';
+  const form = document.querySelector('#aboutForm') as HTMLFormElement;
+  const blocks = document.querySelector('#blocks')!;
+  const status = document.querySelector('#status')!;
+  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+  const names = ['heritage_copy_en','heritage_copy_fr','purpose_en','purpose_fr','vision_en','vision_fr','mission_en','mission_fr','values_en','values_fr'];
+  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
+  function addBlock(title = '', icon = '', en = '', fr = '') {
+    const row = document.createElement('div'); row.className = 'repeat-row';
+    row.innerHTML = '<label>Title<input data-title maxlength="160"></label><label>Icon key<input data-icon maxlength="60"></label><label>English description<textarea data-en></textarea></label><label>French description<textarea data-fr></textarea></label><button class="button danger" type="button">Remove</button>';
+    (row.querySelector('[data-title]') as HTMLInputElement).value = title;
+    (row.querySelector('[data-icon]') as HTMLInputElement).value = icon;
+    (row.querySelector('[data-en]') as HTMLTextAreaElement).value = en;
+    (row.querySelector('[data-fr]') as HTMLTextAreaElement).value = fr;
+    row.querySelector('button')!.addEventListener('click', () => row.remove()); blocks.append(row);
+  }
+  document.querySelector('#addBlock')!.addEventListener('click', () => addBlock());
+  async function load() {
+    const res = await request<Record<string, any> | null>('/api/about-admin', {}, 'Unable to load About content.');
+    if (!res.ok) return setStatus(res.error!, 'err');
+    if (!res.data) return setStatus('No database row yet. Enter complete bilingual content to create it.');
+    names.forEach((name) => (form.elements.namedItem(name) as HTMLInputElement).value = String(res.data?.[name] ?? ''));
+    blocks.replaceChildren(); (res.data.team_capacity_blocks ?? []).forEach((item: any) => addBlock(item.title, item.icon, item.description_en, item.description_fr));
+    setStatus('About content loaded.');
+  }
+  form.addEventListener('submit', async (event) => {
+    event.preventDefault(); submit.disabled = true; setStatus('Saving…');
+    const data = new FormData(form); const payload: Record<string, unknown> = {};
+    names.forEach((name) => payload[name] = data.get(name));
+    payload.team_capacity_blocks = [...blocks.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({
+      title: (row.querySelector('[data-title]') as HTMLInputElement).value,
+      icon: (row.querySelector('[data-icon]') as HTMLInputElement).value,
+      description_en: (row.querySelector('[data-en]') as HTMLTextAreaElement).value,
+      description_fr: (row.querySelector('[data-fr]') as HTMLTextAreaElement).value,
+    }));
+    const res = await sendJson('/api/about-admin', 'PUT', payload, 'Unable to save About content.');
+    setStatus(res.ok ? 'About page saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err'); submit.disabled = false;
+  });
+  load();
+</script>
+
+<style>
+  .repeat-list { display:grid; gap:12px; }
+  .repeat-row { display:grid; grid-template-columns:1fr .6fr 1.4fr 1.4fr auto; gap:12px; align-items:end; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
+  @media (max-width: 980px) { .repeat-row { grid-template-columns:1fr; } }
+</style>

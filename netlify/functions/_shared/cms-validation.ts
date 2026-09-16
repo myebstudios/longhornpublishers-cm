@@ -184,3 +184,84 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
     featured_catalogue_ids: featuredIds,
   } };
 }
+
+export interface AboutInput {
+  heritage_copy_en: string;
+  heritage_copy_fr: string;
+  purpose_en: string;
+  purpose_fr: string;
+  vision_en: string;
+  vision_fr: string;
+  mission_en: string;
+  mission_fr: string;
+  values_en: string;
+  values_fr: string;
+  team_capacity_blocks: Array<{ title: string; icon: string | null; description_en: string; description_fr: string }>;
+}
+
+export function validateAbout(value: unknown): Validation<AboutInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'About page payload is required.' };
+  const body = value as Record<string, unknown>;
+  const heritage = pair(body, 'heritage_copy', 'Heritage copy', true, 8_000); if (!heritage.ok) return heritage;
+  const purpose = pair(body, 'purpose', 'Purpose', true, 3_000); if (!purpose.ok) return purpose;
+  const vision = pair(body, 'vision', 'Vision', true, 3_000); if (!vision.ok) return vision;
+  const mission = pair(body, 'mission', 'Mission', true, 3_000); if (!mission.ok) return mission;
+  const values = pair(body, 'values', 'Values', true, 3_000); if (!values.ok) return values;
+  if (!Array.isArray(body.team_capacity_blocks) || body.team_capacity_blocks.length > 12) {
+    return { ok: false, error: 'Team capacity blocks must be a list of 12 items or fewer.' };
+  }
+  const blocks: AboutInput['team_capacity_blocks'] = [];
+  for (const [index, item] of body.team_capacity_blocks.entries()) {
+    if (!item || typeof item !== 'object') return { ok: false, error: `Team capacity block ${index + 1} is invalid.` };
+    const row = item as Record<string, unknown>;
+    const title = text(row.title, `Team capacity block ${index + 1} title`, true, 160); if (!title.ok) return title;
+    const icon = text(row.icon, `Team capacity block ${index + 1} icon`, false, 60); if (!icon.ok) return icon;
+    const en = text(row.description_en, `Team capacity block ${index + 1} English description`, true, 2_000); if (!en.ok) return en;
+    const fr = text(row.description_fr, `Team capacity block ${index + 1} French description`, true, 2_000); if (!fr.ok) return fr;
+    blocks.push({ title: title.value!, icon: icon.value, description_en: en.value!, description_fr: fr.value! });
+  }
+  return { ok: true, value: {
+    heritage_copy_en: heritage.value.en!, heritage_copy_fr: heritage.value.fr!,
+    purpose_en: purpose.value.en!, purpose_fr: purpose.value.fr!,
+    vision_en: vision.value.en!, vision_fr: vision.value.fr!,
+    mission_en: mission.value.en!, mission_fr: mission.value.fr!,
+    values_en: values.value.en!, values_fr: values.value.fr!,
+    team_capacity_blocks: blocks,
+  } };
+}
+
+export interface WhyInput {
+  local_presence_copy_en: string;
+  local_presence_copy_fr: string;
+  quality_commitment_items: Array<{
+    icon: string | null;
+    title_en: string;
+    title_fr: string;
+    description_en: string;
+    description_fr: string;
+  }>;
+}
+
+export function validateWhy(value: unknown): Validation<WhyInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Why Choose Us payload is required.' };
+  const body = value as Record<string, unknown>;
+  const local = pair(body, 'local_presence_copy', 'Local presence copy', true, 8_000); if (!local.ok) return local;
+  if (!Array.isArray(body.quality_commitment_items) || body.quality_commitment_items.length > 12) {
+    return { ok: false, error: 'Quality commitment items must be a list of 12 items or fewer.' };
+  }
+  const items: WhyInput['quality_commitment_items'] = [];
+  for (const [index, item] of body.quality_commitment_items.entries()) {
+    if (!item || typeof item !== 'object') return { ok: false, error: `Quality commitment item ${index + 1} is invalid.` };
+    const row = item as Record<string, unknown>;
+    const icon = text(row.icon, `Quality commitment item ${index + 1} icon`, false, 60); if (!icon.ok) return icon;
+    const titleEn = text(row.title_en, `Quality commitment item ${index + 1} English title`, true, 160); if (!titleEn.ok) return titleEn;
+    const titleFr = text(row.title_fr, `Quality commitment item ${index + 1} French title`, true, 160); if (!titleFr.ok) return titleFr;
+    const descriptionEn = text(row.description_en, `Quality commitment item ${index + 1} English description`, true, 2_000); if (!descriptionEn.ok) return descriptionEn;
+    const descriptionFr = text(row.description_fr, `Quality commitment item ${index + 1} French description`, true, 2_000); if (!descriptionFr.ok) return descriptionFr;
+    items.push({ icon: icon.value, title_en: titleEn.value!, title_fr: titleFr.value!, description_en: descriptionEn.value!, description_fr: descriptionFr.value! });
+  }
+  return { ok: true, value: {
+    local_presence_copy_en: local.value.en!, local_presence_copy_fr: local.value.fr!,
+    quality_commitment_items: items,
+  } };
+}

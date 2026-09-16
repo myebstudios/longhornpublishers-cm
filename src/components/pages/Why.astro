@@ -5,10 +5,23 @@ import Split from '../Split.astro';
 import SectionHead from '../SectionHead.astro';
 import CtaBand from '../CtaBand.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
+import { getWhyContent, localized, paragraphs } from '../../lib/cms-content';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+const why = await getWhyContent();
+const localPresence = why ? paragraphs(localized(lang, why.local_presence_copy_en, why.local_presence_copy_fr)) : null;
+const firstPillar = localPresence?.length ? { ...t.why.pillars[0], body: localPresence } : t.why.pillars[0];
+const pillars = why?.quality_commitment_items.length
+  ? [firstPillar, ...why.quality_commitment_items.map((item, index) => ({
+      ...(t.why.pillars[index + 1] ?? t.why.pillars.at(-1)!),
+      titleLead: localized(lang, item.title_en, item.title_fr),
+      titleAccent: '',
+      body: paragraphs(localized(lang, item.description_en, item.description_fr)),
+      tags: undefined,
+    }))]
+  : [firstPillar, ...t.why.pillars.slice(1)];
 
 /** Photograph per pillar, in order. */
 const PILLAR_IMG = ['lh-catalogue-shelves.jpg', 'lh-final-inspection.jpg', 'lh-textbook-library.jpg'];
@@ -18,10 +31,10 @@ const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
 <Layout title={t.meta.why.title} description={t.meta.why.description} locale={lang} routeKey="why">
   <Hero content={t.why.hero} img="lh-reading-discussion.jpg" compact />
 
-  {t.why.pillars.map((pillar, i) => (
-    <section class:list={['section', PILLAR_TONE[i]]}>
+  {pillars.map((pillar, i) => (
+    <section class:list={['section', PILLAR_TONE[i % PILLAR_TONE.length]]}>
       <div class="wrap">
-        <Split img={PILLAR_IMG[i]} alt={pillar.imgAlt} reverse={i % 2 === 1}>
+        <Split img={PILLAR_IMG[i % PILLAR_IMG.length]} alt={pillar.imgAlt} reverse={i % 2 === 1}>
           <span class="eyebrow">{pillar.eyebrow}</span>
           <h2>{pillar.titleLead} <em class="accent">{pillar.titleAccent}</em></h2>
           {pillar.body.map((paragraph) => <p>{paragraph}</p>)}

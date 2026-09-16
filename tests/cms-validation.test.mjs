@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateHomepage, validateSiteSettings } from '../netlify/functions/_shared/cms-validation.ts';
+import { validateAbout, validateHomepage, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
 
 const site = {
   company_name_en: 'Longhorn Cameroon', company_name_fr: 'Longhorn Cameroun',
@@ -53,4 +53,36 @@ test('homepage limits featured catalogue selection to four unique UUIDs', () => 
   const result = validateHomepage({ ...homepage, featured_catalogue_ids: [id, id] });
   assert.equal(result.ok, false);
   if (!result.ok) assert.match(result.error, /unique UUIDs/);
+});
+
+const about = {
+  heritage_copy_en: 'English heritage', heritage_copy_fr: 'Héritage français',
+  purpose_en: 'Purpose', purpose_fr: 'Raison d’être', vision_en: 'Vision', vision_fr: 'Vision',
+  mission_en: 'Mission', mission_fr: 'Mission', values_en: 'Values', values_fr: 'Valeurs',
+  team_capacity_blocks: [{ title: 'Editorial', icon: 'pen', description_en: 'English description', description_fr: 'Description française' }],
+};
+
+test('about page accepts complete bilingual singleton content', () => {
+  assert.equal(validateAbout(about).ok, true);
+});
+
+test('about page rejects incomplete team block translations', () => {
+  const result = validateAbout({ ...about, team_capacity_blocks: [{ ...about.team_capacity_blocks[0], description_fr: '' }] });
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.error, /French description/);
+});
+
+const why = {
+  local_presence_copy_en: 'Local presence', local_presence_copy_fr: 'Présence locale',
+  quality_commitment_items: [{ icon: 'check', title_en: 'Quality', title_fr: 'Qualité', description_en: 'English description', description_fr: 'Description française' }],
+};
+
+test('why choose us accepts bilingual quality commitments', () => {
+  assert.equal(validateWhy(why).ok, true);
+});
+
+test('why choose us rejects one-sided local presence copy', () => {
+  const result = validateWhy({ ...why, local_presence_copy_fr: '' });
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.error, /French/);
 });

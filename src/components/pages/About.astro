@@ -7,10 +7,27 @@ import CtaBand from '../CtaBand.astro';
 import Icon from '../Icon.astro';
 import Button from '../Button.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
+import { getAboutContent, localized, paragraphs } from '../../lib/cms-content';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+const about = await getAboutContent();
+const heritageBody = about ? paragraphs(localized(lang, about.heritage_copy_en, about.heritage_copy_fr)) : t.about.heritage.body;
+const identityKeys = ['purpose', 'vision', 'mission', 'values'] as const;
+const identityItems = about
+  ? t.about.identity.items.map((item, index) => ({
+      ...item,
+      body: localized(lang, about[`${identityKeys[index]}_en`], about[`${identityKeys[index]}_fr`]),
+    }))
+  : t.about.identity.items;
+const teamItems = about?.team_capacity_blocks.length
+  ? about.team_capacity_blocks.map((item) => ({
+      title: item.title,
+      body: localized(lang, item.description_en, item.description_fr),
+      icon: item.icon ?? 'users',
+    }))
+  : t.about.team.items;
 
 /** Accent rotation for the four identity cards, matching the original design. */
 const IDENTITY_ACCENT = ['', 'card--accent-purple', 'card--accent-mustard', ''];
@@ -27,7 +44,7 @@ const TEAM_ACCENT = ['', 'card--accent-mustard', 'card--accent-purple'];
       <Split img="lh-client-consultation.jpg" alt={t.about.heritage.imgAlt}>
         <span class="eyebrow">{t.about.heritage.eyebrow}</span>
         <h2>{t.about.heritage.titleLead} <em class="accent">{t.about.heritage.titleAccent}</em></h2>
-        {t.about.heritage.body.map((paragraph) => <p>{paragraph}</p>)}
+        {heritageBody.map((paragraph) => <p>{paragraph}</p>)}
         <a class="link-arrow" href={path('why', lang)}>{t.about.heritage.link}</a>
       </Split>
     </div>
@@ -42,7 +59,7 @@ const TEAM_ACCENT = ['', 'card--accent-mustard', 'card--accent-purple'];
         titleAccent={t.about.identity.titleAccent}
       />
       <div class="value-grid reveal">
-        {t.about.identity.items.map((item, i) => (
+        {identityItems.map((item, i) => (
           <article class:list={['card', IDENTITY_ACCENT[i]]}>
             <span class="card__icon"><Icon name={item.icon ?? 'check'} /></span>
             <h3>{item.title}</h3>
@@ -62,7 +79,7 @@ const TEAM_ACCENT = ['', 'card--accent-mustard', 'card--accent-purple'];
         lede={t.about.team.lede}
       />
       <div class="grid grid--3 reveal">
-        {t.about.team.items.map((item, i) => (
+        {teamItems.map((item, i) => (
           <article class:list={['card', TEAM_ACCENT[i]]}>
             <span class="card__icon"><Icon name={item.icon ?? 'users'} /></span>
             <h3>{item.title}</h3>

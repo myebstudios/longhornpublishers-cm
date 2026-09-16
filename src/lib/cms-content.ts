@@ -39,6 +39,32 @@ export interface HomepageContent {
   featured_catalogue_ids: string[];
 }
 
+export interface AboutContent {
+  heritage_copy_en: string;
+  heritage_copy_fr: string;
+  purpose_en: string;
+  purpose_fr: string;
+  vision_en: string;
+  vision_fr: string;
+  mission_en: string;
+  mission_fr: string;
+  values_en: string;
+  values_fr: string;
+  team_capacity_blocks: Array<{ title: string; icon: string | null; description_en: string; description_fr: string }>;
+}
+
+export interface WhyContent {
+  local_presence_copy_en: string;
+  local_presence_copy_fr: string;
+  quality_commitment_items: Array<{
+    icon: string | null;
+    title_en: string;
+    title_fr: string;
+    description_en: string;
+    description_fr: string;
+  }>;
+}
+
 const FALLBACK_SITE_SETTINGS: SiteSettings = {
   company_name_en: 'Longhorn Publishers Cameroon Ltd',
   company_name_fr: 'Longhorn Publishers Cameroun Ltd',
@@ -105,6 +131,44 @@ export function getHomepageContent(): Promise<HomepageContent | null> {
     }
   })();
   return homepagePromise;
+}
+
+let aboutPromise: Promise<AboutContent | null> | undefined;
+export function getAboutContent(): Promise<AboutContent | null> {
+  aboutPromise ??= (async () => {
+    try {
+      const [row] = await getBuildDatabase().sql`SELECT * FROM about_page WHERE id = 'default'`;
+      if (!row) return null;
+      return {
+        ...(row as unknown as AboutContent),
+        team_capacity_blocks: parseArray<AboutContent['team_capacity_blocks'][number]>((row as { team_capacity_blocks?: unknown }).team_capacity_blocks),
+      };
+    } catch (error) {
+      failIfProductionDatabaseUnavailable('about page', error);
+      console.warn('[about page] Database unavailable; using reviewed static fallback.');
+      return null;
+    }
+  })();
+  return aboutPromise;
+}
+
+let whyPromise: Promise<WhyContent | null> | undefined;
+export function getWhyContent(): Promise<WhyContent | null> {
+  whyPromise ??= (async () => {
+    try {
+      const [row] = await getBuildDatabase().sql`SELECT * FROM why_choose_us WHERE id = 'default'`;
+      if (!row) return null;
+      return {
+        ...(row as unknown as WhyContent),
+        quality_commitment_items: parseArray<WhyContent['quality_commitment_items'][number]>((row as { quality_commitment_items?: unknown }).quality_commitment_items),
+      };
+    } catch (error) {
+      failIfProductionDatabaseUnavailable('why choose us', error);
+      console.warn('[why choose us] Database unavailable; using reviewed static fallback.');
+      return null;
+    }
+  })();
+  return whyPromise;
 }
 
 export const localized = <T>(locale: Locale, en: T, fr: T): T => locale === 'fr' ? fr : en;
