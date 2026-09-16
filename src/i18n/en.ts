@@ -445,6 +445,16 @@ export const en: Content = {
         imgAlt: 'English and French editions of the same title side by side',
       },
     ],
+    bilingualSlider: {
+      eyebrow: 'Bilingual Excellence',
+      titleLead: 'Side-by-side translation',
+      titleAccent: 'quality in action',
+      bookTitle: 'Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1)',
+      hint: 'Drag handle or use ← → arrow keys to compare editions',
+      enLabel: 'English Edition',
+      frLabel: 'French Edition',
+      ariaLabel: 'Bilingual edition comparator',
+    },
     compare: {
       eyebrow: 'The difference',
       titleLead: 'Full service versus',

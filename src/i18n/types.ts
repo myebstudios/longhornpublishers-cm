@@ -110,6 +110,16 @@ export interface Content {
   why: {
     hero: Titled;
     pillars: (Titled & { body: string[]; imgAlt: string; tags?: string[] })[];
+    bilingualSlider: {
+      eyebrow: string;
+      titleLead: string;
+      titleAccent: string;
+      bookTitle: string;
+      hint: string;
+      enLabel: string;
+      frLabel: string;
+      ariaLabel: string;
+    };
     compare: Titled & {
       bad: { title: string; body: string };
       good: { title: string; body: string };
