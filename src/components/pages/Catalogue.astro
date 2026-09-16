@@ -57,10 +57,25 @@ const filterGroups = [
       </div>
     ) : (
       <div class="wrap catalogue-shop" data-filter-scope>
-        <aside class="catalogue-filters reveal" aria-label={t.catalogue.filters.title}>
+        <button
+          class="catalogue-mobile-trigger"
+          id="mobileFilterTrigger"
+          type="button"
+          aria-expanded="false"
+          aria-controls="catalogueFilters"
+        >
+          <span>🔍 {t.catalogue.filters.title}</span>
+        </button>
+
+        <div class="catalogue-filters-backdrop" id="filterBackdrop" aria-hidden="true"></div>
+
+        <aside class="catalogue-filters reveal" id="catalogueFilters" aria-label={t.catalogue.filters.title}>
           <div class="catalogue-filters__head">
             <h2>{t.catalogue.filters.title}</h2>
-            <p aria-live="polite"><strong data-filter-count>{titles.length}</strong> {t.common.titles}</p>
+            <div style="display:flex;align-items:center;gap:.75rem;">
+              <p aria-live="polite"><strong data-filter-count>{titles.length}</strong> {t.common.titles}</p>
+              <button class="catalogue-filters__close" type="button" id="closeFilterBtn" aria-label={lang === 'fr' ? 'Fermer les filtres' : 'Close filters'}>✕</button>
+            </div>
           </div>
 
           <div class="catalogue-search">
@@ -136,3 +151,68 @@ const filterGroups = [
 
   <CtaBand content={t.catalogue.cta} buttonHref={path('contact', lang)} />
 </Layout>
+
+<script>
+  function setupCatalogueMobileFilters() {
+    const trigger = document.getElementById('mobileFilterTrigger');
+    const drawer = document.getElementById('catalogueFilters');
+    const backdrop = document.getElementById('filterBackdrop');
+    const closeBtn = document.getElementById('closeFilterBtn');
+
+    if (!trigger || !drawer) return;
+
+    function openFilters() {
+      trigger?.setAttribute('aria-expanded', 'true');
+      drawer?.classList.add('is-open');
+      document.body.classList.add('nav-open');
+      const firstInput = drawer?.querySelector<HTMLElement>('input, button');
+      firstInput?.focus();
+    }
+
+    function closeFilters(restoreFocus = false) {
+      trigger?.setAttribute('aria-expanded', 'false');
+      drawer?.classList.remove('is-open');
+      document.body.classList.remove('nav-open');
+      if (restoreFocus) trigger?.focus();
+    }
+
+    trigger.addEventListener('click', () => {
+      const isOpen = trigger.getAttribute('aria-expanded') === 'true';
+      if (isOpen) closeFilters();
+      else openFilters();
+    });
+
+    backdrop?.addEventListener('click', () => closeFilters());
+    closeBtn?.addEventListener('click', () => closeFilters(true));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
+        closeFilters(true);
+      }
+    });
+
+    // ARIA radiogroup arrow navigation (reconciling 0ef00979)
+    const groups = Array.from(document.querySelectorAll<HTMLElement>('[role="radiogroup"]'));
+    groups.forEach((group) => {
+      const radios = Array.from(group.querySelectorAll<HTMLButtonElement>('[role="radio"]'));
+      group.addEventListener('keydown', (e) => {
+        if (!['ArrowRight', 'ArrowLeft', 'ArrowDown', 'ArrowUp'].includes(e.key)) return;
+        const currentIdx = radios.indexOf(document.activeElement as HTMLButtonElement);
+        if (currentIdx === -1) return;
+
+        e.preventDefault();
+        let nextIdx = currentIdx;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') {
+          nextIdx = (currentIdx + 1) % radios.length;
+        } else if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') {
+          nextIdx = (currentIdx - 1 + radios.length) % radios.length;
+        }
+
+        radios[nextIdx]?.click();
+        radios[nextIdx]?.focus();
+      });
+    });
+  }
+
+  setupCatalogueMobileFilters();
+</script>

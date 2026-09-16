@@ -34,6 +34,16 @@ const alternates = {
   alternates={alternates}
   type="article"
 >
+  <div
+    id="readingProgress"
+    class="reading-progress-bar"
+    role="progressbar"
+    aria-label={lang === 'fr' ? 'Progression de lecture' : 'Reading progress'}
+    aria-valuenow="0"
+    aria-valuemin="0"
+    aria-valuemax="100"
+  ></div>
+
   <article class="section section--white">
     <div class="wrap wrap--narrow article-detail">
       <div class="pill-row article-detail__meta">
@@ -52,6 +62,30 @@ const alternates = {
     </div>
   </article>
 </Layout>
+
+<script>
+  function setupReadingProgress() {
+    const bar = document.getElementById('readingProgress');
+    const article = document.querySelector('.article-detail');
+    if (!bar || !article) return;
+
+    function updateProgress() {
+      const rect = article.getBoundingClientRect();
+      const totalScrollable = rect.height - window.innerHeight;
+      const currentScroll = Math.max(0, -rect.top);
+      const ratio = totalScrollable > 0 ? Math.min(1, Math.max(0, currentScroll / totalScrollable)) : 0;
+      
+      bar.style.transform = `scaleX(${ratio})`;
+      bar.setAttribute('aria-valuenow', Math.round(ratio * 100).toString());
+    }
+
+    window.addEventListener('scroll', updateProgress, { passive: true });
+    window.addEventListener('resize', updateProgress, { passive: true });
+    updateProgress();
+  }
+
+  setupReadingProgress();
+</script>
 
 <style>
   .article-detail__meta { align-items: center; gap: .75rem; margin-bottom: 1.25rem; }
