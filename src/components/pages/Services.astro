@@ -7,13 +7,15 @@ import CtaBand from '../CtaBand.astro';
 import Icon from '../Icon.astro';
 import Button from '../Button.astro';
 import { type Locale, useTranslations, path, LOCALES } from '../../i18n';
-import { SERVICES, PROCESS } from '../../data/site';
 import { SERVICE_DETAIL_IMG, disciplineLabel, DISCIPLINE_ACCENT } from '../../data/presentation';
+import { getPublishingContent } from '../../lib/cms-content';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
 const contactHref = path('contact', lang);
+const { services, process } = await getPublishingContent();
+const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.jpg', creative: 'lh-creative-wall.jpg', production: 'lh-print-inspection-wide.jpg' };
 ---
 
 <Layout title={t.meta.services.title} description={t.meta.services.description} locale={lang} routeKey="services">
@@ -35,7 +37,7 @@ const contactHref = path('contact', lang);
         titleAccent={t.services.overview.titleAccent}
       />
       <div class="grid grid--3 reveal">
-        {SERVICES.map((service) => (
+        {services.map((service) => (
           <a class:list={['card', DISCIPLINE_ACCENT[service.discipline]]} href={`#${service.id}`}>
             <span class="card__icon"><Icon name={service.icon} /></span>
             <h3>{service[lang].name}</h3>
@@ -48,10 +50,10 @@ const contactHref = path('contact', lang);
 
   <section class="section section--cream">
     <div class="wrap zigzag">
-      {SERVICES.map((service, i) => (
+      {services.map((service, i) => (
         <Split
           id={service.id}
-          img={SERVICE_DETAIL_IMG[service.id]}
+          img={SERVICE_DETAIL_IMG[service.id] ?? categoryImage[service.discipline]}
           alt={service[lang].name}
           reverse={i % 2 === 1}
         >
@@ -73,7 +75,7 @@ const contactHref = path('contact', lang);
         lede={t.services.process.lede}
       />
       <div class="steps reveal">
-        {PROCESS.map((step, i) => (
+        {process.map((step, i) => (
           <article class:list={['step', i === 0 && 'step--active']}>
             <div class="step__num">{lang === 'fr' ? 'Étape' : 'Step'} {step.num}</div>
             <h3>{step[lang].title}</h3>

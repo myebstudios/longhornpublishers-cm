@@ -1,4 +1,5 @@
 import type { Locale } from '../i18n';
+import { PROCESS as FALLBACK_PROCESS, SERVICES as FALLBACK_SERVICES, type Service, type Step } from '../data/site';
 import { getBuildDatabase } from './build-database';
 import { failIfProductionDatabaseUnavailable } from './production-build';
 
@@ -169,6 +170,37 @@ export function getWhyContent(): Promise<WhyContent | null> {
     }
   })();
   return whyPromise;
+}
+
+let publishingPromise: Promise<{ services: Service[]; process: Step[] }> | undefined;
+export function getPublishingContent(): Promise<{ services: Service[]; process: Step[] }> {
+  publishingPromise ??= (async () => {
+    try {
+      const db = getBuildDatabase();
+      const serviceRows = await db.sql`SELECT * FROM services WHERE published = true ORDER BY sort_order, created_at`;
+      const processRows = await db.sql`SELECT * FROM process_steps ORDER BY step_number`;
+      const services: Service[] = serviceRows.map((row) => {
+        const enBody = paragraphs(String(row.description_en ?? ''));
+        const frBody = paragraphs(String(row.description_fr ?? ''));
+        return {
+          id: String(row.id), icon: String(row.icon ?? 'check'), discipline: row.category as Service['discipline'], img: String(row.category),
+          en: { name: String(row.name_en), short: enBody[0] ?? String(row.description_en), body: enBody },
+          fr: { name: String(row.name_fr), short: frBody[0] ?? String(row.description_fr), body: frBody },
+        };
+      });
+      const process: Step[] = processRows.map((row) => ({
+        num: String(row.step_number).padStart(2, '0'),
+        en: { title: String(row.title_en), body: String(row.description_en) },
+        fr: { title: String(row.title_fr), body: String(row.description_fr) },
+      }));
+      return { services, process };
+    } catch (error) {
+      failIfProductionDatabaseUnavailable('publishing services and process', error);
+      console.warn('[publishing services] Database unavailable; using reviewed static fallback.');
+      return { services: FALLBACK_SERVICES, process: FALLBACK_PROCESS };
+    }
+  })();
+  return publishingPromise;
 }
 
 export const localized = <T>(locale: Locale, en: T, fr: T): T => locale === 'fr' ? fr : en;

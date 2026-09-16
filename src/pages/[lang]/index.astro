@@ -8,7 +8,6 @@ import CtaBand from '../../components/CtaBand.astro';
 import Icon from '../../components/Icon.astro';
 import Button from '../../components/Button.astro';
 import { LOCALES, path, type Locale, useTranslations } from '../../i18n';
-import { SERVICES, PROCESS } from '../../data/site';
 import {
   SERVICE_IMG, disciplineLabel,
 } from '../../data/presentation';
@@ -17,7 +16,7 @@ import {
   articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
 import { coverImage, getPublishedTitles, titleText } from '../../lib/catalogue';
-import { getHomepageContent, localized, mediaPath, paragraphs } from '../../lib/cms-content';
+import { getHomepageContent, getPublishingContent, localized, mediaPath, paragraphs } from '../../lib/cms-content';
 
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
@@ -31,6 +30,8 @@ const partnerCopy = homepage ? localized(lang, homepage.one_partner_copy_en, hom
 const trustItems = homepage?.trust_stats.length
   ? homepage.trust_stats.map((item) => ({ value: item.value, label: localized(lang, item.label_en, item.label_fr) }))
   : t.home.trust.map((label) => ({ value: '', label }));
+const { services, process } = await getPublishingContent();
+const categoryImage: Record<string, string> = { editorial: 'lh-production-planning.jpg', creative: 'lh-book-design.jpg', production: 'lh-print-workshop.jpg' };
 
 // Catalogue showcase, newest/featured first. Omitted entirely when nothing is
 // published, like the news teaser below.
@@ -44,7 +45,7 @@ const catalogueTitles = configuredFeatured.length ? configuredFeatured : allCata
 // Service carousel cards are clamp(290px, 32vw, 390px) wide and below the fold,
 // so they cap out at a 960w source and load lazily.
 const CARD_SIZES = '(max-width: 906px) 290px, (min-width: 1220px) 390px, 32vw';
-const cardImg = (id: string) => responsive(SERVICE_IMG[id], { maxWidth: 960 });
+const cardImg = (id: string, discipline: string) => responsive(SERVICE_IMG[id] ?? categoryImage[discipline], { maxWidth: 960 });
 
 // Teaser for the three most recent published articles. When nothing is
 // published the whole section is omitted — an empty news band on the homepage
@@ -79,7 +80,7 @@ const latestNews = await getPublishedNews(3);
   <div class="marquee" aria-hidden="true">
     <div class="marquee__track">
       {Array.from({ length: 2 }).flatMap(() =>
-        SERVICES.flatMap((service) => [
+        services.flatMap((service) => [
           <span class="marquee__item">{service[lang].name}</span>,
           <span class="marquee__item">•</span>,
         ]),
@@ -151,9 +152,9 @@ const latestNews = await getPublishedNews(3);
         lede={t.home.services.lede}
       />
       <Carousel prevLabel={t.common.prev} nextLabel={t.common.next}>
-        {SERVICES.map((service) => (
+        {services.map((service) => (
           <article class="media-card">
-            <img {...cardImg(service.id)} sizes={CARD_SIZES} alt="" loading="lazy" decoding="async" />
+            <img {...cardImg(service.id, service.discipline)} sizes={CARD_SIZES} alt="" loading="lazy" decoding="async" />
             <span class="pill pill--glass media-card__tag">{disciplineLabel(service.discipline, lang)}</span>
             <h3>{service[lang].name}</h3>
             <p>{service[lang].short}</p>
@@ -196,7 +197,7 @@ const latestNews = await getPublishedNews(3);
         lede={t.home.process.lede}
       />
       <div class="steps reveal">
-        {PROCESS.map((step, i) => (
+        {process.map((step, i) => (
           <article class:list={['step', i === 0 && 'step--active']}>
             <div class="step__num">{lang === 'fr' ? 'Étape' : 'Step'} {step.num}</div>
             <h3>{step[lang].title}</h3>

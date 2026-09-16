@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateAbout, validateHomepage, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
+import { validateAbout, validateHomepage, validateProcessStep, validateService, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
 
 const site = {
   company_name_en: 'Longhorn Cameroon', company_name_fr: 'Longhorn Cameroun',
@@ -85,4 +85,21 @@ test('why choose us rejects one-sided local presence copy', () => {
   const result = validateWhy({ ...why, local_presence_copy_fr: '' });
   assert.equal(result.ok, false);
   if (!result.ok) assert.match(result.error, /French/);
+});
+
+test('publishing service validates bilingual content and publish state', () => {
+  const result = validateService({ name_en: 'Editing', name_fr: 'Révision', category: 'editorial', description_en: 'English', description_fr: 'Français', icon: 'pen', sort_order: 0, published: true });
+  assert.equal(result.ok, true);
+  if (result.ok) assert.equal(result.value.published, true);
+});
+
+test('publishing service rejects unsupported categories', () => {
+  const result = validateService({ name_en: 'Editing', name_fr: 'Révision', category: 'other', description_en: 'English', description_fr: 'Français', sort_order: 0 });
+  assert.equal(result.ok, false);
+  if (!result.ok) assert.match(result.error, /category/);
+});
+
+test('process step requires a positive integer order and bilingual copy', () => {
+  assert.equal(validateProcessStep({ step_number: 1, title_en: 'Plan', title_fr: 'Planifier', description_en: 'English', description_fr: 'Français' }).ok, true);
+  assert.equal(validateProcessStep({ step_number: 0, title_en: 'Plan', title_fr: 'Planifier', description_en: 'English', description_fr: 'Français' }).ok, false);
 });

@@ -265,3 +265,57 @@ export function validateWhy(value: unknown): Validation<WhyInput> {
     quality_commitment_items: items,
   } };
 }
+
+export interface ServiceInput {
+  name_en: string;
+  name_fr: string;
+  category: 'editorial' | 'creative' | 'production';
+  description_en: string;
+  description_fr: string;
+  icon: string | null;
+  sort_order: number;
+  published: boolean;
+}
+
+export function validateService(value: unknown): Validation<ServiceInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Service payload is required.' };
+  const body = value as Record<string, unknown>;
+  const name = pair(body, 'name', 'Service name', true, 160); if (!name.ok) return name;
+  const description = pair(body, 'description', 'Service description', true, 8_000); if (!description.ok) return description;
+  if (!['editorial', 'creative', 'production'].includes(String(body.category))) {
+    return { ok: false, error: 'Service category must be editorial, creative, or production.' };
+  }
+  const icon = text(body.icon, 'Service icon', false, 60); if (!icon.ok) return icon;
+  const sortOrder = Number(body.sort_order);
+  if (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 10_000) {
+    return { ok: false, error: 'Service sort order must be an integer from 0 to 10000.' };
+  }
+  return { ok: true, value: {
+    name_en: name.value.en!, name_fr: name.value.fr!, category: body.category as ServiceInput['category'],
+    description_en: description.value.en!, description_fr: description.value.fr!, icon: icon.value,
+    sort_order: sortOrder, published: body.published === true,
+  } };
+}
+
+export interface ProcessStepInput {
+  step_number: number;
+  title_en: string;
+  title_fr: string;
+  description_en: string;
+  description_fr: string;
+}
+
+export function validateProcessStep(value: unknown): Validation<ProcessStepInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Process step payload is required.' };
+  const body = value as Record<string, unknown>;
+  const title = pair(body, 'title', 'Process step title', true, 160); if (!title.ok) return title;
+  const description = pair(body, 'description', 'Process step description', true, 4_000); if (!description.ok) return description;
+  const stepNumber = Number(body.step_number);
+  if (!Number.isInteger(stepNumber) || stepNumber < 1 || stepNumber > 1_000) {
+    return { ok: false, error: 'Step number must be an integer from 1 to 1000.' };
+  }
+  return { ok: true, value: {
+    step_number: stepNumber, title_en: title.value.en!, title_fr: title.value.fr!,
+    description_en: description.value.en!, description_fr: description.value.fr!,
+  } };
+}
