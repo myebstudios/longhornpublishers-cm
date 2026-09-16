@@ -202,6 +202,21 @@ const organizationSchema = {
         // Content is visible without JavaScript. Only opt into the initial
         // hidden state once the enhancement has successfully started.
         if (!items.length) return;
+
+        // Auto-stagger grid and list children with a max clamp of 4 (320ms cap)
+        const grids = document.querySelectorAll('.grid, .catalogue-grid, .zigzag, .steps');
+        grids.forEach((grid) => {
+          const children = Array.from(grid.children);
+          children.forEach((child, idx) => {
+            const el = child as HTMLElement;
+            if (el.classList.contains('reveal') || el.classList.contains('book-card') || el.classList.contains('article-card') || el.classList.contains('step')) {
+              if (!el.style.getPropertyValue('--reveal-delay')) {
+                el.style.setProperty('--reveal-delay', Math.min(idx, 4).toString());
+              }
+            }
+          });
+        });
+
         document.documentElement.classList.add('has-reveal');
         if (!('IntersectionObserver' in window)) {
           items.forEach(i => i.classList.add('is-visible'));

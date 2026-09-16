@@ -37,11 +37,7 @@ const alternates = {
   <div
     id="readingProgress"
     class="reading-progress-bar"
-    role="progressbar"
-    aria-label={lang === 'fr' ? 'Progression de lecture' : 'Reading progress'}
-    aria-valuenow="0"
-    aria-valuemin="0"
-    aria-valuemax="100"
+    aria-hidden="true"
   ></div>
 
   <article class="section section--white">
@@ -76,7 +72,6 @@ const alternates = {
       const ratio = totalScrollable > 0 ? Math.min(1, Math.max(0, currentScroll / totalScrollable)) : 0;
       
       bar.style.transform = `scaleX(${ratio})`;
-      bar.setAttribute('aria-valuenow', Math.round(ratio * 100).toString());
     }
 
     window.addEventListener('scroll', updateProgress, { passive: true });
