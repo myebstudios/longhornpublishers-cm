@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%" aria-hidden="true" role="img">
+  <defs>
+    <linearGradient id="designGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBF6EE" />
+      <stop offset="100%" stop-color="#F3EADD" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3B0F1B" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <rect width="400" height="240" rx="16" fill="url(#designGrad)" />
+
+  <!-- Layout Grid Canvas -->
+  <g filter="url(#shadow)" transform="translate(60, 25)">
+    <rect width="280" height="190" rx="10" fill="#FFFFFF" stroke="rgba(26,18,22,0.1)" stroke-width="1.5" />
+
+    <!-- Grid Columns -->
+    <line x1="93" y1="15" x2="93" y2="175" stroke="#E9A63B" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
+    <line x1="186" y1="15" x2="186" y2="175" stroke="#E9A63B" stroke-width="1" stroke-dasharray="4 4" opacity="0.6" />
+
+    <!-- Typesetting Frame & Vector Curve -->
+    <rect x="24" y="24" width="138" height="142" rx="6" fill="none" stroke="#6E4B9E" stroke-width="1.5" stroke-dasharray="6 3" />
+
+    <path d="M40 140 C 70 40, 110 160, 140 60" fill="none" stroke="#5C1A2B" stroke-width="3" stroke-linecap="round" />
+    <circle cx="40" cy="140" r="5" fill="#6FBF3F" />
+    <circle cx="140" cy="60" r="5" fill="#6FBF3F" />
+    <line x1="40" y1="140" x2="70" y2="40" stroke="#6FBF3F" stroke-width="1.5" />
+    <line x1="140" y1="60" x2="110" y2="160" stroke="#6FBF3F" stroke-width="1.5" />
+
+    <!-- Color Palette Swatches -->
+    <g transform="translate(180, 30)">
+      <rect width="76" height="32" rx="6" fill="#5C1A2B" />
+      <rect y="40" width="76" height="32" rx="6" fill="#6FBF3F" />
+      <rect y="80" width="76" height="32" rx="6" fill="#E9A63B" />
+      <rect y="120" width="76" height="32" rx="6" fill="#6E4B9E" />
+    </g>
+  </g>
+</svg>

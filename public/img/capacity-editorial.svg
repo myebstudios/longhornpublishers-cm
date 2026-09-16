@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%" aria-hidden="true" role="img">
+  <defs>
+    <linearGradient id="editGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBF6EE" />
+      <stop offset="100%" stop-color="#F3EADD" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3B0F1B" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <!-- Background card -->
+  <rect width="400" height="240" rx="16" fill="url(#editGrad)" />
+
+  <!-- Document Sheet -->
+  <g filter="url(#shadow)" transform="translate(60, 25)">
+    <rect width="280" height="190" rx="10" fill="#FFFFFF" stroke="rgba(26,18,22,0.1)" stroke-width="1.5" />
+
+    <!-- Document Header -->
+    <rect x="24" y="22" width="110" height="12" rx="4" fill="#5C1A2B" />
+    <rect x="144" y="22" width="40" height="12" rx="6" fill="#6FBF3F" opacity="0.8" />
+
+    <!-- Text Lines -->
+    <rect x="24" y="48" width="232" height="6" rx="3" fill="#5A4C52" opacity="0.3" />
+    <rect x="24" y="62" width="200" height="6" rx="3" fill="#5A4C52" opacity="0.3" />
+    <rect x="24" y="76" width="220" height="6" rx="3" fill="#5A4C52" opacity="0.3" />
+
+    <!-- Editorial Annotation Highlight -->
+    <rect x="24" y="96" width="130" height="20" rx="4" fill="#EAF7E2" stroke="#6FBF3F" stroke-width="1" />
+    <text x="32" y="110" font-family="Inter, sans-serif" font-size="10" font-weight="700" fill="#2F7A2A">EN ↔ FR Proofed</text>
+
+    <rect x="24" y="128" width="232" height="6" rx="3" fill="#5A4C52" opacity="0.3" />
+    <rect x="24" y="142" width="180" height="6" rx="3" fill="#5A4C52" opacity="0.3" />
+    <rect x="24" y="156" width="210" height="6" rx="3" fill="#5A4C52" opacity="0.3" />
+  </g>
+
+  <!-- Annotation Pen & Badge Floating -->
+  <g transform="translate(290, 45)" filter="url(#shadow)">
+    <circle cx="28" cy="28" r="28" fill="#5C1A2B" />
+    <path d="M18 34 L32 20 M32 20 L36 24 M32 20 L28 16" stroke="#6FBF3F" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+  </g>
+</svg>

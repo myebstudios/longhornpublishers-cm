@@ -62,6 +62,69 @@ const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
     </section>
   ))}
 
+  <!-- Bilingual Manuscript Slider Section -->
+  <section class="section section--white">
+    <div class="wrap">
+      <SectionHead
+        center
+        eyebrow={lang === 'fr' ? 'Excellence Bilingue' : 'Bilingual Excellence'}
+        titleLead={lang === 'fr' ? 'Qualité de traduction' : 'Side-by-side translation'}
+        titleAccent={lang === 'fr' ? 'côte à côte en action' : 'quality in action'}
+      />
+
+      <div class="bilingual-slider reveal" id="bilingualSlider" data-slider-scope>
+        <div class="bilingual-slider__head">
+          <span class="bilingual-slider__book-title">
+            📘 {lang === 'fr' ? 'Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1)' : 'Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1)'}
+          </span>
+          <span class="bilingual-slider__hint">
+            {lang === 'fr' ? 'Utilisez le curseur ou les flèches ← → pour comparer les versions' : 'Drag handle or use ← → arrow keys to compare translations'}
+          </span>
+        </div>
+
+        <div class="bilingual-slider__container">
+          <!-- English Layer (Base) -->
+          <div class="bilingual-slider__panel bilingual-slider__panel--en">
+            <span class="pill pill--green" style="width:fit-content;margin-bottom:1rem;">🇬🇧 English Original</span>
+            <p class="bilingual-slider__text">
+              Matter is defined as anything that has mass and occupies space. In secondary chemistry, understanding the three states of matter—solid, liquid, and gas—forms the foundation of chemical analysis and experimental observation.
+            </p>
+          </div>
+
+          <!-- French Layer (Overlay) -->
+          <div class="bilingual-slider__panel bilingual-slider__panel--fr" id="frPanel">
+            <div class="bilingual-slider__content">
+              <span class="pill pill--purple" style="width:fit-content;margin-bottom:1rem;">🇫🇷 Traduction Française</span>
+              <p class="bilingual-slider__text">
+                La matière est définie comme tout ce qui possède une masse et occupe un espace. En chimie secondaire, la compréhension des trois états de la matière — solide, liquide et gazeux — constitue le fondement de l’analyse chimique et de l’observation expérimentale.
+              </p>
+            </div>
+          </div>
+
+          <!-- Slider Handle & Range Control -->
+          <div class="bilingual-slider__handle" id="sliderHandle" aria-hidden="true">
+            <div class="bilingual-slider__handle-line"></div>
+            <div class="bilingual-slider__handle-button">↔</div>
+          </div>
+
+          <input
+            type="range"
+            min="0"
+            max="100"
+            value="50"
+            class="bilingual-slider__range"
+            id="bilingualRange"
+            role="slider"
+            aria-valuenow="50"
+            aria-valuemin="0"
+            aria-valuemax="100"
+            aria-label={lang === 'fr' ? 'Comparateur de traduction bilingue' : 'Bilingual translation comparator'}
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section class="section section--dark">
     <div class="wrap">
       <SectionHead
@@ -85,3 +148,40 @@ const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
 
   <CtaBand content={t.why.cta} buttonHref={path('contact', lang)} />
 </Layout>
+
+<script>
+  function setupBilingualSlider() {
+    const range = document.getElementById('bilingualRange') as HTMLInputElement | null;
+    const frPanel = document.getElementById('frPanel');
+    const handle = document.getElementById('sliderHandle');
+    const container = document.querySelector('.bilingual-slider__container') as HTMLElement | null;
+
+    if (!range || !frPanel || !handle) return;
+
+    function updateSlider(val: number) {
+      const clamped = Math.max(0, Math.min(100, val));
+      range!.value = clamped.toString();
+      range!.setAttribute('aria-valuenow', clamped.toString());
+      
+      frPanel!.style.width = `${clamped}%`;
+      handle!.style.left = `${clamped}%`;
+      
+      const content = frPanel!.querySelector('.bilingual-slider__content') as HTMLElement | null;
+      if (content && container) {
+        content.style.width = `${container.clientWidth}px`;
+      }
+    }
+
+    range.addEventListener('input', (e) => {
+      updateSlider(Number((e.target as HTMLInputElement).value));
+    });
+
+    window.addEventListener('resize', () => {
+      updateSlider(Number(range.value));
+    });
+
+    updateSlider(50);
+  }
+
+  setupBilingualSlider();
+</script>

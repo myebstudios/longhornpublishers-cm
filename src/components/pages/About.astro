@@ -42,6 +42,7 @@ const IDENTITY_ACCENT = ['', 'card--accent-purple', 'card--accent-mustard', ''];
 /** Pill colour per team discipline. */
 const TEAM_PILL = ['pill--green', 'pill--mustard', 'pill--purple'];
 const TEAM_ACCENT = ['', 'card--accent-mustard', 'card--accent-purple'];
+const CAPACITY_SVGS = ['capacity-editorial.svg', 'capacity-design.svg', 'capacity-production.svg'];
 ---
 
 <Layout title={t.meta.about.title} description={t.meta.about.description} locale={lang} routeKey="about">
@@ -88,9 +89,14 @@ const TEAM_ACCENT = ['', 'card--accent-mustard', 'card--accent-purple'];
       />
       <div class="grid grid--3 reveal">
         {teamItems.map((item, i) => (
-          <article class:list={['card', TEAM_ACCENT[i]]}>
-            <span class="card__icon"><Icon name={item.icon ?? 'users'} /></span>
-            <h3>{item.title}</h3>
+          <article class:list={['card', 'card--capacity', TEAM_ACCENT[i]]} tabindex="0">
+            <div class="card__illustration">
+              <img src={`/img/${CAPACITY_SVGS[i % CAPACITY_SVGS.length]}`} alt="" loading="lazy" width="400" height="240" />
+            </div>
+            <div class="card__header-inline">
+              <span class="card__icon"><Icon name={item.icon ?? 'users'} /></span>
+              <h3>{item.title}</h3>
+            </div>
             <p>{item.body}</p>
             {item.tags && (
               <div class="card__foot">

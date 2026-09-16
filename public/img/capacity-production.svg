@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 240" width="100%" height="100%" aria-hidden="true" role="img">
+  <defs>
+    <linearGradient id="prodGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FBF6EE" />
+      <stop offset="100%" stop-color="#F3EADD" />
+    </linearGradient>
+    <filter id="shadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="8" flood-color="#3B0F1B" flood-opacity="0.12" />
+    </filter>
+  </defs>
+
+  <rect width="400" height="240" rx="16" fill="url(#prodGrad)" />
+
+  <!-- Production Control Board -->
+  <g filter="url(#shadow)" transform="translate(60, 25)">
+    <rect width="280" height="190" rx="10" fill="#FFFFFF" stroke="rgba(26,18,22,0.1)" stroke-width="1.5" />
+
+    <!-- Print Registration Marks -->
+    <circle cx="25" cy="25" r="10" fill="none" stroke="#5C1A2B" stroke-width="1.5" />
+    <line x1="15" y1="25" x2="35" y2="25" stroke="#5C1A2B" stroke-width="1.5" />
+    <line x1="25" y1="15" x2="25" y2="35" stroke="#5C1A2B" stroke-width="1.5" />
+
+    <circle cx="255" cy="25" r="10" fill="none" stroke="#5C1A2B" stroke-width="1.5" />
+    <line x1="245" y1="25" x2="265" y2="25" stroke="#5C1A2B" stroke-width="1.5" />
+    <line x1="255" y1="15" x2="255" y2="35" stroke="#5C1A2B" stroke-width="1.5" />
+
+    <!-- Production Check Gates -->
+    <g transform="translate(45, 55)">
+      <rect width="190" height="34" rx="6" fill="#EAF7E2" stroke="#6FBF3F" stroke-width="1" />
+      <circle cx="22" cy="17" r="9" fill="#2F7A2A" />
+      <path d="M17 17 L20 20 L27 13" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="40" y="21" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#2F7A2A">Manuscript Review Passed</text>
+
+      <rect y="44" width="190" height="34" rx="6" fill="#EAF7E2" stroke="#6FBF3F" stroke-width="1" />
+      <circle cx="22" cy="61" r="9" fill="#2F7A2A" />
+      <path d="M17 61 L20 64 L27 57" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="40" y="65" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#2F7A2A">Color Proofing Passed</text>
+
+      <rect y="88" width="190" height="34" rx="6" fill="#FBF6EE" stroke="#E9A63B" stroke-width="1" />
+      <circle cx="22" cy="105" r="9" fill="#E9A63B" />
+      <path d="M17 105 L20 108 L27 101" stroke="#FFFFFF" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round" />
+      <text x="40" y="109" font-family="Inter, sans-serif" font-size="11" font-weight="700" fill="#8A5900">Press Print Gate Active</text>
+    </g>
+  </g>
+</svg>
