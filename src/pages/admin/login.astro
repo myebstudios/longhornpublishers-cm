@@ -40,6 +40,28 @@
         <input name="password" type="password" autocomplete="current-password" required minlength="8" placeholder="••••••••" />
       </label>
       <button type="submit">Sign in <span>→</span></button>
+      <button class="text-button" type="button" id="showRecovery">Forgot your password?</button>
+    </form>
+
+    <form id="recoveryRequest" hidden>
+      <label>
+        Administrator email
+        <input name="email" type="email" autocomplete="email" required placeholder="you@company.com" />
+      </label>
+      <button type="submit">Send recovery link <span>→</span></button>
+      <button class="text-button" type="button" data-back-login>Back to sign in</button>
+    </form>
+
+    <form id="resetPassword" hidden>
+      <label>
+        New password
+        <input name="password" type="password" autocomplete="new-password" required minlength="8" />
+      </label>
+      <label>
+        Confirm new password
+        <input name="confirmation" type="password" autocomplete="new-password" required minlength="8" />
+      </label>
+      <button type="submit">Set new password <span>→</span></button>
     </form>
 
     <p id="status" role="status" aria-live="polite"></p>
@@ -55,10 +77,12 @@
   </aside>
 
   <script>
-    import { acceptInvite, AuthError, getUser, handleAuthCallback, login } from '@netlify/identity';
+    import { acceptInvite, AuthError, getUser, handleAuthCallback, login, requestPasswordRecovery, updateUser } from '@netlify/identity';
     const status = document.querySelector('#status');
     const activationForm = document.querySelector('#activate') as HTMLFormElement | null;
     const loginForm = document.querySelector('#login') as HTMLFormElement | null;
+    const recoveryForm = document.querySelector('#recoveryRequest') as HTMLFormElement | null;
+    const resetForm = document.querySelector('#resetPassword') as HTMLFormElement | null;
     const title = document.querySelector('#title');
     const intro = document.querySelector('#intro');
 
@@ -72,11 +96,17 @@
       }
     } else {
       try {
-        const invitationToken = new URLSearchParams(window.location.hash.substring(1)).get('invite_token');
+        const authHash = window.location.hash;
+        const invitationToken = new URLSearchParams(authHash.substring(1)).get('invite_token');
         const callback = await handleAuthCallback();
         const token = callback?.type === 'invite' ? callback.token : invitationToken;
 
-        if (token && activationForm && loginForm) {
+        if (callback?.type === 'recovery' && resetForm && loginForm) {
+          title!.textContent = 'Set a new password';
+          intro!.textContent = 'Choose a new password for your administrator account.';
+          loginForm.hidden = true;
+          resetForm.hidden = false;
+        } else if (token && activationForm && loginForm) {
           title!.textContent = 'Activate administrator account';
           intro!.textContent = 'Create a password to finish accepting your invitation.';
           activationForm.hidden = false;
@@ -159,6 +189,48 @@
           submit.disabled = false;
         }
       });
+
+      document.querySelector('#showRecovery')?.addEventListener('click', () => {
+        if (!loginForm || !recoveryForm) return;
+        loginForm.hidden = true; recoveryForm.hidden = false;
+        title!.textContent = 'Recover your account';
+        intro!.textContent = 'Enter your administrator email and we will send a secure password reset link.';
+        const email = loginForm.elements.namedItem('email') as HTMLInputElement;
+        (recoveryForm.elements.namedItem('email') as HTMLInputElement).value = email.value;
+      });
+
+      document.querySelector('[data-back-login]')?.addEventListener('click', () => {
+        if (!loginForm || !recoveryForm) return;
+        recoveryForm.hidden = true; loginForm.hidden = false;
+        title!.textContent = 'Welcome back';
+        intro!.textContent = 'Sign in to manage Longhorn’s bilingual catalogue and editorial content.';
+      });
+
+      recoveryForm?.addEventListener('submit', async (event) => {
+        event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
+        submit.disabled = true;
+        try {
+          await requestPasswordRecovery(String(new FormData(form).get('email')));
+          if (status) { status.textContent = 'If that administrator account exists, a recovery link has been sent.'; status.className = 'status status--info'; }
+        } catch {
+          if (status) { status.textContent = 'Unable to request account recovery. Try again shortly.'; status.className = 'status status--err'; }
+        } finally { submit.disabled = false; }
+      });
+
+      resetForm?.addEventListener('submit', async (event) => {
+        event.preventDefault(); const form = event.currentTarget as HTMLFormElement; const submit = form.querySelector('button') as HTMLButtonElement; const data = new FormData(form);
+        if (String(data.get('password')) !== String(data.get('confirmation'))) {
+          if (status) { status.textContent = 'Passwords do not match.'; status.className = 'status status--err'; } return;
+        }
+        submit.disabled = true;
+        try {
+          const user = await updateUser({ password: String(data.get('password')) });
+          if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
+          location.href = '/admin/';
+        } catch (error) {
+          if (status) { status.textContent = error instanceof Error ? error.message : 'Unable to set the new password.'; status.className = 'status status--err'; }
+        } finally { submit.disabled = false; }
+      });
     }
   </script>
 
@@ -224,6 +296,8 @@
     button:focus-visible { outline: 3px solid var(--green-deep); outline-offset: 2px; }
     button span { font-size: 18px; line-height: 1; }
     button:disabled { opacity: .6; transform: none !important; cursor: not-allowed; }
+    .text-button { margin: -6px 0 0; padding: 4px 0; justify-content: flex-start; background: transparent; color: var(--burgundy); border-radius: 0; box-shadow: none; font-size: 13px; }
+    .text-button:hover { background: transparent; color: var(--green-deep); box-shadow: none; transform: none; text-decoration: underline; }
 
     #status { min-height: 1.4rem; margin: 18px 0 0; font-weight: 650; font-size: 13px; padding: 10px 14px; border-radius: 10px; }
     #status:empty { display: none; }

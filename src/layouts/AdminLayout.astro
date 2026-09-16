@@ -62,6 +62,7 @@ const items = [
           <span class="avatar">LP</span>
           <span id="adminUser">Checking session…</span>
         </div>
+        <button id="logoutButton" class="logout-button" type="button">Sign out</button>
       </div>
     </header>
 
@@ -71,7 +72,7 @@ const items = [
   </main>
 
   <script>
-    import { getUser } from '@netlify/identity';
+    import { getUser, logout } from '@netlify/identity';
     const target = document.querySelector('#adminUser');
     const release = () => document.documentElement.removeAttribute('data-auth');
     if (import.meta.env.DEV) {
@@ -92,6 +93,11 @@ const items = [
         release();
       }
     }
+    document.querySelector('#logoutButton')?.addEventListener('click', async (event) => {
+      const button = event.currentTarget as HTMLButtonElement;
+      button.disabled = true; button.textContent = 'Signing out…';
+      try { await logout(); } finally { window.location.replace('/admin/login/'); }
+    });
   </script>
 
   <style is:global>
@@ -175,6 +181,9 @@ const items = [
     .eyebrow { margin: 0; color: var(--burgundy); font-size: 10px; font-weight: 800; letter-spacing: .14em; text-transform: uppercase; font-family: var(--font-display); }
     .crumb { margin: 3px 0 0; color: var(--muted); font-size: 13px; font-weight: 500; }
     .user-chip { display: flex; align-items: center; gap: 9px; border: 1px solid var(--line); background: #fff; padding: 5px 14px 5px 5px; border-radius: 999px; color: var(--ink-soft); font-size: 13px; max-width: 290px; }
+    .logout-button { border:0; background:transparent; color:var(--burgundy); font:600 12px var(--font-display); cursor:pointer; padding:.5rem; }
+    .logout-button:hover { color:var(--green-deep); text-decoration:underline; }
+    .logout-button:disabled { opacity:.6; cursor:wait; }
     .avatar { display: grid; place-items: center; width: 30px; height: 30px; border-radius: 50%; background: var(--green-pale); color: var(--green-deep); font-size: 10px; font-weight: 800; }
 
     .page-content { max-width: 1380px; padding: 36px clamp(24px, 5vw, 68px) 72px; }
