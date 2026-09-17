@@ -112,8 +112,9 @@ export interface Content {
       titleAccent: string;
       bookTitle: string;
       hint: string;
-      enLabel: string;
-      frLabel: string;
+      sourceLabel: string;
+      translationLabel: string;
+      attribution: string;
       ariaLabel: string;
     };
     compare: Titled & {

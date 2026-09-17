@@ -1194,6 +1194,13 @@ body.nav-open {
   color: var(--ink-soft);
   font-style: italic;
 }
+.bilingual-slider__attribution {
+  margin-top: 1rem;
+  color: var(--ink-soft);
+  font-size: var(--step--1);
+  line-height: 1.5;
+  max-width: 62ch;
+}
 .bilingual-slider__container {
   position: relative;
   min-height: 240px;

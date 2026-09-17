@@ -85,7 +85,7 @@ const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
         <div class="bilingual-slider__container">
           <!-- English Layer (Base) -->
           <div class="bilingual-slider__panel bilingual-slider__panel--en">
-            <span class="pill pill--green" style="width:fit-content;margin-bottom:1rem;">{t.why.bilingualSlider.enLabel}</span>
+            <span class="pill pill--green" style="width:fit-content;margin-bottom:1rem;">{t.why.bilingualSlider.sourceLabel}</span>
             <p class="bilingual-slider__text">
               Matter is defined as anything that has mass and occupies space. In secondary chemistry, understanding the three states of matter—solid, liquid, and gas—forms the foundation of chemical analysis and experimental observation.
             </p>
@@ -94,7 +94,7 @@ const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
           <!-- French Layer (Overlay) -->
           <div class="bilingual-slider__panel bilingual-slider__panel--fr" id="frPanel">
             <div class="bilingual-slider__content">
-              <span class="pill pill--purple" style="width:fit-content;margin-bottom:1rem;">{t.why.bilingualSlider.frLabel}</span>
+              <span class="pill pill--purple" style="width:fit-content;margin-bottom:1rem;">{t.why.bilingualSlider.translationLabel}</span>
               <p class="bilingual-slider__text">
                 La matière est définie comme tout ce qui possède une masse et occupe un espace. En chimie secondaire, la compréhension des trois états de la matière — solide, liquide et gazeux — constitue le fondement de l’analyse chimique et de l’observation expérimentale.
               </p>
@@ -121,6 +121,10 @@ const PILLAR_TONE = ['section--cream', 'section--white', 'section--cream'];
             aria-label={t.why.bilingualSlider.ariaLabel}
           />
         </div>
+
+        <p class="bilingual-slider__attribution">
+          {t.why.bilingualSlider.attribution}
+        </p>
       </div>
     </div>
   </section>
