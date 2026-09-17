@@ -86,6 +86,28 @@
     const title = document.querySelector('#title');
     const intro = document.querySelector('#intro');
 
+    // Which emailed link brought the admin here. Netlify Identity consumes the
+    // URL hash on the first load, so a refresh loses it entirely — without this
+    // the second attempt cannot tell a dead recovery link from a dead session
+    // and falls back to the generic "Could not check your session" message.
+    const AUTH_FLOW_KEY = 'lh-admin-auth-flow';
+    const rememberFlow = (flow: 'recovery' | 'invite') => {
+      try { sessionStorage.setItem(AUTH_FLOW_KEY, flow); } catch { /* private mode */ }
+    };
+    const recallFlow = (): string | null => {
+      try { return sessionStorage.getItem(AUTH_FLOW_KEY); } catch { return null; }
+    };
+    const forgetFlow = () => {
+      try { sessionStorage.removeItem(AUTH_FLOW_KEY); } catch { /* private mode */ }
+    };
+
+    const openRecoveryForm = () => {
+      if (!loginForm || !recoveryForm) return;
+      loginForm.hidden = true; recoveryForm.hidden = false;
+      title!.textContent = 'Recover your account';
+      intro!.textContent = 'Enter your administrator email and we will send a secure password reset link.';
+    };
+
     if (import.meta.env.DEV) {
       title!.textContent = 'Admin sign-in requires a deploy preview';
       intro!.textContent = 'Netlify Identity does not run in the local development server. You can test the local database and public CMS APIs here; test administrator login, roles, and protected writes on a Netlify deploy preview.';
@@ -98,6 +120,9 @@
       try {
         const authHash = window.location.hash;
         const invitationToken = new URLSearchParams(authHash.substring(1)).get('invite_token');
+        // Recorded before the callback runs, because it clears the hash.
+        if (/(?:^#|&)recovery_token=/.test(authHash)) rememberFlow('recovery');
+        else if (invitationToken) rememberFlow('invite');
         const callback = await handleAuthCallback();
         const token = callback?.type === 'invite' ? callback.token : invitationToken;
 
@@ -135,6 +160,7 @@
             try {
               const user = await acceptInvite(token, password);
               if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
+              forgetFlow();
               location.href = '/admin/';
             } catch (error) {
               if (status) {
@@ -150,13 +176,31 @@
           if (user?.roles?.includes('admin')) location.href = '/admin/';
         }
       } catch {
-        const hadToken = /(?:^#|&)(?:invite_token|recovery_token)=/.test(window.location.hash);
-        if (status) {
-          status.textContent = hadToken
+        // The hash survives only the first load, so fall back to the recorded
+        // flow: a refreshed recovery link must not be answered with invitation
+        // copy, and must not be answered with the generic session message.
+        const hash = window.location.hash;
+        const flow = /(?:^#|&)recovery_token=/.test(hash)
+          ? 'recovery'
+          : /(?:^#|&)invite_token=/.test(hash)
+            ? 'invite'
+            : recallFlow();
+
+        if (flow === 'recovery') {
+          // Route them back into the recovery form rather than leaving them on
+          // a dead end — the only useful next step is a fresh link.
+          openRecoveryForm();
+          if (status) {
+            status.textContent = 'This password recovery link has expired or was already used. Request a new one below.';
+            status.className = 'status status--err';
+          }
+        } else if (status) {
+          status.textContent = flow === 'invite'
             ? 'This invitation link is invalid or has expired. Request a new invitation.'
             : 'Could not check your session. Enter your credentials to sign in.';
           status.className = 'status status--err';
         }
+        forgetFlow();
       }
 
       document.querySelector('#login')?.addEventListener('submit', async (event) => {
@@ -192,10 +236,8 @@
 
       document.querySelector('#showRecovery')?.addEventListener('click', () => {
         if (!loginForm || !recoveryForm) return;
-        loginForm.hidden = true; recoveryForm.hidden = false;
-        title!.textContent = 'Recover your account';
-        intro!.textContent = 'Enter your administrator email and we will send a secure password reset link.';
         const email = loginForm.elements.namedItem('email') as HTMLInputElement;
+        openRecoveryForm();
         (recoveryForm.elements.namedItem('email') as HTMLInputElement).value = email.value;
       });
 
@@ -226,6 +268,7 @@
         try {
           const user = await updateUser({ password: String(data.get('password')) });
           if (!user.roles?.includes('admin')) throw new Error('This account does not have administrator access.');
+          forgetFlow();
           location.href = '/admin/';
         } catch (error) {
           if (status) { status.textContent = error instanceof Error ? error.message : 'Unable to set the new password.'; status.className = 'status status--err'; }
