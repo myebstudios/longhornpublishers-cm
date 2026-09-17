@@ -1,0 +1,20 @@
+-- A stated "last updated" date for legal pages, separate from row updated_at.
+--
+-- Legal.astro renders the page's last-updated date from `updated_at`. That
+-- column moves on EVERY save, so correcting a typo in the Privacy Policy
+-- silently restates the document as having been revised that month. On a
+-- client-facing legal document that is a factual misstatement about when the
+-- terms last changed, not a cosmetic date drift.
+--
+-- `content_updated_at` is set only when an editor deliberately says the
+-- substance changed. It is a date, not a timestamp: the published documents
+-- state a month and year, and storing a clock time would invite rendering a
+-- specific day the document was never revised on.
+--
+-- DELIBERATELY NOT BACKFILLED. Leaving it NULL makes the reader fall through
+-- to the approved static string ("September 2026" / "Septembre 2026"), which
+-- is what the live pages already say. Backfilling from updated_at would stamp
+-- every document with the date migration 007 happened to run — introducing
+-- exactly the wrong date this migration exists to prevent. NULL is the honest
+-- value for "nobody has told us the substance changed".
+ALTER TABLE legal_pages ADD COLUMN IF NOT EXISTS content_updated_at date;

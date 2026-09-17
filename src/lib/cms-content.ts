@@ -116,6 +116,12 @@ export interface LegalPageContent {
   page: 'privacy_policy' | 'terms_of_use';
   body_en: string;
   body_fr: string;
+  /**
+   * The date the document's SUBSTANCE last changed, as stated by an editor.
+   * Null when nobody has stated one — distinct from `updated_at`, which moves
+   * on every save including a typo fix.
+   */
+  content_updated_at: string | Date | null;
   updated_at: string;
 }
 
