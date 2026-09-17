@@ -64,7 +64,18 @@ To validate credibility with educational institutions, ministries, and B2B publi
 
 ---
 
-## 3. Required Client Response Form
+## 3. Democratic Republic of the Congo (DRC) Curriculum & Regional Distribution Clearance
+
+To ensure accurate public product taxonomy and curriculum filtering in the online catalogue:
+
+1. **Market Scope:** Does Longhorn Publishers Cameroon Ltd actively sell or distribute educational learning materials into the **Democratic Republic of the Congo (DRC)** market?
+2. **Title Alignment:** If yes, please specify which exact titles in your catalogue are explicitly aligned with the **DRC National Curriculum** (versus the Cameroon National Curriculum).
+
+> **Publishing Governance Note:** A curriculum tag is an explicit publishing claim. To protect domain credibility with institutional ministry buyers in both Cameroon and the DRC, title alignment filters will only be activated in the online catalogue for titles with written confirmation on file.
+
+---
+
+## 4. Required Client Response Form
 
 Please complete, sign, and return this form to **Gerer Build Studio** (`yv@gererbuildstudio.com` & `marty@gererbuildstudio.com`).
 
@@ -98,7 +109,19 @@ SECTION B: SOCIAL PROOF & TESTIMONIALS (3 APPROVED QUOTES)
     testimonials will be provided post-launch.
 
 
-SECTION C: EXECUTIVE SIGN-OFF
+SECTION C: DRC CURRICULUM & REGIONAL DISTRIBUTION CLEARANCE
+[ ] NO DRC DISTRIBUTION:
+    Longhorn Cameroon currently publishes exclusively for the Cameroon National Curriculum.
+    (Catalogue curriculum filter will be scoped strictly to Cameroon).
+
+[ ] ACTIVE DRC DISTRIBUTION (specify aligned titles below):
+    The following titles are explicitly aligned with the DRC National Curriculum:
+    1. _________________________________________________________________________
+    2. _________________________________________________________________________
+    3. _________________________________________________________________________
+
+
+SECTION D: EXECUTIVE SIGN-OFF
 Authorized Signatory Name: ____________________________________________________
 Title / Position:         ____________________________________________________
 Entity:                   Longhorn Publishers Cameroon Ltd
@@ -109,8 +132,10 @@ Signature:                ______________________
 
 ---
 
-## 4. Next Steps & Timeline
+## 5. Next Steps & Timeline
 
 1. **Client Return:** Longhorn Cameroon management reviews and returns this signed document.
 2. **Route Finalization:** If any French URL slug amendments are requested, routes are updated in `src/i18n/routes.ts`.
-3. **Phase 2 Ingestion:** Upon receipt of Section B quote assets, testimonials are ingested into the live CMS database via `/admin`.
+3. **Curriculum Filter Activation:** If Section C confirms DRC titles, the DRC filter scope is enabled in the catalogue engine.
+4. **Phase 2 Ingestion:** Upon receipt of Section B quote assets, testimonials are ingested into the live CMS database via `/admin`.
+
