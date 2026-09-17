@@ -185,12 +185,37 @@ const filterGroups = [
       else openFilters();
     });
 
-    backdrop?.addEventListener('click', () => closeFilters());
+    backdrop?.addEventListener('click', () => closeFilters(true));
     closeBtn?.addEventListener('click', () => closeFilters(true));
 
     document.addEventListener('keydown', (e) => {
       if (e.key === 'Escape' && trigger.getAttribute('aria-expanded') === 'true') {
         closeFilters(true);
+      }
+    });
+
+    // Trap Tab inside the sheet while it is open. Gated on aria-expanded so the
+    // desktop sidebar — which is always visible and never opened via the
+    // trigger — keeps ordinary tab order.
+    drawer.addEventListener('keydown', (e) => {
+      if (e.key !== 'Tab') return;
+      if (trigger.getAttribute('aria-expanded') !== 'true') return;
+
+      const focusable = Array.from(
+        drawer.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ),
+      ).filter((el) => el.offsetParent !== null);
+      if (!focusable.length) return;
+
+      const first = focusable[0];
+      const last = focusable[focusable.length - 1];
+      if (e.shiftKey && document.activeElement === first) {
+        e.preventDefault();
+        last.focus();
+      } else if (!e.shiftKey && document.activeElement === last) {
+        e.preventDefault();
+        first.focus();
       }
     });
 
