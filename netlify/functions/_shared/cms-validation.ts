@@ -444,6 +444,8 @@ export interface LegalPageInput {
   page: 'privacy_policy' | 'terms_of_use';
   body_en: string;
   body_fr: string;
+  /** Stated revision date (YYYY-MM-DD), or null when not stated. */
+  content_updated_at: string | null;
   published: boolean;
 }
 
@@ -452,5 +454,15 @@ export function validateLegalPage(value: unknown): Validation<LegalPageInput> {
   const body = value as Record<string, unknown>;
   if (!['privacy_policy', 'terms_of_use'].includes(String(body.page))) return { ok: false, error: 'Legal page must be privacy_policy or terms_of_use.' };
   const content = pair(body, 'body', 'Legal body', true, 50_000); if (!content.ok) return content;
-  return { ok: true, value: { page: body.page as LegalPageInput['page'], body_en: content.value.en!, body_fr: content.value.fr!, published: body.published === true } };
+  // The stated revision date, set only when the editor says the substance
+  // changed. Empty means "not stated" and renders the approved static string,
+  // which is materially different from "revised today".
+  const stated = typeof body.content_updated_at === 'string' ? body.content_updated_at.trim() : '';
+  if (stated && !/^\d{4}-\d{2}-\d{2}$/.test(stated)) {
+    return { ok: false, error: 'Last-updated date must be a calendar date (YYYY-MM-DD).' };
+  }
+  if (stated && Number.isNaN(Date.parse(`${stated}T00:00:00Z`))) {
+    return { ok: false, error: 'Last-updated date is not a real calendar date.' };
+  }
+  return { ok: true, value: { page: body.page as LegalPageInput['page'], body_en: content.value.en!, body_fr: content.value.fr!, content_updated_at: stated || null, published: body.published === true } };
 }

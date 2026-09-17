@@ -10,11 +10,45 @@ const key = page === 'privacy_policy' ? 'privacy' : 'terms';
 const copy = t.legal[key];
 const managed = await getLegalPage(page);
 const body = managed ? legalSections(localized(locale, managed.body_en, managed.body_fr)) : [];
-// Month and year, not a full date: the published policies state "September
-// 2026", and dateStyle:'long' would silently restate a legal document as
-// having been revised on a specific day it was not.
-const updated = managed?.updated_at
-  ? new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long' }).format(new Date(managed.updated_at))
+/**
+ * The stated revision date.
+ *
+ * Read from `content_updated_at`, NEVER from `updated_at`: the latter moves on
+ * every save, so a typo fix would restate when the terms last changed. When no
+ * date has been stated, the approved static string is used rather than
+ * inventing one from row metadata.
+ *
+ * Month and year only — the published policies state "September 2026", and a
+ * full date would assert a specific day the document was not revised on. The
+ * first letter is capitalised to match the approved copy: French lowercases
+ * month names, so Intl alone renders "septembre 2026" where the approved
+ * string reads "Septembre 2026".
+ */
+const capitalise = (value: string) => value.charAt(0).toLocaleUpperCase(locale) + value.slice(1);
+
+/**
+ * Normalise a `date` column to a UTC-noon Date.
+ *
+ * The driver hands back a JS Date for a `date` column, constructed at LOCAL
+ * midnight. Formatting that with timeZone:'UTC' shifts it back a day at any
+ * positive offset — WAT is UTC+1, so 2026-09-01 would render as August 2026.
+ * Reading the local calendar components and rebuilding at UTC noon keeps the
+ * stated day intact regardless of where the build runs.
+ */
+function statedDate(value: string | Date | null | undefined): Date | null {
+  if (!value) return null;
+  if (value instanceof Date) {
+    if (Number.isNaN(value.getTime())) return null;
+    return new Date(Date.UTC(value.getFullYear(), value.getMonth(), value.getDate(), 12));
+  }
+  const [year, month, day] = String(value).slice(0, 10).split('-').map(Number);
+  if (!year || !month || !day) return null;
+  return new Date(Date.UTC(year, month - 1, day, 12));
+}
+
+const stated = statedDate(managed?.content_updated_at);
+const updated = stated
+  ? capitalise(new Intl.DateTimeFormat(locale, { year: 'numeric', month: 'long', timeZone: 'UTC' }).format(stated))
   : t.legal.lastUpdatedValue;
 ---
 <Layout title={t.meta[key].title} description={t.meta[key].description} locale={locale} routeKey={key}>

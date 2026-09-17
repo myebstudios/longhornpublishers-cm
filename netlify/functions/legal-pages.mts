@@ -15,9 +15,14 @@ export default async function handler(req: Request) {
   if (!parsed.ok) return json({ error: parsed.error }, { status: 400 });
   const value = parsed.value;
   const [before] = await db.sql`SELECT published FROM legal_pages WHERE page = ${value.page}`;
+  // content_updated_at is written from the editor's input only. It is never
+  // set to now() alongside updated_at — that coupling is the defect this
+  // column exists to break.
   const [saved] = await db.sql`
-    INSERT INTO legal_pages (page, body_en, body_fr, published) VALUES (${value.page}, ${value.body_en}, ${value.body_fr}, ${value.published})
-    ON CONFLICT (page) DO UPDATE SET body_en = EXCLUDED.body_en, body_fr = EXCLUDED.body_fr, published = EXCLUDED.published, updated_at = now()
+    INSERT INTO legal_pages (page, body_en, body_fr, content_updated_at, published)
+    VALUES (${value.page}, ${value.body_en}, ${value.body_fr}, ${value.content_updated_at}, ${value.published})
+    ON CONFLICT (page) DO UPDATE SET body_en = EXCLUDED.body_en, body_fr = EXCLUDED.body_fr,
+      content_updated_at = EXCLUDED.content_updated_at, published = EXCLUDED.published, updated_at = now()
     RETURNING *
   `;
   await rebuildIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, `${value.page} updated`);
