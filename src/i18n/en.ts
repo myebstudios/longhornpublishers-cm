@@ -224,32 +224,6 @@ export const en: Content = {
       lede: 'Five stages, each with a named owner and a sign-off before the next begins.',
       link: 'See the full process',
     },
-    testimonials: {
-      eyebrow: 'Client feedback',
-      titleLead: 'What our partners',
-      titleAccent: 'tell us',
-      note: 'Placeholder quotes — to be replaced with approved client testimonials before launch.',
-      items: [
-        {
-          quote: 'Having the editorial and the print side in the same building removed about three weeks from our schedule.',
-          initials: 'AM',
-          name: 'Placeholder Name',
-          role: 'Education Publisher, Yaoundé',
-        },
-        {
-          quote: 'The French edition read like it was written in French, not translated into it. That is rarer than it should be.',
-          initials: 'NK',
-          name: 'Placeholder Name',
-          role: 'Programme Lead, NGO',
-        },
-        {
-          quote: 'They pushed back on curriculum details we had missed. That is the part you cannot get from a print broker.',
-          initials: 'SE',
-          name: 'Placeholder Name',
-          role: 'Head of Department',
-        },
-      ],
-    },
     news: {
       eyebrow: 'Latest updates',
       titleLead: 'News from',

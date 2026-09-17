@@ -69,10 +69,6 @@ export interface Content {
     cataloguePreview: Titled;
     endToEnd: Titled & { cards: Card[] };
     process: Titled;
-    testimonials: Titled & {
-      note: string;
-      items: { quote: string; initials: string; name: string; role: string }[];
-    };
     news: Titled;
     cta: Titled;
   };

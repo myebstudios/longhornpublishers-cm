@@ -229,32 +229,6 @@ export const fr: Content = {
       lede: 'Cinq étapes, chacune avec un responsable désigné et une validation avant de passer à la suivante.',
       link: 'Voir le processus complet',
     },
-    testimonials: {
-      eyebrow: 'Retours clients',
-      titleLead: 'Ce que nos partenaires',
-      titleAccent: 'nous disent',
-      note: 'Citations fictives — à remplacer par des témoignages clients validés avant le lancement.',
-      items: [
-        {
-          quote: 'Avoir l’éditorial et l’impression dans le même bâtiment nous a fait gagner près de trois semaines sur le calendrier.',
-          initials: 'AM',
-          name: 'Nom à confirmer',
-          role: 'Éditeur scolaire, Yaoundé',
-        },
-        {
-          quote: 'L’édition française se lisait comme si elle avait été écrite en français, et non traduite. C’est plus rare que cela ne devrait l’être.',
-          initials: 'NK',
-          name: 'Nom à confirmer',
-          role: 'Responsable de programme, ONG',
-        },
-        {
-          quote: 'Ils ont relevé des détails du programme qui nous avaient échappé. C’est précisément ce qu’un simple imprimeur ne peut pas apporter.',
-          initials: 'SE',
-          name: 'Nom à confirmer',
-          role: 'Chef de département',
-        },
-      ],
-    },
     news: {
       eyebrow: 'Dernières actualités',
       titleLead: 'Les actualités de',
