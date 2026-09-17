@@ -44,6 +44,63 @@ export function assertLoopbackConnection(connectionString, context) {
   }
 }
 
+
+/**
+ * Demo cover blobs.
+ *
+ * Keys are fixed and UUID-shaped because netlify/functions/media.mts only serves
+ * keys matching `uploads/<uuid>.<ext>`; a friendlier name would be rejected
+ * before the store is touched. Fixed values also keep reseeding idempotent.
+ *
+ * The source files live in `Assets/Book covers/` and are deliberately NOT in the
+ * repository: they are client artwork awaiting approval, and committing them
+ * would make them deployable. A checkout without that folder still seeds — it
+ * just leaves cover_image_id NULL and renders the title-text fallback.
+ */
+export const DEMO_COVERS = [
+  { file: 'b1.png', key: 'uploads/00000000-0000-4000-8000-0000000000c1.png' },
+  { file: 'b2.png', key: 'uploads/00000000-0000-4000-8000-0000000000c2.png' },
+  { file: 'b3.png', key: 'uploads/00000000-0000-4000-8000-0000000000c3.png' },
+  { file: 'b4.png', key: 'uploads/00000000-0000-4000-8000-0000000000c4.png' },
+];
+
+
+/**
+ * Catalogue fixtures, one per demo cover. Levels, subjects, language mixes and
+ * the featured flag vary so the filter chips and the featured-first ordering
+ * have something to act on.
+ */
+const CATALOGUE_DEMO_ROWS = [
+  {
+    id: 'e001', slug: 'demo-primary-mathematics-workbook', code: 'DEMO-CAT-001',
+    level: 'primary', subject: 'd001', languages: ['en', 'fr'], featured: true,
+    en: 'Primary Mathematics Workbook', fr: 'Cahier de mathématiques primaire',
+    descEn: 'Local-only fixture used to verify bilingual catalogue cards and detail routes.',
+    descFr: 'Donnée locale servant uniquement à vérifier les fiches et pages bilingues du catalogue.',
+  },
+  {
+    id: 'e002', slug: 'demo-bilingual-reading-practice', code: 'DEMO-CAT-002',
+    level: 'secondary', subject: 'd002', languages: ['en', 'fr'], featured: false,
+    en: 'Bilingual Reading Practice', fr: 'Exercices de lecture bilingue',
+    descEn: 'Local-only fixture used to exercise catalogue filtering and localization.',
+    descFr: 'Donnée locale servant uniquement à tester le filtrage et la localisation du catalogue.',
+  },
+  {
+    id: 'e003', slug: 'demo-secondary-science-companion', code: 'DEMO-CAT-003',
+    level: 'secondary', subject: 'd003', languages: ['en'], featured: false,
+    en: 'Secondary Science Companion', fr: 'Guide de sciences du secondaire',
+    descEn: 'Local-only fixture with a single language edition, so the language filter has a negative case.',
+    descFr: 'Donnée locale disponible en une seule langue, afin que le filtre linguistique ait un cas négatif.',
+  },
+  {
+    id: 'e004', slug: 'demo-primary-reading-anthology', code: 'DEMO-CAT-004',
+    level: 'primary', subject: 'd002', languages: ['fr'], featured: true,
+    en: 'Primary Reading Anthology', fr: 'Anthologie de lecture primaire',
+    descEn: 'Local-only fixture that is featured and French-only, covering the second featured slot.',
+    descFr: 'Donnée locale mise en avant et uniquement en français, couvrant le second emplacement vedette.',
+  },
+];
+
 /** Single-quote escaping for the demo fixtures' literal SQL. */
 const q = (value) => `'${String(value).replace(/'/g, "''")}'`;
 
@@ -161,7 +218,7 @@ ON CONFLICT (id) DO UPDATE SET
 WHERE news_articles.is_demo = true;
 `;
 
-export function demoSeedSql(hasProductCode, hasNewsDemo = false) {
+export function demoSeedSql(hasProductCode, hasNewsDemo = false, coverKeys = []) {
   const productColumn = hasProductCode ? ', product_code' : '';
   const productValue = (code) => hasProductCode ? `, '${code}'` : '';
   const productUpdate = hasProductCode ? ', product_code = EXCLUDED.product_code' : '';
@@ -171,7 +228,8 @@ BEGIN;
 INSERT INTO subjects (id, name_en, name_fr, is_demo)
 VALUES
   ('00000000-0000-4000-8000-00000000d001', '[DEMO] Mathematics', '[DÉMO] Mathématiques', true),
-  ('00000000-0000-4000-8000-00000000d002', '[DEMO] Languages', '[DÉMO] Langues', true)
+  ('00000000-0000-4000-8000-00000000d002', '[DEMO] Languages', '[DÉMO] Langues', true),
+  ('00000000-0000-4000-8000-00000000d003', '[DEMO] Science', '[DÉMO] Sciences', true)
 ON CONFLICT (id) DO UPDATE SET
   name_en = EXCLUDED.name_en,
   name_fr = EXCLUDED.name_fr,
@@ -184,28 +242,18 @@ INSERT INTO catalogue_titles (
   curriculum_alignment_fr, slug, featured, published, is_demo${productColumn}
 )
 VALUES
-  (
-    '00000000-0000-4000-8000-00000000e001',
-    '[DEMO] Primary Mathematics Workbook',
-    '[DÉMO] Cahier de mathématiques primaire',
-    NULL, 'primary', '00000000-0000-4000-8000-00000000d001', '["en","fr"]'::jsonb,
-    'Local-only fixture used to verify bilingual catalogue cards and detail routes.',
-    'Donnée locale servant uniquement à vérifier les fiches et pages bilingues du catalogue.',
+${CATALOGUE_DEMO_ROWS.map((r, i) => `  (
+    '00000000-0000-4000-8000-00000000${r.id}',
+    ${q(`[DEMO] ${r.en}`)},
+    ${q(`[DÉMO] ${r.fr}`)},
+    ${coverKeys[i] ? q(coverKeys[i]) : 'NULL'},
+    '${r.level}', '00000000-0000-4000-8000-00000000${r.subject}', '${JSON.stringify(r.languages)}'::jsonb,
+    ${q(r.descEn)},
+    ${q(r.descFr)},
     'Synthetic demonstration metadata — not approved curriculum content.',
     'Métadonnées de démonstration fictives — contenu pédagogique non approuvé.',
-    'demo-primary-mathematics-workbook', true, true, true${productValue('DEMO-CAT-001')}
-  ),
-  (
-    '00000000-0000-4000-8000-00000000e002',
-    '[DEMO] Bilingual Reading Practice',
-    '[DÉMO] Exercices de lecture bilingue',
-    NULL, 'secondary', '00000000-0000-4000-8000-00000000d002', '["en","fr"]'::jsonb,
-    'Local-only fixture used to exercise catalogue filtering and localization.',
-    'Donnée locale servant uniquement à tester le filtrage et la localisation du catalogue.',
-    'Synthetic demonstration metadata — not approved curriculum content.',
-    'Métadonnées de démonstration fictives — contenu pédagogique non approuvé.',
-    'demo-bilingual-reading-practice', false, true, true${productValue('DEMO-CAT-002')}
-  )
+    '${r.slug}', ${r.featured}, true, true${productValue(r.code)}
+  )`).join(',\n')}
 ON CONFLICT (id) DO UPDATE SET
   title_en = EXCLUDED.title_en,
   title_fr = EXCLUDED.title_fr,
@@ -226,4 +274,61 @@ WHERE catalogue_titles.is_demo = true;
 ${hasNewsDemo ? NEWS_DEMO_SQL : ''}
 COMMIT;
 `;
+}
+
+/**
+ * Copies the demo covers into the local Netlify Blobs store.
+ *
+ * Deliberately a filesystem write rather than `netlify blobs:set`: that command
+ * has no local/production switch and, with no dev server running, targets the
+ * real site's store. Writing under `.netlify/blobs-serve` cannot reach
+ * production at all, which is the property that matters for unapproved client
+ * artwork.
+ *
+ * Layout mirrors @netlify/blobs' local server. Site-scoped stores — what
+ * `getStore({ name })` returns, and what media.mts uses — live under a
+ * `site:`-prefixed directory; the bare name is a different namespace the
+ * function will never read:
+ *   <dir>/entries/<siteID>/site:<store>/<key>    file contents
+ *   <dir>/metadata/<siteID>/site:<store>/<key>   JSON, matching an admin upload
+ *
+ * Returns the keys actually written, so a checkout without the source folder
+ * seeds with NULL covers instead of pointing at blobs that do not exist.
+ */
+export async function writeLocalDemoCovers({ fs, path, projectRoot, sourceDir, siteId, store = 'longhorn-media' }) {
+  const blobsRoot = path.join(projectRoot, '.netlify', 'blobs-serve');
+  const storeDir = `site:${store}`;
+  const written = [];
+
+  for (const { file, key } of DEMO_COVERS) {
+    const source = path.join(sourceDir, file);
+    let data;
+    try {
+      data = await fs.readFile(source);
+    } catch {
+      written.push(null);
+      continue;
+    }
+
+    const dataPath = path.join(blobsRoot, 'entries', siteId, storeDir, ...key.split('/'));
+    const metadataPath = path.join(blobsRoot, 'metadata', siteId, storeDir, ...key.split('/'));
+
+    // Refuse to write anywhere outside the local store, however sourceDir or
+    // siteId were supplied.
+    if (!path.resolve(dataPath).startsWith(path.resolve(blobsRoot) + path.sep)) {
+      throw new Error(`Refusing demo seed: cover path ${dataPath} escapes the local blob store.`);
+    }
+
+    await fs.mkdir(path.dirname(dataPath), { recursive: true });
+    await fs.writeFile(dataPath, data);
+    await fs.mkdir(path.dirname(metadataPath), { recursive: true });
+    await fs.writeFile(metadataPath, JSON.stringify({
+      contentType: 'image/png',
+      originalName: file,
+      uploadedAt: new Date().toISOString(),
+    }));
+    written.push(key);
+  }
+
+  return written;
 }

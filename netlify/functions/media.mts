@@ -1,6 +1,7 @@
 import { getStore } from '@netlify/blobs';
 import { getDatabase } from '@netlify/database';
 import type { Config } from '@netlify/functions';
+import { canRenderLocalDemoContent } from '../../src/lib/demo-content';
 import { requireAdmin } from './_shared/auth';
 import { json, methodNotAllowed } from './_shared/http';
 
@@ -37,17 +38,32 @@ const EXTENSION_TYPE: Record<string, string> = {
  */
 async function isPubliclyApproved(key: string): Promise<boolean> {
   const db = getDatabase();
-  const [row] = await db.sql`
-    SELECT 1 AS ok WHERE EXISTS (
-      SELECT 1 FROM catalogue_titles WHERE published = true AND is_demo = false AND cover_image_id = ${key}
-      UNION ALL
-      SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
-      UNION ALL
-      SELECT 1 FROM homepage_content WHERE id = 'default' AND (hero_image_id = ${key} OR who_we_are_image_id = ${key})
-      UNION ALL
-      SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
-    )
-  `;
+  // Local development additionally releases covers attached to demo rows, which
+  // would otherwise 404 on the only runtime allowed to render them. Deployed
+  // runtimes keep the catalogue is_demo = false restriction.
+  const [row] = canRenderLocalDemoContent()
+    ? await db.sql`
+        SELECT 1 AS ok WHERE EXISTS (
+          SELECT 1 FROM catalogue_titles WHERE published = true AND cover_image_id = ${key}
+          UNION ALL
+          SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
+          UNION ALL
+          SELECT 1 FROM homepage_content WHERE id = 'default' AND (hero_image_id = ${key} OR who_we_are_image_id = ${key})
+          UNION ALL
+          SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
+        )
+      `
+    : await db.sql`
+        SELECT 1 AS ok WHERE EXISTS (
+          SELECT 1 FROM catalogue_titles WHERE published = true AND is_demo = false AND cover_image_id = ${key}
+          UNION ALL
+          SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
+          UNION ALL
+          SELECT 1 FROM homepage_content WHERE id = 'default' AND (hero_image_id = ${key} OR who_we_are_image_id = ${key})
+          UNION ALL
+          SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
+        )
+      `;
   return Boolean(row);
 }
 

@@ -1,6 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql } from './demo-seed-lib.mjs';
+import {
+  DEMO_COVERS, assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql, writeLocalDemoCovers,
+} from './demo-seed-lib.mjs';
 import { canRenderLocalDemoContent } from '../src/lib/demo-content.ts';
 
 const allowed = {
@@ -199,4 +201,57 @@ test('french apostrophes are escaped rather than breaking the statement', () => 
   const quotes = (sql.match(/'/g) ?? []).length;
   assert.strictEqual(quotes % 2, 0, 'unbalanced single quotes in generated SQL');
   assert.match(sql, /d''actualit/, 'expected the straight apostrophe to be doubled');
+});
+
+test('demo covers are written only inside the local blob store', async () => {
+  const { mkdtemp, mkdir, writeFile, readFile, rm } = await import('node:fs/promises');
+  const fsp = await import('node:fs/promises');
+  const path = (await import('node:path')).default;
+  const os = await import('node:os');
+
+  const root = await mkdtemp(path.join(os.tmpdir(), 'demo-covers-'));
+  try {
+    const sourceDir = path.join(root, 'Assets', 'Book covers');
+    await mkdir(sourceDir, { recursive: true });
+    // Only two of the four sources exist, mirroring a partial checkout.
+    await writeFile(path.join(sourceDir, 'b1.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+    await writeFile(path.join(sourceDir, 'b3.png'), Buffer.from([0x89, 0x50, 0x4e, 0x47]));
+
+    const keys = await writeLocalDemoCovers({
+      fs: fsp, path, projectRoot: root, sourceDir, siteId: 'site-1',
+    });
+
+    assert.strictEqual(keys.filter(Boolean).length, 2, 'only present sources are written');
+    assert.ok(keys[0] && keys[2], 'b1 and b3 map to the first and third titles');
+    assert.strictEqual(keys[1], null);
+    assert.strictEqual(keys[3], null);
+
+    const blobPath = path.join(root, '.netlify', 'blobs-serve', 'entries', 'site-1', 'site:longhorn-media', ...keys[0].split('/'));
+    assert.deepStrictEqual([...await readFile(blobPath)], [0x89, 0x50, 0x4e, 0x47]);
+
+    const metaPath = path.join(root, '.netlify', 'blobs-serve', 'metadata', 'site-1', 'site:longhorn-media', ...keys[0].split('/'));
+    assert.strictEqual(JSON.parse(await readFile(metaPath, 'utf8')).contentType, 'image/png');
+
+    // getStore({ name }) is a site-scoped store, which the local blob server
+    // namespaces under `site:`. Writing to the bare name puts the file where
+    // media.mts will never look.
+    assert.ok(blobPath.includes(`${path.sep}site:longhorn-media${path.sep}`));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('cover keys match the pattern media.mts will serve', () => {
+  // netlify/functions/media.mts rejects anything that is not uploads/<uuid>.<ext>
+  // before touching the store, so a friendlier key would 404.
+  const pattern = /^uploads\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}\.(jpeg|png|webp)$/;
+  assert.ok(DEMO_COVERS.length > 0);
+  for (const { key } of DEMO_COVERS) assert.match(key, pattern);
+  assert.strictEqual(new Set(DEMO_COVERS.map((c) => c.key)).size, DEMO_COVERS.length);
+});
+
+test('a checkout without the cover folder still seeds, with NULL covers', () => {
+  const sql = demoSeedSql(true, true, []);
+  assert.doesNotMatch(sql, /uploads\//);
+  assert.match(sql, /INSERT INTO catalogue_titles/);
 });

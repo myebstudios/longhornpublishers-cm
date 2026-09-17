@@ -1,5 +1,9 @@
 import { execFileSync } from 'node:child_process';
-import { assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql } from './demo-seed-lib.mjs';
+import fs from 'node:fs/promises';
+import path from 'node:path';
+import {
+  assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql, writeLocalDemoCovers,
+} from './demo-seed-lib.mjs';
 
 function netlify(...args) {
   return execFileSync('npx', ['--no-install', 'netlify', ...args], {
@@ -28,7 +32,18 @@ try {
     console.warn('Migration 004_news_demo_origin is not applied locally; seeding catalogue only. Restart `npm run dev` to pick it up.');
   }
 
-  const sql = demoSeedSql(Boolean(state.has_product_code), Boolean(state.has_news_demo));
+  const projectRoot = process.cwd();
+  const siteId = JSON.parse(await fs.readFile(path.join(projectRoot, '.netlify', 'state.json'), 'utf8')).siteId;
+  const coverKeys = await writeLocalDemoCovers({
+    fs, path, projectRoot, siteId,
+    sourceDir: path.join(projectRoot, 'Assets', 'Book covers'),
+  });
+  const coversWritten = coverKeys.filter(Boolean).length;
+  if (coversWritten === 0) {
+    console.warn('No demo covers found in "Assets/Book covers"; seeding titles without covers.');
+  }
+
+  const sql = demoSeedSql(Boolean(state.has_product_code), Boolean(state.has_news_demo), coverKeys);
   netlify('database', 'connect', '--query', sql);
 
   const verification = JSON.parse(netlify(
@@ -40,7 +55,7 @@ try {
   const counts = verification[0] ?? { titles: 0, subjects: 0, news: 0, news_published: 0 };
   console.log(
     `Seeded local demo CMS data (${counts.titles} titles / ${counts.subjects} subjects / `
-    + `${counts.news} news articles, ${counts.news_published} published).`,
+    + `${counts.news} news articles, ${counts.news_published} published / ${coversWritten} covers).`,
   );
   console.log('Demo rows are marked is_demo=true and are excluded outside the local dev runtime.');
 } catch (error) {
