@@ -19,6 +19,7 @@
     "db:migrate": "node scripts/local-db.mjs migrate",
     "db:stop": "node scripts/local-db.mjs stop",
     "db:url": "node scripts/local-db.mjs url",
+    "verify:cms-parity": "node scripts/verify-cms-parity.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
     "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs"
   },
