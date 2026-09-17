@@ -12,14 +12,13 @@ export interface Service {
   id: string;
   icon: string;
   discipline: Discipline;
-  img: string;
   en: { name: string; short: string; body: string[] };
   fr: { name: string; short: string; body: string[] };
 }
 
 export const SERVICES: Service[] = [
   {
-    id: 'editing', icon: 'pen', discipline: 'editorial', img: 'editorial',
+    id: 'editing', icon: 'pen', discipline: 'editorial',
     en: {
       name: 'Editing',
       short: 'Structure, argument, accuracy and readability.',
@@ -38,7 +37,7 @@ export const SERVICES: Service[] = [
     },
   },
   {
-    id: 'proofreading', icon: 'check', discipline: 'editorial', img: 'editorial',
+    id: 'proofreading', icon: 'check', discipline: 'editorial',
     en: {
       name: 'Proofreading',
       short: 'The final gate before anything goes to print.',
@@ -57,7 +56,7 @@ export const SERVICES: Service[] = [
     },
   },
   {
-    id: 'translation', icon: 'globe', discipline: 'editorial', img: 'creative',
+    id: 'translation', icon: 'globe', discipline: 'editorial',
     en: {
       name: 'Translation',
       short: 'English and French, localised not transposed.',
@@ -76,7 +75,7 @@ export const SERVICES: Service[] = [
     },
   },
   {
-    id: 'designing', icon: 'layout', discipline: 'creative', img: 'creative',
+    id: 'designing', icon: 'layout', discipline: 'creative',
     en: {
       name: 'Designing',
       short: 'Covers, interiors, typesetting and layout.',
@@ -95,7 +94,7 @@ export const SERVICES: Service[] = [
     },
   },
   {
-    id: 'illustration', icon: 'brush', discipline: 'creative', img: 'catalogue',
+    id: 'illustration', icon: 'brush', discipline: 'creative',
     en: {
       name: 'Illustration',
       short: 'Original artwork, diagrams and visual explanation.',
@@ -114,7 +113,7 @@ export const SERVICES: Service[] = [
     },
   },
   {
-    id: 'printing', icon: 'print', discipline: 'production', img: 'press',
+    id: 'printing', icon: 'print', discipline: 'production',
     en: {
       name: 'Printing',
       short: 'Production, finishing and delivery at volume.',

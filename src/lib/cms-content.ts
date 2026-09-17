@@ -270,7 +270,7 @@ export function getPublishingContent(): Promise<{ services: Service[]; process: 
           // The slug, not the uuid: SERVICE_DETAIL_IMG and the on-page
           // anchors are both keyed by it, so a uuid here silently swaps every
           // service photograph for its category default.
-          id: String(row.slug ?? row.id), icon: String(row.icon ?? 'check'), discipline: row.category as Service['discipline'], img: String(row.category),
+          id: String(row.slug ?? row.id), icon: String(row.icon ?? 'check'), discipline: row.category as Service['discipline'],
           // `short` is the overview-card line and is NOT the first paragraph of
           // the detail body — on the live site they differ for every service.
           en: { name: String(row.name_en), short: String(row.short_en ?? '') || enBody[0] || String(row.description_en), body: enBody },
