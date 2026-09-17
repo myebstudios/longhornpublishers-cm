@@ -24,7 +24,10 @@ export default async function handler(req: Request) {
     await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'catalogue title deleted');
     return json({ deleted: id });
   }
-  const body = await req.json();
+  // Malformed JSON is a client error, not a crash: without the catch a bad
+  // body rejects here and surfaces as a 500. Matches every other handler.
+  const body = await req.json().catch(() => null);
+  if (!body) return json({ error: 'Provide a valid JSON body.' }, { status: 400 });
   if (!body.title_en || !body.title_fr || !body.slug || !['primary', 'secondary'].includes(body.level) || !body.description_en || !body.description_fr) return json({ error: 'Provide title, slug, level, and description in both languages.' }, { status: 400 });
   const productCode = parseProductCode(body.product_code);
   if (!productCode.ok) return json({ error: productCode.error }, { status: 400 });

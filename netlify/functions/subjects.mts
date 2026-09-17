@@ -53,7 +53,10 @@ export default async function handler(req: Request) {
     }
   }
 
-  const body = await req.json();
+  // Malformed JSON is a client error, not a crash: without the catch a bad
+  // body rejects here and surfaces as a 500. Matches every other handler.
+  const body = await req.json().catch(() => null);
+  if (!body) return json({ error: 'Provide a valid JSON body.' }, { status: 400 });
   const nameEn = typeof body.name_en === 'string' ? body.name_en.trim() : '';
   const nameFr = typeof body.name_fr === 'string' ? body.name_fr.trim() : '';
   if (!nameEn || !nameFr) {
