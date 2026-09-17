@@ -3,6 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { validateHomepage } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
+import { purgeMedia } from './_shared/media-cache';
 import { rebuildIfPublic } from './_shared/rebuild';
 
 const db = getDatabase();
@@ -30,7 +31,7 @@ export default async function handler(req: Request) {
       return json({ error: 'Every featured catalogue title must exist and be published.' }, { status: 400 });
     }
   }
-  const [before] = await db.sql`SELECT published FROM homepage_content WHERE id = 'default'`;
+  const [before] = await db.sql`SELECT published, hero_image_id, who_we_are_image_id FROM homepage_content WHERE id = 'default'`;
   const [saved] = await db.sql`
     INSERT INTO homepage_content (
       id, hero_headline_en, hero_headline_fr, hero_headline_accent_en, hero_headline_accent_fr,
@@ -59,6 +60,7 @@ export default async function handler(req: Request) {
       published = EXCLUDED.published, updated_at = now()
     RETURNING *
   `;
+  await purgeMedia(before?.hero_image_id, before?.who_we_are_image_id, saved.hero_image_id, saved.who_we_are_image_id);
   await rebuildIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'homepage content updated');
   return json(saved);
 }

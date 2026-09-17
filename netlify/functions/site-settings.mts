@@ -3,6 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { validateSiteSettings } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
+import { purgeMedia } from './_shared/media-cache';
 import { requestRebuild } from './_shared/rebuild';
 
 const db = getDatabase();
@@ -41,6 +42,7 @@ export default async function handler(req: Request) {
       og_image_id = EXCLUDED.og_image_id, updated_at = now()
     RETURNING *
   `;
+  await purgeMedia(before?.og_image_id, saved.og_image_id);
   await requestRebuild('site settings updated');
   return json(saved);
 }

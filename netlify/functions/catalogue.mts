@@ -3,6 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { isProductCodeConflict, parseProductCode } from './_shared/catalogue-product-code';
 import { json, methodNotAllowed } from './_shared/http';
+import { purgeMedia } from './_shared/media-cache';
 import { rebuildIfPublic } from './_shared/rebuild';
 
 const db = getDatabase();
@@ -19,8 +20,9 @@ export default async function handler(req: Request) {
   if (!['POST', 'PUT', 'DELETE'].includes(req.method)) return methodNotAllowed();
   if (req.method !== 'POST' && !id) return json({ error: 'A catalogue id is required.' }, { status: 400 });
   if (req.method === 'DELETE') {
-    const [deleted] = await db.sql`DELETE FROM catalogue_titles WHERE id = ${id} AND is_demo = false RETURNING id, published`;
+    const [deleted] = await db.sql`DELETE FROM catalogue_titles WHERE id = ${id} AND is_demo = false RETURNING id, published, cover_image_id`;
     if (!deleted) return json({ error: 'Catalogue title not found.' }, { status: 404 });
+    await purgeMedia(deleted.cover_image_id);
     await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'catalogue title deleted');
     return json({ deleted: id });
   }
@@ -37,7 +39,7 @@ export default async function handler(req: Request) {
   const curriculumEn = body.curriculum_alignment_en || null;
   const curriculumFr = body.curriculum_alignment_fr || null;
   if (req.method === 'PUT') {
-    const [before] = await db.sql`SELECT published FROM catalogue_titles WHERE id = ${id} AND is_demo = false`;
+    const [before] = await db.sql`SELECT published, cover_image_id FROM catalogue_titles WHERE id = ${id} AND is_demo = false`;
     if (!before) return json({ error: 'Catalogue title not found.' }, { status: 404 });
     let updated;
     try {
@@ -49,6 +51,9 @@ export default async function handler(req: Request) {
       throw error;
     }
     if (!updated) return json({ error: 'Catalogue title not found.' }, { status: 404 });
+    // Both ids: the outgoing cover when the image was swapped, and the current
+    // one when the title itself was unpublished.
+    await purgeMedia(before.cover_image_id, updated.cover_image_id);
     await rebuildIfPublic('update', { wasPublished: before.published, isPublished: updated.published }, 'catalogue title updated');
     return json(updated);
   }
