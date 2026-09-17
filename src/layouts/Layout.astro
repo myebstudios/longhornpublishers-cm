@@ -129,6 +129,8 @@ const organizationSchema = {
     <Footer locale={locale} settings={siteSettings} />
 
     <script>
+      import { trapFocus } from '../lib/a11y';
+
       function initHeader() {
         const header = document.getElementById('siteHeader');
         const toggle = document.getElementById('navToggle');
@@ -177,6 +179,10 @@ const organizationSchema = {
               closeNav(true);
             }
           });
+
+          // Trap Tab inside the mobile menu while open. Gated on aria-expanded
+          // so desktop tab order is completely unaffected.
+          trapFocus(nav, () => toggle.getAttribute('aria-expanded') === 'true');
 
           document.addEventListener('click', event => {
             if (toggle.getAttribute('aria-expanded') === 'true') {
