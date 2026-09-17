@@ -104,7 +104,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
 <script>
   import {
-    confirmAction, coverFileError, coverViewState, emptyToNull, registerDirtyCheck, request, sendJson,
+    confirmAction, coverFileError, coverViewState, emptyToNull, errorCard, registerDirtyCheck, request, sendJson,
   } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
@@ -452,10 +452,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
     if (!result.ok) {
       items.replaceChildren();
-      const errCard = document.createElement('div');
-      errCard.className = 'admin-empty-state';
-      errCard.innerHTML = `<div class="admin-empty-icon">⚠️</div><h3 class="admin-empty-title">Catalogue Unavailable</h3><p class="admin-empty-text">${result.error}</p>`;
-      empty.replaceChildren(errCard);
+      empty.replaceChildren(errorCard('Catalogue Unavailable', result.error!));
       return;
     }
     allRows = result.data ?? [];

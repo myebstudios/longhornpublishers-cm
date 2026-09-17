@@ -300,3 +300,34 @@ function installNavGuard(): void {
     });
   }, true);
 }
+
+/**
+ * Builds the "<thing> Unavailable" card shown when a list screen fails to load.
+ *
+ * The message is written with `textContent`, never interpolated into
+ * `innerHTML`. Netlify Identity sets the `nf_jwt` session cookie with
+ * `httpOnly: false`, so any script execution in the admin origin yields a live
+ * admin token — which makes an error-message sink a credential-theft path, not
+ * a cosmetic defect. Today every error reaching here is a server-side
+ * constant, but an error that ever echoes a slug, a filename or an API
+ * response would be one careless string away from stored XSS.
+ */
+export function errorCard(heading: string, message: string): HTMLElement {
+  const card = document.createElement('div');
+  card.className = 'admin-empty-state';
+
+  const icon = document.createElement('div');
+  icon.className = 'admin-empty-icon';
+  icon.textContent = '⚠️';
+
+  const title = document.createElement('h3');
+  title.className = 'admin-empty-title';
+  title.textContent = heading;
+
+  const text = document.createElement('p');
+  text.className = 'admin-empty-text';
+  text.textContent = message;
+
+  card.append(icon, title, text);
+  return card;
+}

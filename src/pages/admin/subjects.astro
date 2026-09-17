@@ -46,7 +46,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { confirmAction, registerDirtyCheck, request, sendJson } from '../../lib/admin-client';
+  import { confirmAction, errorCard, registerDirtyCheck, request, sendJson } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
 
@@ -256,10 +256,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     const result = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to load subjects.');
     if (!result.ok) {
       itemsContainer.replaceChildren();
-      const errCard = document.createElement('div');
-      errCard.className = 'admin-empty-state';
-      errCard.innerHTML = `<div class="admin-empty-icon">⚠️</div><h3 class="admin-empty-title">Subjects Unavailable</h3><p class="admin-empty-text">${result.error}</p>`;
-      empty.replaceChildren(errCard);
+      empty.replaceChildren(errorCard('Subjects Unavailable', result.error!));
       allSubjects = [];
       return;
     }
