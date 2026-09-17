@@ -4,6 +4,7 @@ import type { Config } from '@netlify/functions';
 import { canRenderLocalDemoContent } from '../../src/lib/demo-content';
 import { requireAdmin } from './_shared/auth';
 import { json, methodNotAllowed } from './_shared/http';
+import { mediaCacheTag } from './_shared/media-cache';
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
 const ALLOWED_TYPES = new Set(['image/jpeg', 'image/png', 'image/webp']);
@@ -67,7 +68,27 @@ async function isPubliclyApproved(key: string): Promise<boolean> {
   return Boolean(row);
 }
 
-async function serveMedia(key: string): Promise<Response> {
+/**
+ * Does this request even carry a credential?
+ *
+ * `requireAdmin()` resolves the caller by calling Netlify Identity's `/user`
+ * over HTTPS. On the public read path that call is reached for any well-formed
+ * key that is not publicly approved — including from a fully anonymous caller,
+ * who is then answered with the same 404 they would have received anyway. That
+ * makes an unauthenticated endpoint spend a database query plus an outbound
+ * round-trip per request, unbounded and unrated.
+ *
+ * A request with no bearer token and no `nf_jwt` cookie cannot resolve to an
+ * admin, so the outbound call is pure waste and is skipped. The public
+ * behaviour is unchanged: the answer is 404 either way.
+ */
+function hasCredential(req: Request): boolean {
+  const authorization = req.headers.get('authorization');
+  if (authorization && /^bearer\s+\S/i.test(authorization)) return true;
+  return /(?:^|;\s*)nf_jwt=\S/.test(req.headers.get('cookie') ?? '');
+}
+
+async function serveMedia(req: Request, key: string): Promise<Response> {
   if (!KEY_PATTERN.test(key)) return new Response('Not found', { status: 404 });
 
   // Authorize before touching the store: a timing or error difference between
@@ -80,6 +101,7 @@ async function serveMedia(key: string): Promise<Response> {
   // anyone without the admin role.
   let adminOnly = false;
   if (!(await isPubliclyApproved(key))) {
+    if (!hasCredential(req)) return new Response('Not found', { status: 404 });
     if (await requireAdmin()) return new Response('Not found', { status: 404 });
     adminOnly = true;
   }
@@ -107,6 +129,11 @@ async function serveMedia(key: string): Promise<Response> {
       'Cache-Control': adminOnly
         ? 'private, no-store'
         : 'public, max-age=300, stale-while-revalidate=600',
+      // Lets the admin handlers revoke this exact blob at the CDN the moment
+      // the content referencing it is unpublished, deleted, or re-imaged,
+      // instead of waiting out the TTL. Admin-only reads are never cached, so
+      // there is nothing to tag on that branch.
+      ...(adminOnly ? {} : { 'Netlify-Cache-Tag': mediaCacheTag(key) }),
     },
   });
 }
@@ -119,7 +146,7 @@ export default async function handler(req: Request) {
     // stored in cover_image_id / hero_image_id.
     const key = decodeURIComponent(url.pathname.replace(/^\/api\/media\/?/, ''));
     if (!key) return new Response('Not found', { status: 404 });
-    return serveMedia(key);
+    return serveMedia(req, key);
   }
 
   if (req.method !== 'POST') return methodNotAllowed();
