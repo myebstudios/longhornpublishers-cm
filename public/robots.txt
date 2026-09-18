@@ -1,4 +1,7 @@
 User-agent: *
 Allow: /
+# The admin panel is a private application surface, not content.
+Disallow: /admin/
+Disallow: /api/
 
 Sitemap: https://longhornpublishers-cm.netlify.app/sitemap.xml

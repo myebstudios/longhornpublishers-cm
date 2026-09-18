@@ -38,21 +38,49 @@
 
 # Netlify Identity must be enabled and configured as invite-only in the site
 # dashboard before administrator accounts are invited.
+#
+# force = true on all three rules is load-bearing. Without it a redirect is
+# SKIPPED whenever a static file already exists at that path — and every admin
+# page is prerendered, so a file always exists. That is why all eleven admin
+# pages returned 200 anonymously: the role rule was being evaluated and then
+# passed over in favour of the file on disk.
+#
+# Order matters and is first-match-wins. Login must come first or an anonymous
+# visitor is redirected to a page they are also redirected away from.
 [[redirects]]
   from = "/admin/login"
-  to = "/admin/login"
+  to = "/admin/login/index.html"
   status = 200
+  force = true
 
 [[redirects]]
-  from = "/admin/*"
-  to = "/admin/:splat"
+  from = "/admin/login/*"
+  to = "/admin/login/index.html"
   status = 200
+  force = true
+
+# Admins are served the prerendered file explicitly rather than rewritten back
+# to /admin/:splat — a forced rewrite onto its own path can loop.
+[[redirects]]
+  from = "/admin/*"
+  to = "/admin/:splat/index.html"
+  status = 200
+  force = true
   conditions = { Role = ["admin"] }
 
 [[redirects]]
+  from = "/admin"
+  to = "/admin/index.html"
+  status = 200
+  force = true
+  conditions = { Role = ["admin"] }
+
+# Everyone else, including anonymous visitors, goes to the login page.
+[[redirects]]
   from = "/admin/*"
-  to = "/admin/login"
+  to = "/admin/login/"
   status = 302
+  force = true
 
 # ---------------------------------------------------------------------------
 # Security headers
@@ -64,6 +92,15 @@
     X-Content-Type-Options = "nosniff"
     Referrer-Policy = "strict-origin-when-cross-origin"
     Permissions-Policy = "camera=(), microphone=(), geolocation=()"
+
+# The admin panel must never be indexed. robots.txt asks crawlers not to look;
+# X-Robots-Tag tells them not to index what they fetched anyway, which is the
+# half that actually binds.
+[[headers]]
+  for = "/admin/*"
+  [headers.values]
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+    Cache-Control = "private, no-store"
 
 [[headers]]
   for = "/img/*"
