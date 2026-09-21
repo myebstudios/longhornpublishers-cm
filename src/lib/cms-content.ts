@@ -48,6 +48,23 @@ export interface HomepageContent {
   one_partner_copy_en: string | null;
   one_partner_copy_fr: string | null;
   featured_catalogue_ids: string[];
+  hero_autoplay_enabled: boolean;
+  hero_autoplay_interval: number;
+}
+
+/** A public, enabled hero slide with its bilingual copy resolved for a locale. */
+export interface HomepageHeroSlide {
+  id: string;
+  sort_order: number;
+  image_id: string | null;
+  eyebrow: string | null;
+  headline: string;
+  headline_accent: string | null;
+  subheadline: string;
+  primary_cta_label: string;
+  primary_cta_href: string;
+  secondary_cta_label: string | null;
+  secondary_cta_href: string | null;
 }
 
 export interface AboutContent {
@@ -221,6 +238,45 @@ export function getHomepageContent(): Promise<HomepageContent | null> {
     }
   })();
   return homepagePromise;
+}
+
+const homepageHeroPromises = new Map<Locale, Promise<HomepageHeroSlide[]>>();
+export function getHomepageHeroSlides(locale: Locale): Promise<HomepageHeroSlide[]> {
+  let pending = homepageHeroPromises.get(locale);
+  if (!pending) {
+    pending = (async () => {
+      try {
+        const rows = await getBuildDatabase().sql`
+          SELECT slides.*
+          FROM homepage_hero_slides AS slides
+          INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
+          WHERE slides.homepage_id = 'default'
+            AND slides.enabled = true
+            AND homepage.published = true
+          ORDER BY slides.sort_order, slides.created_at, slides.id
+        `;
+        return rows.map((row) => ({
+          id: String(row.id),
+          sort_order: Number(row.sort_order),
+          image_id: row.image_id ? String(row.image_id) : null,
+          eyebrow: localized(locale, row.eyebrow_en ? String(row.eyebrow_en) : null, row.eyebrow_fr ? String(row.eyebrow_fr) : null),
+          headline: localized(locale, String(row.headline_en ?? ''), String(row.headline_fr ?? '')),
+          headline_accent: localized(locale, row.headline_accent_en ? String(row.headline_accent_en) : null, row.headline_accent_fr ? String(row.headline_accent_fr) : null),
+          subheadline: localized(locale, String(row.subheadline_en ?? ''), String(row.subheadline_fr ?? '')),
+          primary_cta_label: localized(locale, String(row.primary_cta_label_en ?? ''), String(row.primary_cta_label_fr ?? '')),
+          primary_cta_href: String(row.primary_cta_href ?? ''),
+          secondary_cta_label: localized(locale, row.secondary_cta_label_en ? String(row.secondary_cta_label_en) : null, row.secondary_cta_label_fr ? String(row.secondary_cta_label_fr) : null),
+          secondary_cta_href: row.secondary_cta_href ? String(row.secondary_cta_href) : null,
+        }));
+      } catch (error) {
+        failIfProductionDatabaseUnavailable('homepage hero slides', error);
+        console.warn('[homepage hero slides] Database unavailable; returning no managed slides.');
+        return [];
+      }
+    })();
+    homepageHeroPromises.set(locale, pending);
+  }
+  return pending;
 }
 
 let aboutPromise: Promise<AboutContent | null> | undefined;

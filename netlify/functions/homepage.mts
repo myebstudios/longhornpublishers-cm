@@ -1,7 +1,7 @@
 import { getDatabase } from '@netlify/database';
 import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
-import { validateHomepage } from './_shared/cms-validation';
+import { validateHomepage, validateHomepageHeroSlidesState } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
 import { purgeMedia } from './_shared/media-cache';
 import { rebuildIfPublic } from './_shared/rebuild';
@@ -22,6 +22,14 @@ export default async function handler(req: Request) {
   const parsed = validateHomepage(await req.json().catch(() => null));
   if (!parsed.ok) return json({ error: parsed.error }, { status: 400 });
   const value = parsed.value;
+  const [before] = await db.sql`
+    SELECT published, hero_image_id, who_we_are_image_id,
+      hero_autoplay_enabled, hero_autoplay_interval
+    FROM homepage_content WHERE id = 'default'
+  `;
+  const slides = await db.sql`SELECT enabled FROM homepage_hero_slides WHERE homepage_id = 'default'`;
+  const slideState = validateHomepageHeroSlidesState(slides, value.published);
+  if (!slideState.ok) return json({ error: slideState.error }, { status: 400 });
   if (value.featured_catalogue_ids.length) {
     const rows = await db.sql`
       SELECT id FROM catalogue_titles
@@ -31,13 +39,18 @@ export default async function handler(req: Request) {
       return json({ error: 'Every featured catalogue title must exist and be published.' }, { status: 400 });
     }
   }
-  const [before] = await db.sql`SELECT published, hero_image_id, who_we_are_image_id FROM homepage_content WHERE id = 'default'`;
+  // HERO-4 owns the controls for these fields. Until that UI lands, older
+  // homepage saves omit them, so preserve the stored values rather than
+  // silently resetting an administrator's carousel configuration.
+  const autoplayEnabled = value.hero_autoplay_enabled ?? before?.hero_autoplay_enabled ?? true;
+  const autoplayInterval = value.hero_autoplay_interval ?? Number(before?.hero_autoplay_interval ?? 7000);
   const [saved] = await db.sql`
     INSERT INTO homepage_content (
       id, hero_headline_en, hero_headline_fr, hero_headline_accent_en, hero_headline_accent_fr,
       hero_eyebrow_en, hero_eyebrow_fr, hero_subheadline_en, hero_subheadline_fr, hero_image_id,
       hero_cta_label_en, hero_cta_label_fr, who_we_are_copy_en, who_we_are_copy_fr, who_we_are_image_id,
-      trust_stats, one_partner_copy_en, one_partner_copy_fr, featured_catalogue_ids, published
+      trust_stats, one_partner_copy_en, one_partner_copy_fr, featured_catalogue_ids,
+      hero_autoplay_enabled, hero_autoplay_interval, published
     ) VALUES (
       'default', ${value.hero_headline_en}, ${value.hero_headline_fr},
       ${value.hero_headline_accent_en}, ${value.hero_headline_accent_fr},
@@ -45,7 +58,7 @@ export default async function handler(req: Request) {
       ${value.hero_subheadline_fr}, ${value.hero_image_id}, ${value.hero_cta_label_en}, ${value.hero_cta_label_fr},
       ${value.who_we_are_copy_en}, ${value.who_we_are_copy_fr}, ${value.who_we_are_image_id},
       ${JSON.stringify(value.trust_stats)}, ${value.one_partner_copy_en}, ${value.one_partner_copy_fr},
-      ${JSON.stringify(value.featured_catalogue_ids)}, ${value.published}
+      ${JSON.stringify(value.featured_catalogue_ids)}, ${autoplayEnabled}, ${autoplayInterval}, ${value.published}
     ) ON CONFLICT (id) DO UPDATE SET
       hero_headline_en = EXCLUDED.hero_headline_en, hero_headline_fr = EXCLUDED.hero_headline_fr,
       hero_headline_accent_en = EXCLUDED.hero_headline_accent_en,
@@ -57,6 +70,8 @@ export default async function handler(req: Request) {
       who_we_are_copy_fr = EXCLUDED.who_we_are_copy_fr, who_we_are_image_id = EXCLUDED.who_we_are_image_id,
       trust_stats = EXCLUDED.trust_stats, one_partner_copy_en = EXCLUDED.one_partner_copy_en,
       one_partner_copy_fr = EXCLUDED.one_partner_copy_fr, featured_catalogue_ids = EXCLUDED.featured_catalogue_ids,
+      hero_autoplay_enabled = EXCLUDED.hero_autoplay_enabled,
+      hero_autoplay_interval = EXCLUDED.hero_autoplay_interval,
       published = EXCLUDED.published, updated_at = now()
     RETURNING *
   `;

@@ -49,6 +49,26 @@ function url(value: unknown, label: string): Validation<string | null> {
   }
 }
 
+/**
+ * A CTA may target an absolute http(s) URL, a same-site root path, or a page
+ * fragment. Protocol-relative URLs are rejected so an apparent internal path
+ * cannot silently send visitors to another host.
+ */
+function href(value: unknown, label: string): Validation<string | null> {
+  const result = text(value, label, false, 2_000);
+  if (!result.ok || !result.value) return result;
+  const candidate = result.value;
+  if ((candidate.startsWith('/') && !candidate.startsWith('//')) || candidate.startsWith('#')) return result;
+  try {
+    const parsed = new URL(candidate);
+    return parsed.protocol === 'https:' || parsed.protocol === 'http:'
+      ? result
+      : { ok: false, error: `${label} must be an http(s) URL, site path, or page fragment.` };
+  } catch {
+    return { ok: false, error: `${label} must be an http(s) URL, site path, or page fragment.` };
+  }
+}
+
 function mediaKey(value: unknown, label: string): Validation<string | null> {
   const result = text(value, label, false, 200);
   if (!result.ok || !result.value) return result;
@@ -140,6 +160,83 @@ export function validateSiteSettings(value: unknown): Validation<SiteSettingsInp
   } };
 }
 
+export const MAX_HOMEPAGE_HERO_SLIDES = 6;
+
+export interface HomepageHeroSlideInput {
+  image_id: string | null;
+  eyebrow_en: string | null;
+  eyebrow_fr: string | null;
+  headline_en: string;
+  headline_fr: string;
+  headline_accent_en: string | null;
+  headline_accent_fr: string | null;
+  subheadline_en: string;
+  subheadline_fr: string;
+  primary_cta_label_en: string;
+  primary_cta_label_fr: string;
+  primary_cta_href: string;
+  secondary_cta_label_en: string | null;
+  secondary_cta_label_fr: string | null;
+  secondary_cta_href: string | null;
+  enabled: boolean;
+}
+
+export function validateHomepageHeroSlide(value: unknown): Validation<HomepageHeroSlideInput> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Hero slide payload is required.' };
+  const body = value as Record<string, unknown>;
+  const eyebrow = pair(body, 'eyebrow', 'Hero slide eyebrow', false, 160); if (!eyebrow.ok) return eyebrow;
+  const headline = pair(body, 'headline', 'Hero slide headline', true, 300); if (!headline.ok) return headline;
+  const accent = pair(body, 'headline_accent', 'Hero slide headline accent', false, 300); if (!accent.ok) return accent;
+  const subheadline = pair(body, 'subheadline', 'Hero slide subheadline', true, 1_000); if (!subheadline.ok) return subheadline;
+  const primaryLabel = pair(body, 'primary_cta_label', 'Primary CTA label', true, 100); if (!primaryLabel.ok) return primaryLabel;
+  const primaryHref = href(body.primary_cta_href, 'Primary CTA href'); if (!primaryHref.ok) return primaryHref;
+  if (!primaryHref.value) return { ok: false, error: 'Primary CTA label and href must be provided together.' };
+  const secondaryLabel = pair(body, 'secondary_cta_label', 'Secondary CTA label', false, 100); if (!secondaryLabel.ok) return secondaryLabel;
+  const secondaryHref = href(body.secondary_cta_href, 'Secondary CTA href'); if (!secondaryHref.ok) return secondaryHref;
+  if (Boolean(secondaryLabel.value.en) !== Boolean(secondaryHref.value)) {
+    return { ok: false, error: 'Secondary CTA label and href must be provided together, or left blank together.' };
+  }
+  const image = mediaKey(body.image_id, 'Hero slide image'); if (!image.ok) return image;
+  if (body.enabled !== undefined && typeof body.enabled !== 'boolean') {
+    return { ok: false, error: 'Hero slide enabled must be true or false.' };
+  }
+  return { ok: true, value: {
+    image_id: image.value,
+    eyebrow_en: eyebrow.value.en, eyebrow_fr: eyebrow.value.fr,
+    headline_en: headline.value.en!, headline_fr: headline.value.fr!,
+    headline_accent_en: accent.value.en, headline_accent_fr: accent.value.fr,
+    subheadline_en: subheadline.value.en!, subheadline_fr: subheadline.value.fr!,
+    primary_cta_label_en: primaryLabel.value.en!, primary_cta_label_fr: primaryLabel.value.fr!,
+    primary_cta_href: primaryHref.value,
+    secondary_cta_label_en: secondaryLabel.value.en, secondary_cta_label_fr: secondaryLabel.value.fr,
+    secondary_cta_href: secondaryHref.value,
+    enabled: body.enabled !== false,
+  } };
+}
+
+export function validateHomepageHeroSlidesState(
+  slides: Array<{ enabled?: unknown }>,
+  homepagePublished: boolean,
+): Validation<true> {
+  if (slides.length > MAX_HOMEPAGE_HERO_SLIDES) {
+    return { ok: false, error: `Homepage hero supports no more than ${MAX_HOMEPAGE_HERO_SLIDES} slides.` };
+  }
+  if (homepagePublished && !slides.some((slide) => slide.enabled === true)) {
+    return { ok: false, error: 'A published homepage must have at least one enabled hero slide.' };
+  }
+  return { ok: true, value: true };
+}
+
+export function validateHomepageHeroReorder(value: unknown): Validation<string[]> {
+  if (!value || typeof value !== 'object') return { ok: false, error: 'Hero slide reorder payload is required.' };
+  const ids = (value as Record<string, unknown>).ids;
+  if (!Array.isArray(ids) || ids.length > MAX_HOMEPAGE_HERO_SLIDES || ids.some((id) => typeof id !== 'string' || !UUID.test(id))) {
+    return { ok: false, error: `Reorder ids must be a list of at most ${MAX_HOMEPAGE_HERO_SLIDES} UUIDs.` };
+  }
+  if (new Set(ids).size !== ids.length) return { ok: false, error: 'Reorder ids must be unique.' };
+  return { ok: true, value: ids };
+}
+
 export interface HomepageInput {
   hero_headline_en: string;
   hero_headline_fr: string;
@@ -159,6 +256,8 @@ export interface HomepageInput {
   one_partner_copy_en: string;
   one_partner_copy_fr: string;
   featured_catalogue_ids: string[];
+  hero_autoplay_enabled?: boolean;
+  hero_autoplay_interval?: number;
   published: boolean;
 }
 
@@ -198,6 +297,19 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
     return { ok: false, error: 'Featured catalogue title IDs must be unique UUIDs.' };
   }
 
+  let autoplayEnabled: boolean | undefined;
+  if (body.hero_autoplay_enabled !== undefined) {
+    if (typeof body.hero_autoplay_enabled !== 'boolean') return { ok: false, error: 'Hero autoplay enabled must be true or false.' };
+    autoplayEnabled = body.hero_autoplay_enabled;
+  }
+  let autoplayInterval: number | undefined;
+  if (body.hero_autoplay_interval !== undefined) {
+    autoplayInterval = Number(body.hero_autoplay_interval);
+    if (!Number.isInteger(autoplayInterval) || autoplayInterval < 3_000 || autoplayInterval > 30_000) {
+      return { ok: false, error: 'Hero autoplay interval must be an integer from 3000 to 30000 milliseconds.' };
+    }
+  }
+
   return { ok: true, value: {
     hero_headline_en: heroHeadline.value.en!, hero_headline_fr: heroHeadline.value.fr!,
     hero_headline_accent_en: heroAccent.value.en, hero_headline_accent_fr: heroAccent.value.fr,
@@ -210,6 +322,8 @@ export function validateHomepage(value: unknown): Validation<HomepageInput> {
     trust_stats: trustStats,
     one_partner_copy_en: partner.value.en!, one_partner_copy_fr: partner.value.fr!,
     featured_catalogue_ids: featuredIds,
+    hero_autoplay_enabled: autoplayEnabled,
+    hero_autoplay_interval: autoplayInterval,
     published: body.published === true,
   } };
 }

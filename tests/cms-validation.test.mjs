@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { validateAbout, validateContact, validateHomepage, validateLegalPage, validateProcessStep, validateService, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
+import { MAX_HOMEPAGE_HERO_SLIDES, validateAbout, validateContact, validateHomepage, validateHomepageHeroReorder, validateHomepageHeroSlide, validateHomepageHeroSlidesState, validateLegalPage, validateProcessStep, validateService, validateSiteSettings, validateWhy } from '../netlify/functions/_shared/cms-validation.ts';
 
 const site = {
   company_name_en: 'Longhorn Cameroon', company_name_fr: 'Longhorn Cameroun',
@@ -53,6 +53,59 @@ test('homepage limits featured catalogue selection to four unique UUIDs', () => 
   const result = validateHomepage({ ...homepage, featured_catalogue_ids: [id, id] });
   assert.equal(result.ok, false);
   if (!result.ok) assert.match(result.error, /unique UUIDs/);
+});
+
+test('homepage validates carousel autoplay settings but keeps them optional for the legacy editor', () => {
+  assert.equal(validateHomepage(homepage).ok, true);
+  assert.equal(validateHomepage({ ...homepage, hero_autoplay_enabled: false, hero_autoplay_interval: 5000 }).ok, true);
+  assert.equal(validateHomepage({ ...homepage, hero_autoplay_enabled: 'yes' }).ok, false);
+  assert.equal(validateHomepage({ ...homepage, hero_autoplay_interval: 1000 }).ok, false);
+});
+
+const heroSlide = {
+  image_id: null,
+  eyebrow_en: 'Our work', eyebrow_fr: 'Notre travail',
+  headline_en: 'Publishing from start to finish', headline_fr: 'L’édition de bout en bout',
+  headline_accent_en: '', headline_accent_fr: '',
+  subheadline_en: 'English summary', subheadline_fr: 'Résumé français',
+  primary_cta_label_en: 'Partner with us', primary_cta_label_fr: 'Devenir partenaire',
+  primary_cta_href: '/contact',
+  secondary_cta_label_en: '', secondary_cta_label_fr: '', secondary_cta_href: '',
+  enabled: true,
+};
+
+test('hero slides normalize bilingual optional copy and accept safe CTA hrefs', () => {
+  const result = validateHomepageHeroSlide(heroSlide);
+  assert.equal(result.ok, true);
+  if (result.ok) {
+    assert.equal(result.value.headline_accent_en, null);
+    assert.equal(result.value.secondary_cta_href, null);
+  }
+});
+
+test('hero slides reject one-sided translations and broken CTA pairs', () => {
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, eyebrow_fr: '' }).ok, false);
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, primary_cta_href: '' }).ok, false);
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, secondary_cta_label_en: 'Explore', secondary_cta_label_fr: 'Explorer', secondary_cta_href: '' }).ok, false);
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, secondary_cta_href: '/services' }).ok, false);
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, primary_cta_href: 'javascript:alert(1)' }).ok, false);
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, primary_cta_href: '//example.com' }).ok, false);
+  assert.equal(validateHomepageHeroSlide({ ...heroSlide, enabled: 'false' }).ok, false);
+});
+
+test('hero slide state caps the carousel at six and protects a published homepage', () => {
+  assert.equal(MAX_HOMEPAGE_HERO_SLIDES, 6);
+  assert.equal(validateHomepageHeroSlidesState(Array.from({ length: 6 }, () => ({ enabled: false })), false).ok, true);
+  assert.equal(validateHomepageHeroSlidesState(Array.from({ length: 7 }, () => ({ enabled: true })), false).ok, false);
+  assert.equal(validateHomepageHeroSlidesState([{ enabled: false }], true).ok, false);
+  assert.equal(validateHomepageHeroSlidesState([{ enabled: true }], true).ok, true);
+});
+
+test('hero slide reorder requires unique UUIDs within the slide cap', () => {
+  const id = '123e4567-e89b-42d3-a456-426614174000';
+  assert.equal(validateHomepageHeroReorder({ ids: [id] }).ok, true);
+  assert.equal(validateHomepageHeroReorder({ ids: [id, id] }).ok, false);
+  assert.equal(validateHomepageHeroReorder({ ids: ['not-a-uuid'] }).ok, false);
 });
 
 const about = {

@@ -8,7 +8,7 @@
  * of a missing connection string, a TLS failure, and a broken migration alike.
  */
 export function failIfProductionDatabaseUnavailable(
-  area: 'catalogue' | 'news',
+  area: string,
   error?: unknown,
 ): void {
   if (process.env.CONTEXT !== 'production') return;
