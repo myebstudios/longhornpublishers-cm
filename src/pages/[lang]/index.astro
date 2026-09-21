@@ -1,13 +1,14 @@
 ---
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../../components/Hero.astro';
+import HeroCarousel from '../../components/HeroCarousel.astro';
 import Split from '../../components/Split.astro';
 import SectionHead from '../../components/SectionHead.astro';
 import Carousel from '../../components/Carousel.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Icon from '../../components/Icon.astro';
 import Button from '../../components/Button.astro';
-import { LOCALES, path, type Locale, useTranslations } from '../../i18n';
+import { LOCALES, localizeCmsHref, path, type Locale, useTranslations } from '../../i18n';
 import {
   SERVICE_IMG, disciplineLabel,
 } from '../../data/presentation';
@@ -16,12 +17,18 @@ import {
   articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
 import { coverImage, getPublishedTitles, titleText } from '../../lib/catalogue';
-import { getHomepageContent, getPublishingContent, localized, mediaPath, paragraphs } from '../../lib/cms-content';
+import { getHomepageContent, getHomepageHeroSlides, getPublishingContent, localized, mediaPath, paragraphs } from '../../lib/cms-content';
 
 export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
 const { lang } = Astro.params as { lang: Locale };
 const t = useTranslations(lang);
 const homepage = await getHomepageContent();
+const managedHeroSlides = (await getHomepageHeroSlides(lang)).map((slide) => ({
+  ...slide,
+  image: mediaPath(slide.image_id, 'lh-hero.jpg'),
+  primary_cta_href: localizeCmsHref(slide.primary_cta_href, lang),
+  secondary_cta_href: slide.secondary_cta_href ? localizeCmsHref(slide.secondary_cta_href, lang) : null,
+}));
 const heroHeadline = homepage ? localized(lang, homepage.hero_headline_en, homepage.hero_headline_fr) : null;
 const heroSubheadline = homepage ? localized(lang, homepage.hero_subheadline_en, homepage.hero_subheadline_fr) : null;
 const heroCta = homepage ? localized(lang, homepage.hero_cta_label_en, homepage.hero_cta_label_fr) : null;
@@ -60,18 +67,27 @@ const latestNews = await getPublishedNews(3);
 ---
 
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
-  <Hero
-    content={heroHeadline ? undefined : t.home.hero}
-    eyebrow={heroHeadline ? (heroEyebrow ?? undefined) : undefined}
-    titleLead={heroHeadline ?? undefined}
-    titleAccent={heroHeadline ? (heroAccent ?? '') : undefined}
-    lede={heroSubheadline ?? undefined}
-    img={mediaPath(homepage?.hero_image_id, 'lh-hero.jpg')}
-    primaryCtaText={heroCta ?? t.common.partnerWithUs}
-    primaryCtaHref={path('contact', lang)}
-    secondaryCtaText={t.common.exploreServices}
-    secondaryCtaHref={path('services', lang)}
-  />
+  {managedHeroSlides.length ? (
+    <HeroCarousel
+      slides={managedHeroSlides}
+      locale={lang}
+      autoplayEnabled={homepage?.hero_autoplay_enabled ?? true}
+      autoplayInterval={homepage?.hero_autoplay_interval ?? 6000}
+    />
+  ) : (
+    <Hero
+      content={heroHeadline ? undefined : t.home.hero}
+      eyebrow={heroHeadline ? (heroEyebrow ?? undefined) : undefined}
+      titleLead={heroHeadline ?? undefined}
+      titleAccent={heroHeadline ? (heroAccent ?? '') : undefined}
+      lede={heroSubheadline ?? undefined}
+      img={mediaPath(homepage?.hero_image_id, 'lh-hero.jpg')}
+      primaryCtaText={heroCta ?? t.common.partnerWithUs}
+      primaryCtaHref={path('contact', lang)}
+      secondaryCtaText={t.common.exploreServices}
+      secondaryCtaHref={path('services', lang)}
+    />
+  )}
 
   <!-- Trust bar -->
   <section class="trust-bar">

@@ -1,0 +1,322 @@
+---
+import Button from './Button.astro';
+import { responsive } from '../lib/images';
+import type { Locale } from '../i18n';
+
+interface Slide {
+  id: string;
+  image: string;
+  eyebrow: string | null;
+  headline: string;
+  headline_accent: string | null;
+  subheadline: string;
+  primary_cta_label: string;
+  primary_cta_href: string;
+  secondary_cta_label: string | null;
+  secondary_cta_href: string | null;
+}
+
+interface Props {
+  slides: Slide[];
+  locale: Locale;
+  autoplayEnabled?: boolean;
+  autoplayInterval?: number;
+}
+
+const {
+  slides,
+  locale,
+  autoplayEnabled = true,
+  autoplayInterval = 6000,
+} = Astro.props;
+const multiple = slides.length > 1;
+const copy = locale === 'fr'
+  ? {
+      region: 'En-tête principal', previous: 'Diapositive précédente', next: 'Diapositive suivante',
+      play: 'Lire le diaporama', pause: 'Mettre le diaporama en pause',
+      reduced: 'Lecture automatique désactivée par les préférences de mouvement réduit',
+      dot: 'Afficher la diapositive', announcement: 'Diapositive {current} sur {total}', of: 'sur',
+    }
+  : {
+      region: 'Main hero', previous: 'Previous slide', next: 'Next slide',
+      play: 'Play slideshow', pause: 'Pause slideshow',
+      reduced: 'Autoplay disabled by reduced motion preference',
+      dot: 'Show slide', announcement: 'Slide {current} of {total}', of: 'of',
+    };
+const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(slide.image) }));
+---
+
+<section
+  class:list={['hero-carousel', !multiple && 'hero-carousel--single']}
+  data-hero-carousel
+  data-autoplay-enabled={String(autoplayEnabled)}
+  data-autoplay-interval={String(autoplayInterval)}
+  role={multiple ? 'region' : undefined}
+  aria-roledescription={multiple ? 'carousel' : undefined}
+  aria-label={multiple ? copy.region : undefined}
+  tabindex={multiple ? '0' : undefined}
+>
+  <div class="hero-carousel__stack" data-hero-stack>
+    {renderedSlides.map((slide, index) => (
+      <article
+        class:list={['hero-carousel__slide', index === 0 && 'is-active']}
+        data-hero-slide
+        role={multiple ? 'group' : undefined}
+        aria-roledescription={multiple ? 'slide' : undefined}
+        aria-label={multiple ? `${index + 1} ${copy.of} ${slides.length}` : undefined}
+        aria-hidden={multiple ? String(index !== 0) : undefined}
+        inert={multiple && index !== 0 ? true : undefined}
+      >
+        <div class="hero-carousel__background">
+          <img
+            src={slide.imageData.src}
+            srcset={slide.imageData.srcset}
+            sizes={slide.imageData.srcset ? '100vw' : undefined}
+            alt=""
+            loading={index === 0 ? 'eager' : 'lazy'}
+            fetchpriority={index === 0 ? 'high' : undefined}
+            decoding="async"
+          />
+        </div>
+        <div class="wrap hero-carousel__wrap">
+          <div class="hero-carousel__content">
+            {slide.eyebrow && <span class="eyebrow">{slide.eyebrow}</span>}
+            <h1>
+              {slide.headline}{slide.headline_accent && <> <em class="accent">{slide.headline_accent}</em></>}
+            </h1>
+            <p class="hero-carousel__lede">{slide.subheadline}</p>
+            <div class="hero-carousel__cta">
+              <Button href={slide.primary_cta_href} variant="primary">{slide.primary_cta_label}</Button>
+              {slide.secondary_cta_label && slide.secondary_cta_href && (
+                <a href={slide.secondary_cta_href} class="link-arrow">{slide.secondary_cta_label}</a>
+              )}
+            </div>
+          </div>
+        </div>
+      </article>
+    ))}
+  </div>
+
+  {multiple && (
+    <div class="hero-carousel__chrome" data-hero-controls>
+      <div class="hero-carousel__progress" aria-hidden="true"><span></span></div>
+      <div class="wrap hero-carousel__toolbar">
+        <button class="hero-carousel__arrow" type="button" data-hero-previous aria-label={copy.previous}>
+          <span aria-hidden="true">←</span>
+        </button>
+        <span class="hero-carousel__counter" data-hero-counter>{`1 / ${slides.length}`}</span>
+        <div class="hero-carousel__dots" role="group" aria-label={copy.region}>
+          {slides.map((_, index) => (
+            <button
+              class:list={['hero-carousel__dot', index === 0 && 'is-active']}
+              type="button"
+              data-hero-dot
+              aria-label={`${copy.dot} ${index + 1}`}
+              aria-current={index === 0 ? 'true' : 'false'}
+            ><span></span></button>
+          ))}
+        </div>
+        <button
+          class="hero-carousel__toggle"
+          type="button"
+          data-hero-toggle
+          data-play-label={copy.play}
+          data-pause-label={copy.pause}
+          data-reduced-label={copy.reduced}
+          aria-pressed={autoplayEnabled ? 'false' : 'true'}
+        >{autoplayEnabled ? copy.pause : copy.play}</button>
+        <button class="hero-carousel__arrow" type="button" data-hero-next aria-label={copy.next}>
+          <span aria-hidden="true">→</span>
+        </button>
+      </div>
+    </div>
+  )}
+  <p
+    class="visually-hidden"
+    aria-live="polite"
+    aria-atomic="true"
+    data-hero-live
+    data-announcement={copy.announcement}
+  ></p>
+</section>
+
+<script>
+  import { initHeroCarousels } from '../lib/hero-carousel';
+  initHeroCarousels();
+</script>
+
+<style>
+  .hero-carousel {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    color: var(--white);
+    background: var(--burgundy-deep);
+  }
+  .hero-carousel__stack {
+    display: grid;
+    grid-template-areas: "hero-stack";
+  }
+  .hero-carousel__slide {
+    position: relative;
+    isolation: isolate;
+    grid-area: hero-stack;
+    display: flex;
+    align-items: flex-end;
+    min-height: clamp(540px, 75vh, 680px);
+    padding-block: calc(var(--header-h) + clamp(4rem, 8vh, 7rem)) clamp(8rem, 12vh, 10rem);
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity .45s ease, visibility 0s linear .45s;
+  }
+  .hero-carousel--single .hero-carousel__slide {
+    padding-bottom: clamp(4rem, 8vh, 7rem);
+  }
+  .hero-carousel__slide.is-active {
+    z-index: 1;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    transition-delay: 0s;
+  }
+  .hero-carousel__slide::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background:
+      linear-gradient(to top, rgba(59,15,27,.96) 8%, rgba(59,15,27,.72) 45%, rgba(59,15,27,.45) 100%),
+      linear-gradient(to right, rgba(59,15,27,.85), transparent 65%);
+  }
+  .hero-carousel__background {
+    position: absolute;
+    inset: 0;
+    z-index: -2;
+  }
+  .hero-carousel__background img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .hero-carousel__wrap { width: 100%; }
+  .hero-carousel__content { width: 100%; max-width: 54rem; }
+  .hero-carousel h1 {
+    margin-block: 1.25rem 1.4rem;
+    line-height: 1.15;
+  }
+  .hero-carousel__lede {
+    max-width: 44rem;
+    margin: 0;
+    color: rgba(255,255,255,.82);
+    font-size: var(--step-1);
+  }
+  .hero-carousel__cta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 1rem;
+    margin-top: 2.25rem;
+  }
+  .hero-carousel__chrome { display: none; }
+  .hero-carousel[data-enhanced="true"] .hero-carousel__chrome {
+    position: absolute;
+    z-index: 3;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    display: block;
+  }
+  .hero-carousel__progress {
+    height: 3px;
+    background: rgba(255,255,255,.22);
+  }
+  .hero-carousel__progress span {
+    display: block;
+    width: 100%;
+    height: 100%;
+    background: var(--green);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .hero-carousel[data-running="true"] .hero-carousel__progress span {
+    animation: hero-carousel-progress var(--hero-autoplay-ms, 6000ms) linear forwards;
+  }
+  .hero-carousel__toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: .75rem;
+    padding-block: 1rem 1.25rem;
+  }
+  .hero-carousel__arrow,
+  .hero-carousel__toggle,
+  .hero-carousel__dot {
+    border: 1px solid rgba(255,255,255,.5);
+    color: var(--white);
+    background: rgba(59,15,27,.58);
+    cursor: pointer;
+  }
+  .hero-carousel__arrow {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    place-items: center;
+    border-radius: 50%;
+    font-size: 1.15rem;
+  }
+  .hero-carousel__toggle {
+    min-height: 2.75rem;
+    padding-inline: .9rem;
+    border-radius: 999px;
+    font: inherit;
+    font-size: var(--step--1);
+  }
+  .hero-carousel__toggle:disabled { cursor: not-allowed; opacity: .65; }
+  .hero-carousel__counter {
+    min-width: 3.25rem;
+    font-size: var(--step--1);
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+  .hero-carousel__dots { display: flex; align-items: center; gap: .35rem; }
+  .hero-carousel__dot {
+    display: grid;
+    width: 2.75rem;
+    height: 2.75rem;
+    padding: 0;
+    place-items: center;
+    border-color: transparent;
+    border-radius: 50%;
+    background: transparent;
+  }
+  .hero-carousel__dot span {
+    width: .6rem;
+    height: .6rem;
+    border-radius: 50%;
+    background: rgba(255,255,255,.5);
+    transition: width .2s ease, background-color .2s ease;
+  }
+  .hero-carousel__dot.is-active span { width: 1.35rem; border-radius: 999px; background: var(--green); }
+  .hero-carousel :is(button, a):focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+
+  @keyframes hero-carousel-progress { to { transform: scaleX(1); } }
+
+  @media (max-width: 760px) {
+    .hero-carousel__slide {
+      min-height: clamp(500px, 85vh, 640px);
+      padding-top: calc(var(--header-h) + 4rem);
+      padding-bottom: 8.5rem;
+    }
+    .hero-carousel--single .hero-carousel__slide { padding-bottom: 4rem; }
+    .hero-carousel__toolbar { gap: .35rem; padding-inline: .75rem; }
+    .hero-carousel__counter { display: none; }
+    .hero-carousel__toggle { max-width: 10rem; }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .hero-carousel__slide { transition: none; }
+    .hero-carousel__progress { display: none; }
+    .hero-carousel__dot span { transition: none; }
+  }
+</style>

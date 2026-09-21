@@ -39,6 +39,24 @@ export function path(key: RouteKey, locale: Locale): string {
   return slug ? `/${locale}/${slug}/` : `/${locale}/`;
 }
 
+/**
+ * Resolve locale-neutral CMS links such as `/services` into the real localized
+ * route. French routes are not English routes with a prefix, so rendering a
+ * stored `/services` verbatim would send French visitors to a 404.
+ *
+ * Unknown paths, fragments and absolute URLs remain untouched: editors may
+ * legitimately link to an asset, an on-page anchor, or another website.
+ */
+export function localizeCmsHref(href: string, locale: Locale): string {
+  if (!href.startsWith('/') || href.startsWith('//')) return href;
+  const parsed = new URL(href, 'https://cms-path.invalid');
+  const neutralPath = parsed.pathname.replace(/^\/+|\/+$/g, '');
+  const route = (Object.entries(ROUTES) as Array<[RouteKey, Record<Locale, string>]>)
+    .find(([, slugs]) => slugs.en === neutralPath)?.[0];
+  if (!route) return href;
+  return `${path(route, locale)}${parsed.search}${parsed.hash}`;
+}
+
 /** The same page in the other locale — powers the language switcher. */
 export function alternatePath(key: RouteKey, locale: Locale): string {
   return path(key, locale === 'en' ? 'fr' : 'en');
