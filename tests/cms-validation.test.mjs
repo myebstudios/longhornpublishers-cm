@@ -93,10 +93,10 @@ test('hero slides reject one-sided translations and broken CTA pairs', () => {
   assert.equal(validateHomepageHeroSlide({ ...heroSlide, enabled: 'false' }).ok, false);
 });
 
-test('hero slide state caps the carousel at six and protects a published homepage', () => {
-  assert.equal(MAX_HOMEPAGE_HERO_SLIDES, 6);
-  assert.equal(validateHomepageHeroSlidesState(Array.from({ length: 6 }, () => ({ enabled: false })), false).ok, true);
-  assert.equal(validateHomepageHeroSlidesState(Array.from({ length: 7 }, () => ({ enabled: true })), false).ok, false);
+test('hero slide state caps the carousel at five and protects a published homepage', () => {
+  assert.equal(MAX_HOMEPAGE_HERO_SLIDES, 5);
+  assert.equal(validateHomepageHeroSlidesState(Array.from({ length: 5 }, () => ({ enabled: false })), false).ok, true);
+  assert.equal(validateHomepageHeroSlidesState(Array.from({ length: 6 }, () => ({ enabled: true })), false).ok, false);
   assert.equal(validateHomepageHeroSlidesState([{ enabled: false }], true).ok, false);
   assert.equal(validateHomepageHeroSlidesState([{ enabled: true }], true).ok, true);
 });

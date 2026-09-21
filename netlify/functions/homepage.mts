@@ -43,7 +43,7 @@ export default async function handler(req: Request) {
   // homepage saves omit them, so preserve the stored values rather than
   // silently resetting an administrator's carousel configuration.
   const autoplayEnabled = value.hero_autoplay_enabled ?? before?.hero_autoplay_enabled ?? true;
-  const autoplayInterval = value.hero_autoplay_interval ?? Number(before?.hero_autoplay_interval ?? 7000);
+  const autoplayInterval = value.hero_autoplay_interval ?? Number(before?.hero_autoplay_interval ?? 6000);
   const [saved] = await db.sql`
     INSERT INTO homepage_content (
       id, hero_headline_en, hero_headline_fr, hero_headline_accent_en, hero_headline_accent_fr,

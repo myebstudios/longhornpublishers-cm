@@ -8,7 +8,7 @@
 
 ALTER TABLE homepage_content
   ADD COLUMN hero_autoplay_enabled boolean NOT NULL DEFAULT true,
-  ADD COLUMN hero_autoplay_interval integer NOT NULL DEFAULT 7000
+  ADD COLUMN hero_autoplay_interval integer NOT NULL DEFAULT 6000
     CHECK (hero_autoplay_interval BETWEEN 3000 AND 30000);
 
 CREATE TABLE homepage_hero_slides (
@@ -47,6 +47,11 @@ CREATE INDEX homepage_hero_slides_order_idx
 --
 -- `/contact` is the locale-neutral CMS href. The public carousel localizes
 -- internal paths when rendering, just as the current hero uses path('contact').
+-- The current secondary CTA is not stored in homepage_content at all: it is
+-- rendered from t.common.exploreServices. Seed those reviewed i18n values and
+-- `/services` explicitly so switching readers cannot remove a live homepage
+-- link. Primary labels receive the same i18n fallback when a legacy row is
+-- null or blank, keeping the new slide valid and immediately editable.
 INSERT INTO homepage_hero_slides (
   homepage_id, sort_order, image_id,
   eyebrow_en, eyebrow_fr,
@@ -63,8 +68,16 @@ SELECT
   hero_headline_en, hero_headline_fr,
   hero_headline_accent_en, hero_headline_accent_fr,
   hero_subheadline_en, hero_subheadline_fr,
-  hero_cta_label_en, hero_cta_label_fr, '/contact',
-  NULL, NULL, NULL,
+  CASE
+    WHEN btrim(COALESCE(hero_cta_label_en, '')) = '' THEN 'Partner With Us'
+    ELSE hero_cta_label_en
+  END,
+  CASE
+    WHEN btrim(COALESCE(hero_cta_label_fr, '')) = '' THEN 'Devenir partenaire'
+    ELSE hero_cta_label_fr
+  END,
+  '/contact',
+  'Explore our services', 'Découvrir nos services', '/services',
   true
 FROM homepage_content
 WHERE id = 'default';

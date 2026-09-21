@@ -160,7 +160,7 @@ export function validateSiteSettings(value: unknown): Validation<SiteSettingsInp
   } };
 }
 
-export const MAX_HOMEPAGE_HERO_SLIDES = 6;
+export const MAX_HOMEPAGE_HERO_SLIDES = 5;
 
 export interface HomepageHeroSlideInput {
   image_id: string | null;
