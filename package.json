@@ -16,6 +16,7 @@
     "test:product-code": "node --test tests/catalogue-product-code.test.mjs",
     "test:cms": "node --experimental-strip-types --test tests/cms-validation.test.mjs",
     "test:hero": "node --experimental-strip-types --test tests/hero-carousel.test.mjs",
+    "test:hero-admin": "node --experimental-strip-types --test tests/admin-hero-slides.test.mjs",
     "db:start": "node scripts/local-db.mjs start",
     "db:migrate": "node scripts/local-db.mjs migrate",
     "db:stop": "node scripts/local-db.mjs stop",

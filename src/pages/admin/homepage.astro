@@ -2,10 +2,99 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 ---
 <AdminLayout title="Homepage" section="homepage">
-  <div class="admin-page-head"><div><h1>Homepage</h1><p>Manage bilingual hero, trust, introduction, partner positioning, imagery, and featured catalogue titles.</p></div></div>
+  <div class="admin-page-head"><div><h1>Homepage</h1><p>Manage the bilingual hero carousel, trust, introduction, partner positioning, imagery, and featured catalogue titles.</p></div></div>
+
+  <section class="card hero-manager" aria-labelledby="heroSlidesTitle">
+    <div class="toolbar hero-manager__head">
+      <div>
+        <h2 id="heroSlidesTitle">Hero carousel slides</h2>
+        <p>Add up to five slides. Disabled slides stay saved but do not appear on the public homepage.</p>
+      </div>
+      <button class="button" type="button" id="addSlide">+ Add slide</button>
+    </div>
+    <p class="publish-note">Saving an enabled slide while the homepage is published requests the same public rebuild as the rest of this page. Disable a slide first when you want to stage it privately.</p>
+    <div id="heroSlides" class="hero-slide-list" aria-live="polite"></div>
+    <p id="heroSlidesStatus" role="status" aria-live="polite"></p>
+  </section>
+
+  <template id="heroSlideTemplate">
+    <details class="hero-slide-card">
+      <summary>
+        <span class="hero-slide-card__number" data-slide-number></span>
+        <span class="hero-slide-card__titles"><strong data-slide-title></strong><small data-slide-title-fr></small></span>
+        <span class="admin-badge" data-slide-state></span>
+        <span class="translation-badge" data-translation-state></span>
+      </summary>
+      <form class="hero-slide-form" novalidate>
+        <input type="hidden" name="id" />
+        <fieldset class="slide-image-field">
+          <legend>Background image</legend>
+          <input type="hidden" name="image_id" data-field="image_id" />
+          <div class="slide-image-field__preview">
+            <img data-slide-image alt="" hidden />
+            <p data-slide-image-empty>No image — the default hero image will be used.</p>
+          </div>
+          <div class="slide-image-field__controls">
+            <label>Choose or replace image<input data-slide-file type="file" accept="image/jpeg,image/png,image/webp" /></label>
+            <button class="button danger" type="button" data-remove-image>Remove image</button>
+            <small>JPEG, PNG or WebP, up to 8 MB. Wide landscape images work best.</small>
+            <small class="field-error" data-error-for="image_id"></small>
+            <span data-image-status role="status" aria-live="polite"></span>
+          </div>
+        </fieldset>
+
+        <div class="slide-copy-grid">
+          <label>Eyebrow — English<input name="eyebrow_en" data-field="eyebrow_en" maxlength="160" /><small class="field-error" data-error-for="eyebrow_en"></small></label>
+          <label>Eyebrow — French<input name="eyebrow_fr" data-field="eyebrow_fr" maxlength="160" /><small class="field-error" data-error-for="eyebrow_fr"></small></label>
+          <label>Headline — English<textarea name="headline_en" data-field="headline_en" maxlength="300"></textarea><small class="field-error" data-error-for="headline_en"></small></label>
+          <label>Headline — French<textarea name="headline_fr" data-field="headline_fr" maxlength="300"></textarea><small class="field-error" data-error-for="headline_fr"></small></label>
+          <label>Headline accent — English<input name="headline_accent_en" data-field="headline_accent_en" maxlength="300" /><small class="field-error" data-error-for="headline_accent_en"></small></label>
+          <label>Headline accent — French<input name="headline_accent_fr" data-field="headline_accent_fr" maxlength="300" /><small class="field-error" data-error-for="headline_accent_fr"></small></label>
+          <label>Subheadline — English<textarea name="subheadline_en" data-field="subheadline_en" maxlength="1000"></textarea><small class="field-error" data-error-for="subheadline_en"></small></label>
+          <label>Subheadline — French<textarea name="subheadline_fr" data-field="subheadline_fr" maxlength="1000"></textarea><small class="field-error" data-error-for="subheadline_fr"></small></label>
+        </div>
+
+        <fieldset class="cta-fieldset">
+          <legend>Primary call to action</legend>
+          <div class="slide-copy-grid">
+            <label>Label — English<input name="primary_cta_label_en" data-field="primary_cta_label_en" maxlength="100" /><small class="field-error" data-error-for="primary_cta_label_en"></small></label>
+            <label>Label — French<input name="primary_cta_label_fr" data-field="primary_cta_label_fr" maxlength="100" /><small class="field-error" data-error-for="primary_cta_label_fr"></small></label>
+          </div>
+          <label>Destination for both languages<input name="primary_cta_href" data-field="primary_cta_href" maxlength="2000" placeholder="/contact" /><small>Internal paths are localized automatically for EN and FR.</small><small class="field-error" data-error-for="primary_cta_href"></small></label>
+        </fieldset>
+
+        <fieldset class="cta-fieldset">
+          <legend>Secondary call to action <small>(optional)</small></legend>
+          <div class="slide-copy-grid">
+            <label>Label — English<input name="secondary_cta_label_en" data-field="secondary_cta_label_en" maxlength="100" /><small class="field-error" data-error-for="secondary_cta_label_en"></small></label>
+            <label>Label — French<input name="secondary_cta_label_fr" data-field="secondary_cta_label_fr" maxlength="100" /><small class="field-error" data-error-for="secondary_cta_label_fr"></small></label>
+          </div>
+          <label>Destination for both languages<input name="secondary_cta_href" data-field="secondary_cta_href" maxlength="2000" placeholder="/services" /><small class="field-error" data-error-for="secondary_cta_href"></small></label>
+        </fieldset>
+
+        <label class="check"><input name="enabled" data-field="enabled" type="checkbox" /> Enabled — show this slide on the public homepage</label>
+        <small class="field-error" data-error-for="enabled"></small>
+        <div class="hero-slide-actions">
+          <button class="button" type="submit" data-save-slide>Save slide</button>
+          <button class="button secondary" type="button" data-move-up>Move up</button>
+          <button class="button secondary" type="button" data-move-down>Move down</button>
+          <button class="button danger" type="button" data-delete-slide>Delete slide</button>
+        </div>
+        <p class="slide-status" data-slide-status role="status" aria-live="polite"></p>
+      </form>
+    </details>
+  </template>
+
   <section class="card editor-card">
     <form id="homepageForm">
-      <h2>Hero</h2>
+      <h2>Carousel settings</h2>
+      <div class="carousel-settings">
+        <label class="check"><input name="hero_autoplay_enabled" type="checkbox" checked /> Autoplay enabled</label>
+        <label>Time per slide (milliseconds)<input name="hero_autoplay_interval" type="number" min="3000" max="30000" step="500" value="6000" aria-describedby="autoplayHint autoplayError" /><small id="autoplayHint">Between 3000 and 30000 ms. Recommended: 6000 ms.</small><small class="field-error" id="autoplayError"></small></label>
+      </div>
+
+      <h2>Legacy hero fallback</h2>
+      <p>Kept as a rollback path and used whenever no carousel slides are available.</p>
       <div class="two">
         <label>Headline — English<textarea name="hero_headline_en" required></textarea></label>
         <label>Headline — French<textarea name="hero_headline_fr" required></textarea></label>
@@ -54,7 +143,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 </AdminLayout>
 
 <script>
-  import { coverFileError, guardUnsavedChanges, request, sendJson, uploadMedia } from '../../lib/admin-client';
+  import {
+    confirmAction, coverFileError, guardUnsavedChanges, registerDirtyCheck, request, sendJson, uploadMedia,
+  } from '../../lib/admin-client';
+  import { fieldsForHeroSlideError, validateHeroSlideDraft } from '../../lib/admin-hero-slides';
+
+  type CmsRecord = Record<string, any>;
   const form = document.querySelector('#homepageForm') as HTMLFormElement;
   const stats = document.querySelector('#trustStats')!;
   const choices = document.querySelector('#catalogueChoices')!;
@@ -62,6 +156,231 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const guard = guardUnsavedChanges(form, stats, choices);
   const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
   const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
+
+  const slidesContainer = document.querySelector('#heroSlides') as HTMLElement;
+  const slidesStatus = document.querySelector('#heroSlidesStatus') as HTMLElement;
+  const addSlideButton = document.querySelector('#addSlide') as HTMLButtonElement;
+  const slideTemplate = document.querySelector('#heroSlideTemplate') as HTMLTemplateElement;
+  const MAX_SLIDES = 5;
+  const SLIDE_FIELDS = [
+    'eyebrow_en', 'eyebrow_fr', 'headline_en', 'headline_fr',
+    'headline_accent_en', 'headline_accent_fr', 'subheadline_en', 'subheadline_fr',
+    'primary_cta_label_en', 'primary_cta_label_fr', 'primary_cta_href',
+    'secondary_cta_label_en', 'secondary_cta_label_fr', 'secondary_cta_href',
+  ];
+  let slideRows: CmsRecord[] = [];
+  let slidePristine = '';
+  const setSlidesStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
+    slidesStatus.textContent = message;
+    slidesStatus.className = message ? `status status--${tone}` : '';
+  };
+
+  const slideFormSnapshot = (slideForm: HTMLFormElement) => {
+    const data = new FormData(slideForm);
+    data.set('enabled', String((slideForm.elements.namedItem('enabled') as HTMLInputElement).checked));
+    return new URLSearchParams(data as any).toString();
+  };
+  const slideSnapshot = () => [...slidesContainer.querySelectorAll<HTMLFormElement>('.hero-slide-form')]
+    .map(slideFormSnapshot).join('::');
+  const hasOtherUnsavedSlides = (current: HTMLFormElement) =>
+    [...slidesContainer.querySelectorAll<HTMLFormElement>('.hero-slide-form')].some((candidate) =>
+      candidate !== current && (
+        !slideValue(candidate, 'id') || slideFormSnapshot(candidate) !== candidate.dataset.pristine
+      ),
+    );
+  registerDirtyCheck(() => slideSnapshot() !== slidePristine);
+
+  const blankSlide = (): CmsRecord => ({
+    id: '', image_id: '', eyebrow_en: '', eyebrow_fr: '', headline_en: '', headline_fr: '',
+    headline_accent_en: '', headline_accent_fr: '', subheadline_en: '', subheadline_fr: '',
+    primary_cta_label_en: '', primary_cta_label_fr: '', primary_cta_href: '',
+    secondary_cta_label_en: '', secondary_cta_label_fr: '', secondary_cta_href: '', enabled: false,
+  });
+
+  const slideValue = (slideForm: HTMLFormElement, name: string) =>
+    (slideForm.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement).value;
+
+  function slidePayload(slideForm: HTMLFormElement) {
+    const payload: CmsRecord = { image_id: slideValue(slideForm, 'image_id') || null };
+    for (const name of SLIDE_FIELDS) payload[name] = slideValue(slideForm, name);
+    payload.enabled = (slideForm.elements.namedItem('enabled') as HTMLInputElement).checked;
+    return payload;
+  }
+
+  function showSlideErrors(slideForm: HTMLFormElement, errors: Record<string, string>) {
+    slideForm.querySelectorAll<HTMLElement>('[data-error-for]').forEach((node) => { node.textContent = ''; });
+    slideForm.querySelectorAll<HTMLElement>('[data-field]').forEach((field) => field.removeAttribute('aria-invalid'));
+    for (const [name, message] of Object.entries(errors)) {
+      const error = slideForm.querySelector<HTMLElement>(`[data-error-for="${name}"]`);
+      const field = slideForm.querySelector<HTMLElement>(`[data-field="${name}"]`);
+      if (error) error.textContent = message;
+      if (field) field.setAttribute('aria-invalid', 'true');
+    }
+  }
+
+  function updateSlideSummary(card: HTMLElement, slideForm: HTMLFormElement) {
+    const title = slideValue(slideForm, 'headline_en').trim() || 'Untitled slide';
+    const titleFr = slideValue(slideForm, 'headline_fr').trim() || 'French headline missing';
+    card.querySelector<HTMLElement>('[data-slide-title]')!.textContent = title;
+    card.querySelector<HTMLElement>('[data-slide-title-fr]')!.textContent = titleFr;
+    const enabled = (slideForm.elements.namedItem('enabled') as HTMLInputElement).checked;
+    const state = card.querySelector<HTMLElement>('[data-slide-state]')!;
+    state.textContent = enabled ? 'Enabled' : 'Disabled';
+    state.className = enabled ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
+    const errors = validateHeroSlideDraft(slidePayload(slideForm));
+    const missingFrench = Object.keys(errors).some((name) => name.endsWith('_fr'));
+    const translation = card.querySelector<HTMLElement>('[data-translation-state]')!;
+    translation.textContent = missingFrench ? 'French missing' : 'EN + FR';
+    translation.className = missingFrench ? 'translation-badge translation-badge--missing' : 'translation-badge translation-badge--complete';
+  }
+
+  function renderSlideImage(slideForm: HTMLFormElement) {
+    const id = slideValue(slideForm, 'image_id');
+    const preview = slideForm.querySelector<HTMLImageElement>('[data-slide-image]')!;
+    const empty = slideForm.querySelector<HTMLElement>('[data-slide-image-empty]')!;
+    const remove = slideForm.querySelector<HTMLButtonElement>('[data-remove-image]')!;
+    preview.hidden = !id;
+    empty.hidden = Boolean(id);
+    remove.hidden = !id;
+    if (id) preview.src = `/api/media/${id}`;
+    else preview.removeAttribute('src');
+  }
+
+  async function moveSlide(index: number, direction: -1 | 1) {
+    const target = index + direction;
+    if (target < 0 || target >= slideRows.length) return;
+    if (slideSnapshot() !== slidePristine && !(await confirmAction('Unsaved slide changes will be discarded before reordering. Continue?'))) return;
+    [slideRows[index], slideRows[target]] = [slideRows[target], slideRows[index]];
+    renderSlides(slideRows[target].id);
+    const ids = slideRows.map((row) => row.id);
+    const result = await sendJson('/api/homepage-hero-slides-admin', 'PUT', { action: 'reorder', ids }, 'Unable to reorder slides.');
+    if (!result.ok) { setSlidesStatus(result.error!, 'err'); await loadSlides(); return; }
+    setSlidesStatus('Slide order saved.');
+    slidePristine = slideSnapshot();
+  }
+
+  function renderSlides(openId = '') {
+    slidesContainer.replaceChildren();
+    addSlideButton.disabled = slideRows.length >= MAX_SLIDES;
+    addSlideButton.title = addSlideButton.disabled ? 'The carousel already has the maximum of five slides.' : '';
+    if (!slideRows.length) {
+      const empty = document.createElement('div');
+      empty.className = 'admin-empty-state';
+      const heading = document.createElement('h3'); heading.className = 'admin-empty-title'; heading.textContent = 'No carousel slides yet';
+      const copy = document.createElement('p'); copy.className = 'admin-empty-text'; copy.textContent = 'Add the first bilingual slide. The legacy hero remains visible until an enabled slide is saved.';
+      empty.append(heading, copy); slidesContainer.append(empty); slidePristine = slideSnapshot(); return;
+    }
+
+    slideRows.forEach((row, index) => {
+      const card = slideTemplate.content.firstElementChild!.cloneNode(true) as HTMLDetailsElement;
+      card.open = row.id === openId || !row.id;
+      card.dataset.slideId = row.id;
+      card.querySelector<HTMLElement>('[data-slide-number]')!.textContent = `Slide ${index + 1}`;
+      const slideForm = card.querySelector<HTMLFormElement>('.hero-slide-form')!;
+      (slideForm.elements.namedItem('id') as HTMLInputElement).value = row.id ?? '';
+      (slideForm.elements.namedItem('image_id') as HTMLInputElement).value = row.image_id ?? '';
+      for (const name of SLIDE_FIELDS) {
+        (slideForm.elements.namedItem(name) as HTMLInputElement | HTMLTextAreaElement).value = row[name] ?? '';
+      }
+      (slideForm.elements.namedItem('enabled') as HTMLInputElement).checked = Boolean(row.enabled);
+      renderSlideImage(slideForm);
+      updateSlideSummary(card, slideForm);
+      slideForm.dataset.pristine = slideFormSnapshot(slideForm);
+
+      const slideStatus = slideForm.querySelector<HTMLElement>('[data-slide-status]')!;
+      const save = slideForm.querySelector<HTMLButtonElement>('[data-save-slide]')!;
+      const setSlideStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
+        slideStatus.textContent = message;
+        slideStatus.className = message ? `slide-status status status--${tone}` : 'slide-status';
+      };
+
+      slideForm.addEventListener('input', () => {
+        showSlideErrors(slideForm, validateHeroSlideDraft(slidePayload(slideForm)));
+        updateSlideSummary(card, slideForm);
+      });
+      slideForm.addEventListener('submit', async (event) => {
+        event.preventDefault();
+        const payload = slidePayload(slideForm);
+        const errors = validateHeroSlideDraft(payload);
+        showSlideErrors(slideForm, errors);
+        if (Object.keys(errors).length) {
+          setSlideStatus('Complete the highlighted bilingual fields before saving.', 'err');
+          slideForm.querySelector<HTMLElement>('[aria-invalid="true"]')?.focus();
+          return;
+        }
+        if (hasOtherUnsavedSlides(slideForm) && !(await confirmAction('Saving this slide will discard unsaved changes in another slide. Continue?'))) return;
+        save.disabled = true; setSlideStatus('Saving…');
+        const id = slideValue(slideForm, 'id');
+        const result = await sendJson<CmsRecord>(
+          `/api/homepage-hero-slides-admin${id ? `?id=${encodeURIComponent(id)}` : ''}`,
+          id ? 'PUT' : 'POST', payload, 'Unable to save hero slide.',
+        );
+        if (!result.ok) {
+          const fields = fieldsForHeroSlideError(result.error!);
+          showSlideErrors(slideForm, Object.fromEntries(fields.map((name) => [name, result.error!])));
+          setSlideStatus(result.error!, 'err'); save.disabled = false; return;
+        }
+        setSlidesStatus(id ? 'Slide saved.' : 'Slide added.');
+        await loadSlides(String(result.data?.id ?? id));
+      });
+
+      const file = slideForm.querySelector<HTMLInputElement>('[data-slide-file]')!;
+      const imageStatus = slideForm.querySelector<HTMLElement>('[data-image-status]')!;
+      file.addEventListener('change', async () => {
+        const selected = file.files?.[0]; if (!selected) return;
+        const error = coverFileError(selected);
+        if (error) { imageStatus.textContent = error; file.value = ''; return; }
+        imageStatus.textContent = 'Uploading…';
+        const result = await uploadMedia(selected);
+        if (!result.ok || !result.data?.id) { imageStatus.textContent = result.error ?? 'Upload failed.'; return; }
+        (slideForm.elements.namedItem('image_id') as HTMLInputElement).value = result.data.id;
+        imageStatus.textContent = 'Image uploaded and attached. Save the slide to keep it.';
+        renderSlideImage(slideForm);
+      });
+      slideForm.querySelector<HTMLButtonElement>('[data-remove-image]')!.addEventListener('click', () => {
+        (slideForm.elements.namedItem('image_id') as HTMLInputElement).value = '';
+        file.value = ''; imageStatus.textContent = 'Image removed. Save the slide to keep this change.';
+        renderSlideImage(slideForm);
+      });
+
+      const up = slideForm.querySelector<HTMLButtonElement>('[data-move-up]')!;
+      const down = slideForm.querySelector<HTMLButtonElement>('[data-move-down]')!;
+      up.disabled = index === 0 || !row.id;
+      down.disabled = index === slideRows.length - 1 || !row.id;
+      up.addEventListener('click', () => moveSlide(index, -1));
+      down.addEventListener('click', () => moveSlide(index, 1));
+      slideForm.querySelector<HTMLButtonElement>('[data-delete-slide]')!.addEventListener('click', async () => {
+        const label = slideValue(slideForm, 'headline_en').trim() || `Slide ${index + 1}`;
+        const otherChanges = hasOtherUnsavedSlides(slideForm)
+          ? ' Unsaved changes in another slide will also be discarded.'
+          : '';
+        if (!(await confirmAction(`Delete “${label}”? This cannot be undone.${otherChanges}`))) return;
+        if (!row.id) { slideRows.splice(index, 1); renderSlides(); return; }
+        const result = await request(`/api/homepage-hero-slides-admin?id=${encodeURIComponent(row.id)}`, { method: 'DELETE' }, 'Unable to delete hero slide.');
+        if (!result.ok) { setSlideStatus(result.error!, 'err'); return; }
+        setSlidesStatus('Slide deleted. Its unused image was queued for cleanup.');
+        await loadSlides();
+      });
+
+      slidesContainer.append(card);
+    });
+  }
+
+  async function loadSlides(openId = '') {
+    const result = await request<CmsRecord[]>('/api/homepage-hero-slides-admin', {}, 'Unable to load hero slides.');
+    if (!result.ok) { setSlidesStatus(result.error!, 'err'); return; }
+    slideRows = result.data ?? [];
+    renderSlides(openId);
+    slidePristine = slideSnapshot();
+  }
+
+  addSlideButton.addEventListener('click', () => {
+    if (slideRows.length >= MAX_SLIDES) return setSlidesStatus('The carousel supports at most five slides.', 'err');
+    if (slideRows.some((row) => !row.id)) return setSlidesStatus('Finish or delete the new unsaved slide first.', 'err');
+    const row = blankSlide(); slideRows.push(row); renderSlides('');
+    setSlidesStatus('New slide ready. Add both language versions, then save.');
+    slidesContainer.querySelector<HTMLDetailsElement>('details:last-child')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
 
   function addStat(value = '', labelEn = '', labelFr = '') {
     const row = document.createElement('div'); row.className = 'repeat-row';
@@ -101,6 +420,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       for (const name of ['hero_headline_en','hero_headline_fr','hero_headline_accent_en','hero_headline_accent_fr','hero_eyebrow_en','hero_eyebrow_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) set(name, content[name]);
       stats.replaceChildren(); (Array.isArray(content.trust_stats) ? content.trust_stats : []).forEach((row: any) => addStat(row.value, row.label_en, row.label_fr));
       (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(content.published);
+      (form.elements.namedItem('hero_autoplay_enabled') as HTMLInputElement).checked = content.hero_autoplay_enabled !== false;
+      set('hero_autoplay_interval', content.hero_autoplay_interval ?? 6000);
     } else addStat();
     document.querySelectorAll<HTMLElement>('[data-media]').forEach((field) => (field as any).renderMedia?.());
     choices.replaceChildren();
@@ -124,11 +445,15 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     for (const name of ['hero_headline_en','hero_headline_fr','hero_headline_accent_en','hero_headline_accent_fr','hero_eyebrow_en','hero_eyebrow_fr','hero_subheadline_en','hero_subheadline_fr','hero_cta_label_en','hero_cta_label_fr','hero_image_id','who_we_are_copy_en','who_we_are_copy_fr','who_we_are_image_id','one_partner_copy_en','one_partner_copy_fr']) payload[name] = data.get(name);
     payload.trust_stats = [...stats.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ value: (row.querySelector('[data-value]') as HTMLInputElement).value, label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value }));
     payload.featured_catalogue_ids = selected;
+    payload.hero_autoplay_enabled = (form.elements.namedItem('hero_autoplay_enabled') as HTMLInputElement).checked;
+    payload.hero_autoplay_interval = Number(data.get('hero_autoplay_interval'));
     payload.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
     const res = await sendJson('/api/homepage-admin', 'PUT', payload, 'Unable to save homepage content.');
+    const autoplayError = document.querySelector('#autoplayError')!;
+    autoplayError.textContent = !res.ok && res.error?.toLowerCase().includes('autoplay') ? res.error : '';
     setStatus(res.ok ? (payload.published ? 'Homepage published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
-  load();
+  Promise.all([load(), loadSlides()]);
 </script>
 
 <style>
@@ -137,5 +462,51 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   .choice { display:flex!important; grid-template-columns:none!important; flex-direction:row; align-items:center; gap:10px; padding:12px; border:1px solid var(--line); border-radius:10px; }
   .media-field { display:flex; align-items:end; gap:16px; padding:14px; border:1px solid var(--line); border-radius:12px; }
   .media-field img { width:120px; height:80px; object-fit:cover; border-radius:8px; }
-  @media (max-width: 760px) { .repeat-row { grid-template-columns:1fr; } }
+  .hero-manager { margin-bottom: 24px; }
+  .hero-manager__head { align-items:flex-start; }
+  .hero-manager__head p { margin:.35rem 0 0; color:var(--muted); }
+  .publish-note { padding:12px 14px; border-left:4px solid var(--green-deep); background:var(--green-pale); color:var(--green-deep); border-radius:8px; }
+  .hero-slide-list { display:grid; gap:14px; }
+  .hero-slide-card { border:1px solid var(--line); border-radius:16px; background:#fff; overflow:hidden; }
+  .hero-slide-card[open] { border-color:var(--burgundy); box-shadow:0 8px 24px rgba(59,15,27,.08); }
+  .hero-slide-card summary { display:flex; align-items:center; gap:12px; min-height:64px; padding:12px 16px; cursor:pointer; background:var(--cream); }
+  .hero-slide-card__number { min-width:64px; color:var(--burgundy); font-weight:750; }
+  .hero-slide-card__titles { display:grid; flex:1; min-width:0; }
+  .hero-slide-card__titles strong,.hero-slide-card__titles small { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .hero-slide-card__titles small { color:var(--muted); margin-top:3px; }
+  .hero-slide-form { display:grid; gap:20px; padding:20px; }
+  .hero-slide-form label { display:grid; gap:7px; font:600 13px var(--font-display); color:var(--ink); }
+  .hero-slide-form :is(input[type="text"],input:not([type]),textarea),
+  .carousel-settings input[type="number"] { width:100%; padding:11px 14px; border:1px solid var(--line); border-radius:10px; background:#fff; color:var(--ink); font:inherit; }
+  .hero-slide-form textarea { min-height:96px; resize:vertical; }
+  .hero-slide-form :is(input,textarea):focus,
+  .carousel-settings input[type="number"]:focus { outline:3px solid var(--green-deep); outline-offset:2px; border-color:var(--green-deep); }
+  .hero-slide-form .check,.carousel-settings .check { display:flex; grid-template-columns:auto 1fr; align-items:center; gap:9px; cursor:pointer; }
+  .slide-copy-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:16px 20px; }
+  .slide-image-field,.cta-fieldset { display:grid; gap:14px; margin:0; padding:16px; border:1px solid var(--line); border-radius:12px; }
+  .slide-image-field { grid-template-columns:180px 1fr; }
+  .slide-image-field legend,.cta-fieldset legend { padding-inline:6px; font-weight:750; color:var(--burgundy); }
+  .slide-image-field__preview { width:180px; aspect-ratio:16/9; display:grid; place-items:center; overflow:hidden; border:1px dashed var(--line); border-radius:10px; background:var(--cream); }
+  .slide-image-field__preview img { width:100%; height:100%; object-fit:cover; }
+  .slide-image-field__preview p { margin:0; padding:12px; text-align:center; color:var(--muted); font-size:12px; }
+  .slide-image-field__controls { display:grid; align-content:center; gap:8px; }
+  .slide-image-field__controls input[type="file"] { display:block; margin-top:6px; }
+  .slide-image-field__controls .button { justify-self:start; }
+  .hero-slide-actions { display:flex; flex-wrap:wrap; gap:10px; align-items:center; }
+  .hero-slide-actions .button { min-height:44px; }
+  .translation-badge { display:inline-flex; padding:.25rem .7rem; border-radius:999px; font-size:11px; font-weight:750; white-space:nowrap; }
+  .translation-badge--complete { background:var(--green-pale); color:var(--green-deep); }
+  .translation-badge--missing { background:#FBE9EC; color:var(--danger); }
+  .field-error { display:block; min-height:1.2em; margin-top:4px; color:var(--danger); font-weight:650; }
+  [aria-invalid="true"] { border-color:var(--danger)!important; box-shadow:0 0 0 2px rgba(179,38,30,.12); }
+  .carousel-settings { display:grid; grid-template-columns:minmax(220px,.6fr) minmax(260px,1fr); gap:20px; align-items:start; padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
+  .carousel-settings .check { margin-top:8px; }
+  .slide-status { margin:0; }
+  @media (max-width: 760px) {
+    .repeat-row,.slide-copy-grid,.slide-image-field,.carousel-settings { grid-template-columns:1fr; }
+    .hero-manager__head,.hero-slide-card summary { align-items:stretch; flex-direction:column; }
+    .hero-slide-card__number { min-width:0; }
+    .slide-image-field__preview { width:100%; max-width:360px; }
+    .hero-slide-actions .button { flex:1 1 140px; justify-content:center; }
+  }
 </style>
