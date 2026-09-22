@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {
-  DEMO_COVERS, assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql, writeLocalDemoCovers,
+  DEMO_COVERS, DEMO_HERO_IMAGES, assertLocalSeedEnvironment, assertLoopbackConnection,
+  demoSeedSql, writeLocalDemoCovers, writeLocalDemoHeroImages,
 } from './demo-seed-lib.mjs';
 import { canRenderLocalDemoContent } from '../src/lib/demo-content.ts';
+import { localizeCmsHref } from '../src/i18n/routes.ts';
 
 const allowed = {
   NETLIFY_LOCAL: 'true',
@@ -83,6 +85,40 @@ test('news fixtures are emitted only when migration 004 is applied', () => {
   assert.match(withNews, /ON CONFLICT \(id\) DO UPDATE/);
   // Idempotent: repeated seeding may only ever touch rows already marked demo.
   assert.match(withNews, /WHERE news_articles\.is_demo = true/);
+});
+
+test('hero fixtures are emitted only when the demo-origin migration is applied', () => {
+  const withoutHero = demoSeedSql(true, true, [], false);
+  const withHero = demoSeedSql(true, true, [], true, DEMO_HERO_IMAGES.map((image) => image.key));
+  assert.doesNotMatch(withoutHero, /INSERT INTO homepage_hero_slides/);
+  assert.match(withHero, /INSERT INTO homepage_hero_slides/);
+  assert.match(withHero, /WHERE homepage_hero_slides\.is_demo = true/);
+  assert.strictEqual(
+    [...withHero.matchAll(/00000000-0000-4000-8000-00000000a10[1-4]/g)].length,
+    4,
+    'expected four deterministic demo-slide ids',
+  );
+  assert.doesNotMatch(withHero, /homepage_hero_slides[\s\S]*00000000-0000-4000-8000-000000000010/);
+});
+
+test('hero fixtures make no DRC claim and every CTA resolves in both locales', () => {
+  const sql = demoSeedSql(true, true, [], true, DEMO_HERO_IMAGES.map((image) => image.key));
+  const heroBlock = sql.slice(sql.indexOf('INSERT INTO homepage_hero_slides'));
+  assert.doesNotMatch(heroBlock, /\bDRC\b|\bRDC\b|Congo/i);
+
+  for (const href of ['/services', '/contact', '/catalogue', '/why-choose-us', '/about', '/news']) {
+    assert.notEqual(localizeCmsHref(href, 'en'), href, `${href} must resolve in EN`);
+    assert.notEqual(localizeCmsHref(href, 'fr'), href, `${href} must resolve in FR`);
+  }
+});
+
+test('hero fixtures append after the rollback slide and stay visibly marked as demo', () => {
+  const sql = demoSeedSql(true, true, [], true, []);
+  const heroBlock = sql.slice(sql.indexOf('INSERT INTO homepage_hero_slides'));
+  for (const order of [100, 101, 102, 103]) assert.match(heroBlock, new RegExp(`'default', ${order},`));
+  assert.strictEqual((heroBlock.match(/\[DEMO\]/g) ?? []).length, 4);
+  assert.strictEqual((heroBlock.match(/\[DÉMO\]/g) ?? []).length, 4);
+  assert.match(heroBlock, /enabled, is_demo[\s\S]*true, true/);
 });
 
 test('news fixtures exercise both publish states and stay inside the category constraint', () => {
@@ -236,6 +272,27 @@ test('demo covers are written only inside the local blob store', async () => {
     // namespaces under `site:`. Writing to the bare name puts the file where
     // media.mts will never look.
     assert.ok(blobPath.includes(`${path.sep}site:longhorn-media${path.sep}`));
+  } finally {
+    await rm(root, { recursive: true, force: true });
+  }
+});
+
+test('hero images are written only inside the local blob store', async () => {
+  const { mkdtemp, mkdir, writeFile, readFile, rm } = await import('node:fs/promises');
+  const fsp = await import('node:fs/promises');
+  const path = (await import('node:path')).default;
+  const os = await import('node:os');
+  const root = await mkdtemp(path.join(os.tmpdir(), 'demo-hero-images-'));
+  try {
+    const sourceDir = path.join(root, 'public', 'img');
+    await mkdir(sourceDir, { recursive: true });
+    for (const { file } of DEMO_HERO_IMAGES) await writeFile(path.join(sourceDir, file), Buffer.from([0xff, 0xd8, 0xff]));
+    const keys = await writeLocalDemoHeroImages({ fs: fsp, path, projectRoot: root, sourceDir, siteId: 'site-1' });
+    assert.deepStrictEqual(keys, DEMO_HERO_IMAGES.map((image) => image.key));
+    const imagePath = path.join(root, '.netlify', 'blobs-serve', 'entries', 'site-1', 'site:longhorn-media', ...keys[0].split('/'));
+    assert.deepStrictEqual([...await readFile(imagePath)], [0xff, 0xd8, 0xff]);
+    const metadataPath = path.join(root, '.netlify', 'blobs-serve', 'metadata', 'site-1', 'site:longhorn-media', ...keys[0].split('/'));
+    assert.strictEqual(JSON.parse(await readFile(metadataPath, 'utf8')).contentType, 'image/jpeg');
   } finally {
     await rm(root, { recursive: true, force: true });
   }

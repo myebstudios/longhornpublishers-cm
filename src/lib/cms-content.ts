@@ -1,6 +1,7 @@
 import type { Locale } from '../i18n';
 import { PROCESS as FALLBACK_PROCESS, SERVICES as FALLBACK_SERVICES, type Service, type Step } from '../data/site';
 import { getBuildDatabase } from './build-database';
+import { canRenderLocalDemoContent } from './demo-content';
 import { failIfProductionDatabaseUnavailable } from './production-build';
 
 export interface SiteSettings {
@@ -246,15 +247,39 @@ export function getHomepageHeroSlides(locale: Locale): Promise<HomepageHeroSlide
   if (!pending) {
     pending = (async () => {
       try {
-        const rows = await getBuildDatabase().sql`
-          SELECT slides.*
-          FROM homepage_hero_slides AS slides
-          INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
-          WHERE slides.homepage_id = 'default'
-            AND slides.enabled = true
-            AND homepage.published = true
-          ORDER BY slides.sort_order, slides.created_at, slides.id
+        const db = getBuildDatabase();
+        // Migration 011 may not exist during the build immediately before
+        // Netlify applies it. Probe first so the expand deploy remains buildable;
+        // once present, demo rows are public only under the guarded local runtime.
+        const [schema] = await db.sql`
+          SELECT EXISTS (
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = 'public'
+              AND table_name = 'homepage_hero_slides'
+              AND column_name = 'is_demo'
+          ) AS has_demo_origin
         `;
+        const excludeDemo = Boolean(schema?.has_demo_origin) && !canRenderLocalDemoContent();
+        const rows = excludeDemo
+          ? await db.sql`
+              SELECT slides.*
+              FROM homepage_hero_slides AS slides
+              INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
+              WHERE slides.homepage_id = 'default'
+                AND slides.enabled = true
+                AND slides.is_demo = false
+                AND homepage.published = true
+              ORDER BY slides.sort_order, slides.created_at, slides.id
+            `
+          : await db.sql`
+              SELECT slides.*
+              FROM homepage_hero_slides AS slides
+              INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
+              WHERE slides.homepage_id = 'default'
+                AND slides.enabled = true
+                AND homepage.published = true
+              ORDER BY slides.sort_order, slides.created_at, slides.id
+            `;
         return rows.map((row) => ({
           id: String(row.id),
           sort_order: Number(row.sort_order),

@@ -59,10 +59,14 @@ evidence of a deploy; the decisive guarantee is the loopback database check.
 It creates conspicuously labelled fixtures using fixed IDs, so rerunning it updates the
 same rows instead of duplicating them:
 
-- 2 subjects and 2 published catalogue titles (`DEMO-CAT-001`, `DEMO-CAT-002`)
+- 3 subjects and 4 published catalogue titles (`DEMO-CAT-001` through
+  `DEMO-CAT-004`)
 - 9 news articles — 8 published, plus 1 deliberately unpublished draft
   (`demo-unpublished-draft`) that must never appear in a list or resolve as a
   detail route. If it does, the `published` filter has regressed.
+- 4 bilingual homepage hero slides, appended after the rollback-critical
+  backfilled slide so the five-slide carousel, controls, and autoplay are
+  visible before the admin editor is available.
 
 The news page is a three-column grid with no pagination, so the published set is
 sized to wrap onto a second row and to cover all four categories, since each one
@@ -70,11 +74,13 @@ drives a different pill label and card icon. One published row
 (`demo-undated-notice`) has no publish date, which exercises the conditional
 `<time>` element and the `NULLS LAST` ordering.
 
-News fixtures require `004_news_demo_origin`. Until it is applied locally the seed skips
-news entirely and says so, rather than failing against an un-migrated database. The rows carry `is_demo = true`; production and
-preview queries exclude that marker even if a demo row were copied into their
-database branch accidentally. No media is uploaded and no production content is
-read or modified.
+News fixtures require `004_news_demo_origin`, and hero fixtures require
+`011_hero_slide_demo_origin`. Until either is applied locally, the seed skips
+that fixture group and says so rather than failing against an un-migrated
+database. The rows carry `is_demo = true`; production and preview queries
+exclude that marker even if a demo row were copied into their database branch
+accidentally. Hero and catalogue fixture images are copied only into the local
+blob store. No production content or media is read or modified.
 
 Run the safeguard regression suite with:
 

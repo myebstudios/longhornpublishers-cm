@@ -2,7 +2,8 @@ import { execFileSync } from 'node:child_process';
 import fs from 'node:fs/promises';
 import path from 'node:path';
 import {
-  assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql, writeLocalDemoCovers,
+  assertLocalSeedEnvironment, assertLoopbackConnection, demoSeedSql,
+  writeLocalDemoCovers, writeLocalDemoHeroImages,
 } from './demo-seed-lib.mjs';
 
 function netlify(...args) {
@@ -21,7 +22,7 @@ try {
 
   const schema = JSON.parse(netlify(
     'database', 'connect', '--json', '--query',
-    "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'is_demo') AS demo_ready, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'product_code') AS has_product_code, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'news_articles' AND column_name = 'is_demo') AS has_news_demo",
+    "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'is_demo') AS demo_ready, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'product_code') AS has_product_code, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'news_articles' AND column_name = 'is_demo') AS has_news_demo, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'homepage_hero_slides' AND column_name = 'is_demo') AS has_hero_demo",
   ));
   const state = schema[0] ?? {};
   if (!state.demo_ready) {
@@ -30,6 +31,9 @@ try {
 
   if (!state.has_news_demo) {
     console.warn('Migration 004_news_demo_origin is not applied locally; seeding catalogue only. Restart `npm run dev` to pick it up.');
+  }
+  if (!state.has_hero_demo) {
+    console.warn('Migration 011_hero_slide_demo_origin is not applied locally; hero slides will not be seeded. Restart `npm run dev` to pick it up.');
   }
 
   const projectRoot = process.cwd();
@@ -43,19 +47,37 @@ try {
     console.warn('No demo covers found in "Assets/Book covers"; seeding titles without covers.');
   }
 
-  const sql = demoSeedSql(Boolean(state.has_product_code), Boolean(state.has_news_demo), coverKeys);
+  const heroImageKeys = state.has_hero_demo
+    ? await writeLocalDemoHeroImages({
+        fs, path, projectRoot, siteId,
+        sourceDir: path.join(projectRoot, 'public', 'img'),
+      })
+    : [];
+
+  const sql = demoSeedSql(
+    Boolean(state.has_product_code), Boolean(state.has_news_demo), coverKeys,
+    Boolean(state.has_hero_demo), heroImageKeys,
+  );
   netlify('database', 'connect', '--query', sql);
 
   const verification = JSON.parse(netlify(
     'database', 'connect', '--json', '--query',
     state.has_news_demo
-      ? 'SELECT (SELECT COUNT(*)::int FROM catalogue_titles WHERE is_demo = true) AS titles, (SELECT COUNT(*)::int FROM subjects WHERE is_demo = true) AS subjects, (SELECT COUNT(*)::int FROM news_articles WHERE is_demo = true) AS news, (SELECT COUNT(*)::int FROM news_articles WHERE is_demo = true AND published = true) AS news_published'
-      : 'SELECT (SELECT COUNT(*)::int FROM catalogue_titles WHERE is_demo = true) AS titles, (SELECT COUNT(*)::int FROM subjects WHERE is_demo = true) AS subjects, 0 AS news, 0 AS news_published',
+      ? `SELECT (SELECT COUNT(*)::int FROM catalogue_titles WHERE is_demo = true) AS titles,
+                (SELECT COUNT(*)::int FROM subjects WHERE is_demo = true) AS subjects,
+                (SELECT COUNT(*)::int FROM news_articles WHERE is_demo = true) AS news,
+                (SELECT COUNT(*)::int FROM news_articles WHERE is_demo = true AND published = true) AS news_published,
+                ${state.has_hero_demo ? '(SELECT COUNT(*)::int FROM homepage_hero_slides WHERE is_demo = true)' : '0'} AS hero_slides`
+      : `SELECT (SELECT COUNT(*)::int FROM catalogue_titles WHERE is_demo = true) AS titles,
+                (SELECT COUNT(*)::int FROM subjects WHERE is_demo = true) AS subjects,
+                0 AS news, 0 AS news_published,
+                ${state.has_hero_demo ? '(SELECT COUNT(*)::int FROM homepage_hero_slides WHERE is_demo = true)' : '0'} AS hero_slides`,
   ));
-  const counts = verification[0] ?? { titles: 0, subjects: 0, news: 0, news_published: 0 };
+  const counts = verification[0] ?? { titles: 0, subjects: 0, news: 0, news_published: 0, hero_slides: 0 };
   console.log(
     `Seeded local demo CMS data (${counts.titles} titles / ${counts.subjects} subjects / `
-    + `${counts.news} news articles, ${counts.news_published} published / ${coversWritten} covers).`,
+    + `${counts.news} news articles, ${counts.news_published} published / ${counts.hero_slides} hero slides / `
+    + `${coversWritten} covers).`,
   );
   console.log('Demo rows are marked is_demo=true and are excluded outside the local dev runtime.');
 } catch (error) {

@@ -64,6 +64,14 @@ export const DEMO_COVERS = [
   { file: 'b4.png', key: 'uploads/00000000-0000-4000-8000-0000000000c4.png' },
 ];
 
+/** Local-only carousel images, copied from committed launch assets. */
+export const DEMO_HERO_IMAGES = [
+  { file: 'lh-hero.jpg', key: 'uploads/00000000-0000-4000-8000-0000000000d1.jpeg' },
+  { file: 'lh-catalogue-shelves.jpg', key: 'uploads/00000000-0000-4000-8000-0000000000d2.jpeg' },
+  { file: 'lh-bilingual-editor-wide.jpg', key: 'uploads/00000000-0000-4000-8000-0000000000d3.jpeg' },
+  { file: 'lh-print-inspection-wide.jpg', key: 'uploads/00000000-0000-4000-8000-0000000000d4.jpeg' },
+];
+
 
 /**
  * Catalogue fixtures, one per demo cover. Levels, subjects, language mixes and
@@ -103,6 +111,95 @@ const CATALOGUE_DEMO_ROWS = [
 
 /** Single-quote escaping for the demo fixtures' literal SQL. */
 const q = (value) => `'${String(value).replace(/'/g, "''")}'`;
+
+const HERO_DEMO_ROWS = [
+  {
+    id: 'a101', image: 0,
+    eyebrowEn: '[DEMO] Cameroon & Central Africa', eyebrowFr: '[DÉMO] Cameroun & Afrique Centrale',
+    headlineEn: 'Professional publishing services,', headlineFr: "Services d'édition professionnels,",
+    accentEn: 'start to finish.', accentFr: 'du début à la fin.',
+    subheadlineEn: 'Editing, proofreading, translation, design, illustration, and printing — delivered under one roof from Yaoundé for authors, institutions, and partners.',
+    subheadlineFr: 'Révision, correction, traduction, graphisme, illustration et impression — pris en charge sous un même toit à Yaoundé pour auteurs, institutions et partenaires.',
+    primaryEn: 'Explore Our Services', primaryFr: 'Découvrir nos services', primaryHref: '/services',
+    secondaryEn: 'Partner With Us', secondaryFr: 'Nous contacter', secondaryHref: '/contact',
+  },
+  {
+    id: 'a102', image: 1,
+    eyebrowEn: '[DEMO] National Curriculum Approved', eyebrowFr: '[DÉMO] Conforme aux Programmes Nationaux',
+    headlineEn: 'Curriculum-aligned learning materials,', headlineFr: 'Matériels pédagogiques agréés,',
+    accentEn: 'built for success.', accentFr: 'conçus pour la réussite.',
+    subheadlineEn: 'Primary and secondary textbooks and teaching resources crafted specifically for the Cameroonian educational framework in both English and French.',
+    subheadlineFr: 'Manuels scolaires du primaire et du secondaire développés selon le socle éducatif camerounais, disponibles en français et en anglais.',
+    primaryEn: 'Browse Full Catalogue', primaryFr: 'Consulter le catalogue', primaryHref: '/catalogue',
+    secondaryEn: 'Why Choose Us', secondaryFr: 'Pourquoi nous choisir', secondaryHref: '/why-choose-us',
+  },
+  {
+    id: 'a103', image: 2,
+    eyebrowEn: '[DEMO] Yaoundé Editorial Hub', eyebrowFr: '[DÉMO] Centre Éditorial de Yaoundé',
+    headlineEn: 'Native bilingual expertise,', headlineFr: 'Expertise éditoriale bilingue,',
+    accentEn: 'in English and French.', accentFr: 'en français et en anglais.',
+    subheadlineEn: 'Our in-house editorial team in Tsinga combines linguistic precision with deep cultural context to elevate every manuscript across both official languages.',
+    subheadlineFr: 'Notre équipe éditoriale à Tsinga allie précision linguistique et ancrage culturel pour enrichir chaque manuscrit dans les deux langues officielles.',
+    primaryEn: 'Learn About Our Team', primaryFr: 'Découvrir notre équipe', primaryHref: '/about',
+    secondaryEn: 'Get in Touch', secondaryFr: 'Prendre contact', secondaryHref: '/contact',
+  },
+  {
+    id: 'a104', image: 3,
+    eyebrowEn: '[DEMO] 60 Years of African Publishing Excellence', eyebrowFr: "[DÉMO] 60 Ans d'Excellence Éditoriale en Afrique",
+    headlineEn: 'Rooted in Central Africa,', headlineFr: 'Ancré en Afrique centrale,',
+    accentEn: 'backed by six decades.', accentFr: 'fort de six décennies.',
+    subheadlineEn: 'Leveraging sixty years of continental publishing leadership from Longhorn Publishers PLC to deliver uncompromising quality, accuracy, and trust.',
+    subheadlineFr: 'Forts de soixante ans de leadership éditorial continental au sein de Longhorn Publishers PLC, nous garantissons une qualité et une rigueur irréprochables.',
+    primaryEn: 'Why Choose Longhorn', primaryFr: 'Pourquoi choisir Longhorn', primaryHref: '/why-choose-us',
+    secondaryEn: 'View Latest News', secondaryFr: 'Toutes les actualités', secondaryHref: '/news',
+  },
+];
+
+function heroDemoSql(imageKeys) {
+  return `
+INSERT INTO homepage_hero_slides (
+  id, homepage_id, sort_order, image_id,
+  eyebrow_en, eyebrow_fr, headline_en, headline_fr,
+  headline_accent_en, headline_accent_fr, subheadline_en, subheadline_fr,
+  primary_cta_label_en, primary_cta_label_fr, primary_cta_href,
+  secondary_cta_label_en, secondary_cta_label_fr, secondary_cta_href,
+  enabled, is_demo
+)
+VALUES
+${HERO_DEMO_ROWS.map((row, index) => `  (
+    '00000000-0000-4000-8000-00000000${row.id}', 'default', ${100 + index},
+    ${imageKeys[row.image] ? q(imageKeys[row.image]) : 'NULL'},
+    ${q(row.eyebrowEn)}, ${q(row.eyebrowFr)},
+    ${q(row.headlineEn)}, ${q(row.headlineFr)},
+    ${q(row.accentEn)}, ${q(row.accentFr)},
+    ${q(row.subheadlineEn)}, ${q(row.subheadlineFr)},
+    ${q(row.primaryEn)}, ${q(row.primaryFr)}, ${q(row.primaryHref)},
+    ${q(row.secondaryEn)}, ${q(row.secondaryFr)}, ${q(row.secondaryHref)},
+    true, true
+  )`).join(',\n')}
+ON CONFLICT (id) DO UPDATE SET
+  sort_order = EXCLUDED.sort_order,
+  image_id = EXCLUDED.image_id,
+  eyebrow_en = EXCLUDED.eyebrow_en,
+  eyebrow_fr = EXCLUDED.eyebrow_fr,
+  headline_en = EXCLUDED.headline_en,
+  headline_fr = EXCLUDED.headline_fr,
+  headline_accent_en = EXCLUDED.headline_accent_en,
+  headline_accent_fr = EXCLUDED.headline_accent_fr,
+  subheadline_en = EXCLUDED.subheadline_en,
+  subheadline_fr = EXCLUDED.subheadline_fr,
+  primary_cta_label_en = EXCLUDED.primary_cta_label_en,
+  primary_cta_label_fr = EXCLUDED.primary_cta_label_fr,
+  primary_cta_href = EXCLUDED.primary_cta_href,
+  secondary_cta_label_en = EXCLUDED.secondary_cta_label_en,
+  secondary_cta_label_fr = EXCLUDED.secondary_cta_label_fr,
+  secondary_cta_href = EXCLUDED.secondary_cta_href,
+  enabled = true,
+  is_demo = true,
+  updated_at = now()
+WHERE homepage_hero_slides.is_demo = true;
+`;
+}
 
 /**
  * News fixtures.
@@ -218,7 +315,13 @@ ON CONFLICT (id) DO UPDATE SET
 WHERE news_articles.is_demo = true;
 `;
 
-export function demoSeedSql(hasProductCode, hasNewsDemo = false, coverKeys = []) {
+export function demoSeedSql(
+  hasProductCode,
+  hasNewsDemo = false,
+  coverKeys = [],
+  hasHeroDemo = false,
+  heroImageKeys = [],
+) {
   const productColumn = hasProductCode ? ', product_code' : '';
   const productValue = (code) => hasProductCode ? `, '${code}'` : '';
   const productUpdate = hasProductCode ? ', product_code = EXCLUDED.product_code' : '';
@@ -272,6 +375,7 @@ ON CONFLICT (id) DO UPDATE SET
   updated_at = now()
 WHERE catalogue_titles.is_demo = true;
 ${hasNewsDemo ? NEWS_DEMO_SQL : ''}
+${hasHeroDemo ? heroDemoSql(heroImageKeys) : ''}
 COMMIT;
 `;
 }
@@ -324,6 +428,42 @@ export async function writeLocalDemoCovers({ fs, path, projectRoot, sourceDir, s
     await fs.mkdir(path.dirname(metadataPath), { recursive: true });
     await fs.writeFile(metadataPath, JSON.stringify({
       contentType: 'image/png',
+      originalName: file,
+      uploadedAt: new Date().toISOString(),
+    }));
+    written.push(key);
+  }
+
+  return written;
+}
+
+/** Copy committed hero assets into the local media store used by /api/media. */
+export async function writeLocalDemoHeroImages({ fs, path, projectRoot, sourceDir, siteId, store = 'longhorn-media' }) {
+  const blobsRoot = path.join(projectRoot, '.netlify', 'blobs-serve');
+  const storeDir = `site:${store}`;
+  const written = [];
+
+  for (const { file, key } of DEMO_HERO_IMAGES) {
+    const source = path.join(sourceDir, file);
+    let data;
+    try {
+      data = await fs.readFile(source);
+    } catch {
+      written.push(null);
+      continue;
+    }
+
+    const dataPath = path.join(blobsRoot, 'entries', siteId, storeDir, ...key.split('/'));
+    const metadataPath = path.join(blobsRoot, 'metadata', siteId, storeDir, ...key.split('/'));
+    if (!path.resolve(dataPath).startsWith(path.resolve(blobsRoot) + path.sep)) {
+      throw new Error(`Refusing demo seed: hero image path ${dataPath} escapes the local blob store.`);
+    }
+
+    await fs.mkdir(path.dirname(dataPath), { recursive: true });
+    await fs.writeFile(dataPath, data);
+    await fs.mkdir(path.dirname(metadataPath), { recursive: true });
+    await fs.writeFile(metadataPath, JSON.stringify({
+      contentType: 'image/jpeg',
       originalName: file,
       uploadedAt: new Date().toISOString(),
     }));

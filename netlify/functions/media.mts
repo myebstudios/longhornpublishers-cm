@@ -68,7 +68,8 @@ async function isPubliclyApproved(key: string): Promise<boolean> {
           UNION ALL
           SELECT 1 FROM homepage_hero_slides AS slides
           INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
-          WHERE homepage.published = true AND slides.enabled = true AND slides.image_id = ${key}
+          WHERE homepage.published = true AND slides.enabled = true
+            AND slides.is_demo = false AND slides.image_id = ${key}
           UNION ALL
           SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
         )
