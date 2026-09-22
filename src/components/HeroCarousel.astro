@@ -61,6 +61,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
       <article
         class:list={['hero-carousel__slide', index === 0 && 'is-active']}
         data-hero-slide
+        data-hero-slide-id={slide.id}
         role={multiple ? 'group' : undefined}
         aria-roledescription={multiple ? 'slide' : undefined}
         aria-label={multiple ? `${index + 1} ${copy.of} ${slides.length}` : undefined}

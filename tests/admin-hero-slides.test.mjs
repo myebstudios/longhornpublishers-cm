@@ -61,4 +61,9 @@ test('homepage admin exposes the complete carousel editing contract', async () =
   assert.strictEqual((page.match(/name="hero_autoplay_interval"/g) ?? []).length, 1);
   assert.match(page, /confirmAction\(`Delete/);
   assert.match(page, /MAX_SLIDES = 5/);
+  assert.match(page, /id="addSlide" aria-describedby="heroSlideLimit"/);
+  assert.match(page, /id="heroSlideLimit">Maximum: five saved slides\. To add another at the limit, delete an existing slide\./);
+  assert.match(page, /addSlideButton\.setAttribute\('aria-disabled', String\(atSlideCap\)\)/);
+  assert.doesNotMatch(page, /addSlideButton\.disabled/);
+  assert.doesNotMatch(page, /addSlideButton\.title/);
 });

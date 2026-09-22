@@ -8,9 +8,9 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     <div class="toolbar hero-manager__head">
       <div>
         <h2 id="heroSlidesTitle">Hero carousel slides</h2>
-        <p>Add up to five slides. Disabled slides stay saved but do not appear on the public homepage.</p>
+        <p id="heroSlideLimit">Maximum: five saved slides. To add another at the limit, delete an existing slide. Disabled slides stay saved but do not appear on the public homepage.</p>
       </div>
-      <button class="button" type="button" id="addSlide">+ Add slide</button>
+      <button class="button" type="button" id="addSlide" aria-describedby="heroSlideLimit">+ Add slide</button>
     </div>
     <p class="publish-note">Saving an enabled slide while the homepage is published requests the same public rebuild as the rest of this page. Disable a slide first when you want to stage it privately.</p>
     <div id="heroSlides" class="hero-slide-list" aria-live="polite"></div>
@@ -261,8 +261,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   function renderSlides(openId = '') {
     slidesContainer.replaceChildren();
-    addSlideButton.disabled = slideRows.length >= MAX_SLIDES;
-    addSlideButton.title = addSlideButton.disabled ? 'The carousel already has the maximum of five slides.' : '';
+    const atSlideCap = slideRows.length >= MAX_SLIDES;
+    addSlideButton.setAttribute('aria-disabled', String(atSlideCap));
     if (!slideRows.length) {
       const empty = document.createElement('div');
       empty.className = 'admin-empty-state';
@@ -465,6 +465,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   .hero-manager { margin-bottom: 24px; }
   .hero-manager__head { align-items:flex-start; }
   .hero-manager__head p { margin:.35rem 0 0; color:var(--muted); }
+  .hero-manager #addSlide[aria-disabled="true"] { opacity:.6; cursor:not-allowed; }
   .publish-note { padding:12px 14px; border-left:4px solid var(--green-deep); background:var(--green-pale); color:var(--green-deep); border-radius:8px; }
   .hero-slide-list { display:grid; gap:14px; }
   .hero-slide-card { border:1px solid var(--line); border-radius:16px; background:#fff; overflow:hidden; }

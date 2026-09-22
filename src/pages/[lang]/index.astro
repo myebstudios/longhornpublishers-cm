@@ -90,7 +90,7 @@ const latestNews = await getPublishedNews(3);
   )}
 
   <!-- Trust bar -->
-  <section class="trust-bar">
+  <section class="trust-bar" data-homepage-content-source={homepage ? 'cms' : 'fallback'}>
     <div class="wrap trust-bar__inner">
       {trustItems.map((item) => (
         <div class="trust-item"><Icon name="check" size={18} /> {item.value && <strong>{item.value}</strong>} {item.label}</div>
