@@ -248,17 +248,25 @@ export function getHomepageHeroSlides(locale: Locale): Promise<HomepageHeroSlide
     pending = (async () => {
       try {
         const db = getBuildDatabase();
-        // Migration 011 may not exist during the build immediately before
-        // Netlify applies it. Probe first so the expand deploy remains buildable;
-        // once present, demo rows are public only under the guarded local runtime.
+        // Netlify applies migrations after the build, so the deploy that carries
+        // 010 and 011 builds against a schema that has neither. Probe first so
+        // that deploy stays buildable: no table means the legacy hero renders,
+        // exactly as before the carousel. Connection failures still throw below.
+        // Once present, demo rows are public only under the guarded local runtime.
         const [schema] = await db.sql`
-          SELECT EXISTS (
-            SELECT 1 FROM information_schema.columns
-            WHERE table_schema = 'public'
-              AND table_name = 'homepage_hero_slides'
-              AND column_name = 'is_demo'
-          ) AS has_demo_origin
+          SELECT
+            to_regclass('public.homepage_hero_slides') IS NOT NULL AS has_slides_table,
+            EXISTS (
+              SELECT 1 FROM information_schema.columns
+              WHERE table_schema = 'public'
+                AND table_name = 'homepage_hero_slides'
+                AND column_name = 'is_demo'
+            ) AS has_demo_origin
         `;
+        if (!schema?.has_slides_table) {
+          console.warn('[homepage hero slides] Table not migrated yet; rendering the legacy hero.');
+          return [];
+        }
         const excludeDemo = Boolean(schema?.has_demo_origin) && !canRenderLocalDemoContent();
         const rows = excludeDemo
           ? await db.sql`
