@@ -18,6 +18,7 @@
     "test:hero": "node --experimental-strip-types --test tests/hero-carousel.test.mjs",
     "test:hero-admin": "node --experimental-strip-types --test tests/admin-hero-slides.test.mjs",
     "test:cms-parity": "node --test tests/cms-parity.test.mjs",
+    "test:public-cache": "node --experimental-strip-types --test tests/public-cache.test.mjs",
     "db:start": "node scripts/local-db.mjs start",
     "db:migrate": "node scripts/local-db.mjs migrate",
     "db:stop": "node scripts/local-db.mjs stop",
