@@ -13,7 +13,7 @@ To support a fast, accessible, highly customized, and SEO-optimized standalone p
 
 *   **Frontend Framework:** **Astro**
     *   *Rationale:* Astro is ideal for content-rich, bespoke corporate websites. It delivers zero JavaScript by default for maximum performance and has excellent native support for internationalization (i18n), which is critical for the Cameroonian bilingual market. It provides complete freedom to build a unique UI distinct from the Kenyan HQ.
-    *   *Public site vs. admin panel:* The public site (Home, Catalogue, News, etc.) stays fully static-rendered for speed and SEO, reading published content from Netlify Database at build/request time. The `/admin` section is a separate, authenticated area within the same Astro project — an interactive island (React) that calls Netlify Functions for all reads/writes. Static content and admin tooling live in one repository and one deploy, but are architecturally distinct.
+    *   *Public site vs. admin panel:* The public site (Home, Catalogue, News, etc.) is rendered on demand from Netlify Database and served from Netlify's durable CDN cache, so it stays fast and fully server-rendered for SEO while admin saves go live within seconds without a deploy (see §6.1). The `/admin` section is a separate, authenticated area within the same Astro project — an interactive island (React) that calls Netlify Functions for all reads/writes. Static content and admin tooling live in one repository and one deploy, but are architecturally distinct.
 *   **Styling:** **Tailwind CSS**
     *   *Rationale:* Enables rapid development of the bespoke UI components required to match the new standalone brand identity, while ensuring minimal CSS bundle sizes.
 *   **Database:** **Netlify Database** (`@netlify/database`, managed Postgres)
@@ -65,6 +65,19 @@ The UI will be built using a modular component architecture tailored to the comp
 The admin panel is a **custom-built** authenticated section of the Astro site at `/admin`, backed by Netlify Database (content), Netlify Blobs (media), and Netlify Identity (email/password login, role-gated access). It is not a third-party CMS UI — it's purpose-built screens for exactly the content types this site needs: Site Settings, Catalogue, News & Updates, Services, Team, Why Choose Us, Contact form options, and Legal pages.
 
 Full schema, API surface, auth flow, and screen-by-screen breakdown are detailed in `admin_panel_spec.md`.
+
+### 6.1. How published content reaches visitors
+
+Decided 2026-09-25: **an admin save must never require a Netlify deploy.** Deploys are for code changes only.
+
+- **Public pages render on demand.** Every public route sets `prerender = false` and reads Netlify Database per request. `/admin/*` stays prerendered, because the role gate in `netlify.toml` rewrites to those static files.
+- **The CDN caches every successful public page** (`src/middleware.ts`, `src/lib/public-cache.ts`): `Netlify-CDN-Cache-Control: public, durable, max-age=300, stale-while-revalidate=604800`, and `Cache-Control: public, max-age=0, must-revalidate` for browsers. The five-minute fresh window bounds a failed purge; the seven-day stale window keeps quiet pages instant and covers a database outage.
+- **Each page carries `Netlify-Cache-Tag` values** for the content it shows. Every page carries `site-settings`; the homepage also carries `homepage`, `services`, `catalogue` and `news`; the sitemap carries `catalogue` and `news`.
+- **Saves purge tags instead of building.** Admin functions call `purgeCache({ tags })` through `netlify/functions/_shared/public-cache.ts` only when a write changes public output (draft-only saves purge nothing). A failed purge never fails the save; the five-minute window then applies.
+- **Failures are never cached.** A database error during a render returns an uncached bilingual 503, so visitors keep getting the last good cached copy. 404s are `no-store`.
+- **Changes made outside the admin functions** (direct SQL, bulk imports, migrations) do not purge anything. Either purge the relevant tags manually — `netlify api purgeCache --data '{"site_id":"<site id>","cache_tags":["catalogue"]}'` (site id from `netlify status`) — or wait five minutes plus one visit. A deploy also clears the cache.
+
+Cost: one production deploy costs 15 Netlify credits; an on-demand render costs a small fraction of one credit. Verified live on 2026-09-25 (`Docs/qa_log_2026-09-25.md`): saves visible in under 4 s with no deploy, and homepage LCP on throttled mobile unchanged (1.94 s cached, 2.09 s cold).
 
 ## 7. Development Workflow
 1.  **Repository:** Independent GitHub repository for the Cameroon entity.

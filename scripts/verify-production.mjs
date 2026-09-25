@@ -9,9 +9,8 @@
  * wrong strings across four deploys. Nobody was careless; the checks described
  * a site that did not exist.
  *
- * It also catches the two-deploy trap (see the migrations README): a content
- * migration's own deploy builds BEFORE the migration applies, so the deploy
- * goes green with stale output. This is what tells you a second build is due.
+ * Run it after any deploy that carries a content migration, and after content
+ * changed outside the admin functions (which do not purge the CDN cache).
  *
  * WHAT IT DOES NOT COVER, stated plainly so it is not trusted further than it
  * earns:
@@ -20,7 +19,7 @@
  *   - Only content with an approved i18n counterpart. Catalogue titles, news
  *     and anything CMS-only have nothing to compare against.
  *   - It proves what the live HTML says, not what the database holds. A
- *     correct database with a stale build fails here, which is the point.
+ *     correct database behind a stale cached page fails here, which is the point.
  *
  * Expectations are read from src/i18n rather than hardcoded, so correcting the
  * approved copy updates this check automatically and the two cannot drift.
@@ -93,10 +92,9 @@ console.error(`
   ${failures} check(s) failed.
 
   Most likely causes, in order:
-    1. A content migration deployed but the site has not rebuilt since. The
-       build for a migration's own deploy runs BEFORE the migration applies,
-       so the first deploy publishes stale output. Trigger a second BUILD (not
-       a redeploy — that republishes the same baked HTML). See
+    1. Content changed outside the admin functions (SQL, import, migration)
+       and the CDN still holds the old page. Purge the affected cache tags
+       with \`netlify api purgeCache\`, or wait five minutes and retry. See
        netlify/database/migrations/README.md.
     2. A CMS row diverges from the approved dictionaries. Fix with a new
        migration updating the row, never by editing the dictionaries to match

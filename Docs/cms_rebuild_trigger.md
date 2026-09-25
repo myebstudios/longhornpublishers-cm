@@ -1,7 +1,7 @@
 # CMS Rebuild Trigger
 
 **Owner:** Developer (implementation) + CEO/Client (Netlify account access)
-**Status:** Not implemented. This document specifies the work; nothing in the repository performs it yet.
+**Status:** **Superseded 2026-09-25 — historical record only.** The build hook was implemented (`5151edf`) and then removed. Public pages now render on demand and admin saves purge CDN cache tags instead of triggering a build; see `technical_architecture.md` §6.1. Once live verification passed, the `cms-publish` build hook and `CMS_REBUILD_HOOK_URL` became unused and can be deleted in Netlify.
 
 ---
 

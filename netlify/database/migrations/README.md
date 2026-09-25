@@ -5,60 +5,26 @@ deploys. Nobody runs a command.
 
 ---
 
-## A CONTENT migration needs TWO deploys to reach the live site
+## Content migrations reach the live site in ONE deploy (since 2026-09-25)
 
-**Read this before writing a migration that changes CMS content rather than
-schema.** It cost us a live defect and roughly an hour of debugging a migration
-that was already correct.
+Public pages now render on demand and read the database per request (see
+`Docs/technical_architecture.md` §6.1). The old two-deploy rule, which existed
+because pages read the CMS **at build time** before the deploy's own migration
+had applied, no longer applies.
 
-### The symptom, which is the misleading part
-
-- The deploy reaches `ready`.
-- The migration applied. The database holds the new values.
-- **The published site still serves the old values.**
-- It is not a CDN artefact: a cache-busted fetch returns the new deploy's own
-  HTML, containing the old content.
-
-Everything looks successful, so the natural conclusion is that the migration
-silently failed. It did not. Do not start rewriting it.
-
-### Why
-
-This site is statically built. Pages read the CMS **at build time**, not per
-request. Within a single deploy, the build and the migration are not ordered the
-way you would need:
-
-```
-deploy N     build reads the CMS   ->   pre-migration data baked into the HTML
-             migration applies     ->   database now correct
-             deploy goes live      ->   HTML still shows the OLD content
-
-deploy N+1   build reads the CMS   ->   post-migration data
-             deploy goes live      ->   correct
-```
-
-The build for the very deploy that carries the migration cannot see that
-migration's effect.
-
-### What to do
-
-Trigger a second build after the migration deploy has finished. Any empty
-commit, retry, or manual build works — it needs to be a *new build*, not a
-redeploy of the existing one, since a redeploy republishes the same baked HTML.
-
-Then confirm on the live site, not in `dist/`:
+- A deploy clears the CDN cache, so the first requests after a migration's
+  deploy render from the migrated database.
+- The build itself no longer reads the database for public pages, so a
+  migration that adds a table cannot fail the build the way `010` did.
+- Still confirm on the live site, not in `dist/`:
 
 ```
 npm run verify:production
 ```
 
-### This does not apply to schema-only migrations
-
-Adding a nullable column changes no rendered output, so one deploy is fine.
-The two-deploy rule is specifically for migrations that change **content the
-build reads** — `homepage_content`, `about_page`, `why_choose_us`,
-`contact_settings`, `legal_pages`, `process_steps`, `services`,
-`catalogue_titles`, `news_articles`, `site_settings`.
+**Content changed outside a deploy** — a manual SQL fix, a bulk import — does
+not purge the cache. Purge the affected tags (`catalogue`, `news`, `homepage`,
+…) with `netlify api purgeCache`, or allow five minutes plus one visit.
 
 ---
 
@@ -81,7 +47,7 @@ statement so a reviewer cannot miss it.
 
 ## Checking before you write
 
-- `npm run verify:cms-parity` — builds twice against one commit, once reading
+- `npm run verify:cms-parity` — serves the site on demand twice, once reading
   the local CMS and once falling back to the i18n dictionaries, and diffs every
   public route. Any difference is a copy divergence or a reader bug.
 - `npm run verify:production` — asserts known approved strings on the live site.

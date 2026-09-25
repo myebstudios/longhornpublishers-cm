@@ -40,10 +40,10 @@ The pack is incomplete if any row or cover exists outside the manifest, a filena
 - [ ] Confirm the target is production only at the execution step; run all pack validation offline first.
 - [ ] Take a timestamped database backup/export of `subjects` and `catalogue_titles`; record its location and restore test/reference.
 - [ ] Record pre-import counts for non-demo subjects, drafts, and published titles.
-- [ ] Confirm the CMS rebuild hook is configured and healthy, but do not trigger it for draft-only work.
+- [ ] Confirm the operator can purge CDN cache tags (`netlify api purgeCache`). A direct database import bypasses the admin functions, so nothing purges automatically. Do not purge for draft-only work.
 - [ ] Confirm the operator has admin/database access without placing credentials or hook URLs in logs.
 
-Stop on an environment mismatch, unavailable backup, pending migration, or rebuild-hook uncertainty.
+Stop on an environment mismatch, unavailable backup, pending migration, or cache-purge uncertainty.
 
 ## 3. Gate 1 — offline pack validation (no production access)
 
@@ -113,7 +113,7 @@ Within one transaction:
 8. Write the returned title IDs and resolved subject IDs to the evidence record.
 9. Commit only if every assertion succeeds. On any error, roll back the entire database batch.
 
-Never trigger the rebuild hook for this draft-only import. Do not delete the QA rows in this transaction unless the conditional clearance in section 7 is still valid at execution time.
+Never purge the public cache for this draft-only import. Do not delete the QA rows in this transaction unless the conditional clearance in section 7 is still valid at execution time.
 
 ## 6. Gate 4 — post-import draft verification
 
@@ -123,7 +123,7 @@ Never trigger the rebuild hook for this draft-only import. Do not delete the QA 
 - [ ] Every subject resolves to the approved EN/FR labels; filters yield the expected draft taxonomy in the QA method/tooling.
 - [ ] Slug collision query returns zero; planned detail URLs are recorded as `/en/catalogue/<slug>/` and `/fr/catalogue/<slug>/`.
 - [ ] The public catalogue, homepage catalogue block, sitemap, and detail routes remain unchanged because all imported rows are drafts.
-- [ ] No rebuild was triggered by draft creation.
+- [ ] No cache purge was triggered by draft creation, and no deploy ran.
 
 Developer and Dell must sign Gate 4 before any publication step.
 
@@ -151,14 +151,14 @@ Publication is a separate operation from import.
 2. Reconfirm each candidate has `publication_authorized=true`, `authorized_by`, `authorized_at`, and `authorization_ref` in the approved manifest. Authorization is per title; do not infer batch approval from delivery alone.
 3. Exclude every unauthorized, disputed, changed-after-approval, or incomplete row. Blank means unauthorized.
 4. In one transaction, update `published=true` only for the exact authorized IDs whose stored digest still matches the reviewed draft snapshot.
-5. Assert affected count equals the authorized release list, commit, then trigger one rebuild after the commit.
-6. Record rebuild request time and deploy ID/status. A hook failure does not roll back valid database publication, but the release remains incomplete until a successful deploy.
+5. Assert affected count equals the authorized release list, commit, then purge the `catalogue` cache tag once after the commit (this also refreshes the homepage showcase and the sitemap).
+6. Record the purge request time and result. A purge failure does not roll back valid database publication; the pages refresh within five minutes regardless. No deploy is needed.
 
 Do not publish from the admin UI one row at a time during the initial bulk release.
 
 ## 9. Gate 6 — live verification and closeout
 
-After the production deploy succeeds:
+After the cache purge (or five minutes):
 
 - [ ] Both `/en/catalogue/` and `/fr/catalogue/` contain the authorized titles only.
 - [ ] Every title has the correct localized title, description, curriculum copy, level, subject, language badges, and approved cover.
@@ -166,7 +166,7 @@ After the production deploy succeeds:
 - [ ] Level, subject, and language filters plus visible counts behave correctly in both locales.
 - [ ] Featured titles appear as intended on the homepage; record the current ordering behavior and any client-requested ordering delta.
 - [ ] `sitemap.xml` includes authorized detail routes only.
-- [ ] Source HTML contains the expected catalogue data (the site is statically rendered).
+- [ ] Source HTML contains the expected catalogue data (pages are server-rendered).
 - [ ] Media responses use an image MIME type and do not expose draft-only covers publicly.
 - [ ] No sample/demo content or either disposed QA slug is visible.
 
@@ -192,7 +192,7 @@ QA rows: retained/removed; Dell confirmation reference; returned IDs (if removed
 Draft verification: Developer __ at __; QA __ at __
 Authorized release IDs/count:
 Publication transaction / approver:
-Rebuild deploy ID/status:
+Cache purge time/result:
 EN/FR live verification result:
 Residual blockers or follow-up:
 ```
@@ -201,6 +201,6 @@ Residual blockers or follow-up:
 
 - Before a database commit: roll back the transaction; record the failed assertion. Uploaded but unreferenced covers remain non-public and are logged for controlled cleanup.
 - After draft commit but before publication: leave verified drafts unpublished or delete the exact imported IDs in a new reviewed transaction; never publish a partial batch to “test”.
-- After publication but before/after deploy: set `published=false` for the exact release IDs in a new transaction, trigger one rebuild, verify removal in both locales and the sitemap, and preserve the incident evidence.
+- After publication but before/after deploy: set `published=false` for the exact release IDs in a new transaction, purge the `catalogue` tag, verify removal in both locales and the sitemap, and preserve the incident evidence.
 - Any source-pack change after approval restarts Gate 1 for the affected rows and covers.
 
