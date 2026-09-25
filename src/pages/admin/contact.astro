@@ -47,7 +47,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     event.preventDefault(); submit.disabled = true; setStatus('Saving…'); const data = new FormData(form);
     const payload = { hero_copy_en: data.get('hero_copy_en'), hero_copy_fr: data.get('hero_copy_fr'), map_lat: data.get('map_lat'), map_lng: data.get('map_lng'), project_type_options: [...options.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value })), published: (form.elements.namedItem('published') as HTMLInputElement).checked };
     const res = await sendJson('/api/contact-settings-admin', 'PUT', payload, 'Unable to save Contact settings.');
-    setStatus(res.ok ? (payload.published ? 'Contact page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'Contact page published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
   load();
 </script>

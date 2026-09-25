@@ -2,6 +2,7 @@ import { getDatabase } from '@netlify/database';
 import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { json, methodNotAllowed } from './_shared/http';
+import { purgePublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -38,6 +39,7 @@ export default async function handler(req: Request) {
   if (req.method === 'DELETE') {
     try {
       const result = await db.sql`DELETE FROM subjects WHERE id = ${id} AND is_demo = false RETURNING id`;
+      if (result.length) await purgePublic('catalogue', 'homepage');
       return result.length ? json({ deleted: id }) : json({ error: 'Subject not found.' }, { status: 404 });
     } catch (error) {
       // catalogue_titles.subject_id references subjects(id) with no ON DELETE
@@ -68,11 +70,13 @@ export default async function handler(req: Request) {
       const [updated] = await db.sql`
         UPDATE subjects SET name_en = ${nameEn}, name_fr = ${nameFr} WHERE id = ${id} AND is_demo = false RETURNING *
       `;
+      if (updated) await purgePublic('catalogue', 'homepage');
       return updated ? json(updated) : json({ error: 'Subject not found.' }, { status: 404 });
     }
     const [created] = await db.sql`
       INSERT INTO subjects (name_en, name_fr) VALUES (${nameEn}, ${nameFr}) RETURNING *
     `;
+    await purgePublic('catalogue', 'homepage');
     return json(created, { status: 201 });
   } catch (error) {
     // name_en and name_fr are both UNIQUE — a duplicate is an editor mistake,

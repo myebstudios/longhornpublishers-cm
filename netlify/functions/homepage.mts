@@ -4,7 +4,7 @@ import { requireAdmin } from './_shared/auth';
 import { validateHomepage, validateHomepageHeroSlidesState } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
 import { purgeMedia } from './_shared/media-cache';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -75,8 +75,10 @@ export default async function handler(req: Request) {
       published = EXCLUDED.published, updated_at = now()
     RETURNING *
   `;
-  await purgeMedia(before?.hero_image_id, before?.who_we_are_image_id, saved.hero_image_id, saved.who_we_are_image_id);
-  await rebuildIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'homepage content updated');
+  if (before?.published === true || saved.published === true) {
+    await purgeMedia(before?.hero_image_id, before?.who_we_are_image_id, saved.hero_image_id, saved.who_we_are_image_id);
+  }
+  await purgeIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'homepage');
   return json(saved);
 }
 

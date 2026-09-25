@@ -113,7 +113,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       url: (row.querySelector('[data-url]') as HTMLInputElement).value,
     })).filter((link) => link.platform || link.url);
     const res = await sendJson('/api/site-settings-admin', 'PUT', payload, 'Unable to save site settings.');
-    setStatus(res.ok ? 'Site settings saved. A public rebuild was requested.' : res.error!, res.ok ? 'ok' : 'err');
+    setStatus(res.ok ? 'Site settings saved. The live site cache will refresh shortly.' : res.error!, res.ok ? 'ok' : 'err');
     if (res.ok) guard.markClean();
     submit.disabled = false;
   });

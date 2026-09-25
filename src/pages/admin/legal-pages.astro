@@ -24,7 +24,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     event.preventDefault(); const button = form.querySelector('button') as HTMLButtonElement; button.disabled = true; setStatus(form, 'Saving…'); const data = new FormData(form);
     const published = (form.elements.namedItem('published') as HTMLInputElement).checked;
     const res = await sendJson('/api/legal-pages-admin', 'PUT', { page: form.dataset.page, body_en: data.get('body_en'), body_fr: data.get('body_fr'), content_updated_at: data.get('content_updated_at'), published }, 'Unable to save legal page.');
-    setStatus(form, res.ok ? (published ? 'Legal page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guards.get(form)!.markClean(); button.disabled = false;
+    setStatus(form, res.ok ? (published ? 'Legal page published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guards.get(form)!.markClean(); button.disabled = false;
   }));
   load();
 </script>

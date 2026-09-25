@@ -3,7 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { validateWhy } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -29,7 +29,7 @@ export default async function handler(req: Request) {
       updated_at = now()
     RETURNING *
   `;
-  await rebuildIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'why choose us page updated');
+  await purgeIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'why');
   return json(saved);
 }
 

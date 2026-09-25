@@ -3,7 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { json, methodNotAllowed } from './_shared/http';
 import { purgeMedia } from './_shared/media-cache';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 const categories = new Set(['company_news', 'new_titles', 'partnerships', 'events']);
@@ -19,8 +19,8 @@ export default async function handler(req: Request) {
   if (req.method === 'DELETE') {
     const [deleted] = await db.sql`DELETE FROM news_articles WHERE id = ${id} AND is_demo = false RETURNING id, published, hero_image_id`;
     if (!deleted) return json({ error: 'News article not found.' }, { status: 404 });
-    await purgeMedia(deleted.hero_image_id);
-    await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'news article deleted');
+    if (deleted.published) await purgeMedia(deleted.hero_image_id);
+    await purgeIfPublic('delete', { wasPublished: deleted.published }, 'news', 'homepage');
     return json({ deleted: id });
   }
   // Malformed JSON is a client error, not a crash: without the catch a bad
@@ -35,12 +35,12 @@ export default async function handler(req: Request) {
     if (!before) return json({ error: 'News article not found.' }, { status: 404 });
     const [updated] = await db.sql`UPDATE news_articles SET headline_en = ${body.headline_en}, headline_fr = ${body.headline_fr}, category = ${body.category}, publish_date = ${publishDate}, hero_image_id = ${imageId}, body_en = ${body.body_en}, body_fr = ${body.body_fr}, excerpt_en = ${body.excerpt_en}, excerpt_fr = ${body.excerpt_fr}, slug = ${body.slug}, published = ${Boolean(body.published)}, updated_at = now() WHERE id = ${id} AND is_demo = false RETURNING *`;
     if (!updated) return json({ error: 'News article not found.' }, { status: 404 });
-    await purgeMedia(before.hero_image_id, updated.hero_image_id);
-    await rebuildIfPublic('update', { wasPublished: before.published, isPublished: updated.published }, 'news article updated');
+    if (before.published || updated.published) await purgeMedia(before.hero_image_id, updated.hero_image_id);
+    await purgeIfPublic('update', { wasPublished: before.published, isPublished: updated.published }, 'news', 'homepage');
     return json(updated);
   }
   const [created] = await db.sql`INSERT INTO news_articles (headline_en, headline_fr, category, publish_date, hero_image_id, body_en, body_fr, excerpt_en, excerpt_fr, slug, published) VALUES (${body.headline_en}, ${body.headline_fr}, ${body.category}, ${publishDate}, ${imageId}, ${body.body_en}, ${body.body_fr}, ${body.excerpt_en}, ${body.excerpt_fr}, ${body.slug}, ${Boolean(body.published)}) RETURNING *`;
-  await rebuildIfPublic('create', { isPublished: created.published }, 'news article created');
+  await purgeIfPublic('create', { isPublished: created.published }, 'news', 'homepage');
   return json(created, { status: 201 });
 }
 

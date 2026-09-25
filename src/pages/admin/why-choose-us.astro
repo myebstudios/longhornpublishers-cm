@@ -78,7 +78,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       published: (form.elements.namedItem('published') as HTMLInputElement).checked,
     };
     const res = await sendJson('/api/why-choose-us-admin', 'PUT', payload, 'Unable to save Why Choose Us content.');
-    setStatus(res.ok ? (payload.published ? 'Why Choose Us published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'Why Choose Us published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
   load();
 </script>

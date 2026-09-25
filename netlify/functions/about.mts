@@ -3,7 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { validateAbout } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -35,7 +35,7 @@ export default async function handler(req: Request) {
       team_capacity_blocks = EXCLUDED.team_capacity_blocks, published = EXCLUDED.published, updated_at = now()
     RETURNING *
   `;
-  await rebuildIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'about page updated');
+  await purgeIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'about');
   return json(saved);
 }
 

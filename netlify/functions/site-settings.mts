@@ -4,7 +4,7 @@ import { requireAdmin } from './_shared/auth';
 import { validateSiteSettings } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
 import { purgeMedia } from './_shared/media-cache';
-import { requestRebuild } from './_shared/rebuild';
+import { purgePublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -43,7 +43,7 @@ export default async function handler(req: Request) {
     RETURNING *
   `;
   await purgeMedia(before?.og_image_id, saved.og_image_id);
-  await requestRebuild('site settings updated');
+  await purgePublic('site-settings');
   return json(saved);
 }
 

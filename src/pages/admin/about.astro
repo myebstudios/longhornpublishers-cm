@@ -79,7 +79,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       description_fr: (row.querySelector('[data-fr]') as HTMLTextAreaElement).value,
     }));
     const res = await sendJson('/api/about-admin', 'PUT', payload, 'Unable to save About content.');
-    setStatus(res.ok ? (payload.published ? 'About page published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'About page published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
   load();
 </script>

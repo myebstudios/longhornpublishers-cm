@@ -3,7 +3,7 @@ import type { Config } from '@netlify/functions';
 import { requireAdmin } from './_shared/auth';
 import { validateContact } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -25,7 +25,7 @@ export default async function handler(req: Request) {
       project_type_options = EXCLUDED.project_type_options, map_lat = EXCLUDED.map_lat, map_lng = EXCLUDED.map_lng, published = EXCLUDED.published, updated_at = now()
     RETURNING *
   `;
-  await rebuildIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'contact settings updated');
+  await purgeIfPublic('update', { wasPublished: before?.published === true, isPublished: saved.published === true }, 'contact');
   return json(saved);
 }
 

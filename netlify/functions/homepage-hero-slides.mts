@@ -8,7 +8,7 @@ import {
 } from './_shared/cms-validation';
 import { json, methodNotAllowed } from './_shared/http';
 import { purgeMedia } from './_shared/media-cache';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
@@ -20,17 +20,16 @@ async function homepagePublished(): Promise<boolean> {
   return homepage?.published === true;
 }
 
-async function rebuildForSlide(
+async function purgeForSlide(
   kind: 'create' | 'update' | 'delete',
   published: boolean,
   beforeEnabled: boolean,
   afterEnabled: boolean,
-  reason: string,
 ): Promise<void> {
-  await rebuildIfPublic(kind, {
+  await purgeIfPublic(kind, {
     wasPublished: published && beforeEnabled,
     isPublished: published && afterEnabled,
-  }, reason);
+  }, 'homepage');
 }
 
 export default async function handler(req: Request) {
@@ -66,8 +65,8 @@ export default async function handler(req: Request) {
       RETURNING id, image_id, enabled
     `;
     if (!deleted) return json({ error: 'Hero slide not found.' }, { status: 404 });
-    await purgeMedia(deleted.image_id, undefined);
-    await rebuildForSlide('delete', published, deleted.enabled === true, false, 'homepage hero slide deleted');
+    if (published && deleted.enabled === true) await purgeMedia(deleted.image_id);
+    await purgeForSlide('delete', published, deleted.enabled === true, false);
     return json({ deleted: id });
   }
 
@@ -90,9 +89,9 @@ export default async function handler(req: Request) {
       FROM ordered
       WHERE slides.id = ordered.id AND slides.homepage_id = 'default'
     `;
-    await purgeMedia(...current.flatMap((slide) => [slide.image_id as string | null, slide.image_id as string | null]));
     const hasPublicSlide = published && current.some((slide) => slide.enabled === true);
-    await rebuildForSlide('update', published, hasPublicSlide, hasPublicSlide, 'homepage hero slides reordered');
+    if (hasPublicSlide) await purgeMedia(...current.filter((slide) => slide.enabled === true).map((slide) => slide.image_id as string | null));
+    await purgeForSlide('update', published, hasPublicSlide, hasPublicSlide);
     return json({ reordered: ids });
   }
 
@@ -118,8 +117,8 @@ export default async function handler(req: Request) {
         ${value.secondary_cta_label_en}, ${value.secondary_cta_label_fr}, ${value.secondary_cta_href}, ${value.enabled}
       ) RETURNING *
     `;
-    await purgeMedia(undefined, created.image_id);
-    await rebuildForSlide('create', published, false, created.enabled === true, 'homepage hero slide created');
+    if (published && created.enabled === true) await purgeMedia(created.image_id);
+    await purgeForSlide('create', published, false, created.enabled === true);
     return json(created, { status: 201 });
   }
 
@@ -142,8 +141,8 @@ export default async function handler(req: Request) {
     RETURNING *
   `;
   if (!updated) return json({ error: 'Hero slide not found.' }, { status: 404 });
-  await purgeMedia(before.image_id as string | null, updated.image_id);
-  await rebuildForSlide('update', published, before.enabled === true, updated.enabled === true, 'homepage hero slide updated');
+  if (published && (before.enabled === true || updated.enabled === true)) await purgeMedia(before.image_id as string | null, updated.image_id);
+  await purgeForSlide('update', published, before.enabled === true, updated.enabled === true);
   return json(updated);
 }
 

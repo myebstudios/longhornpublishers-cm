@@ -4,7 +4,7 @@ import { requireAdmin } from './_shared/auth';
 import { isProductCodeConflict, parseProductCode } from './_shared/catalogue-product-code';
 import { json, methodNotAllowed } from './_shared/http';
 import { purgeMedia } from './_shared/media-cache';
-import { rebuildIfPublic } from './_shared/rebuild';
+import { purgeIfPublic } from './_shared/public-cache';
 
 const db = getDatabase();
 
@@ -22,8 +22,8 @@ export default async function handler(req: Request) {
   if (req.method === 'DELETE') {
     const [deleted] = await db.sql`DELETE FROM catalogue_titles WHERE id = ${id} AND is_demo = false RETURNING id, published, cover_image_id`;
     if (!deleted) return json({ error: 'Catalogue title not found.' }, { status: 404 });
-    await purgeMedia(deleted.cover_image_id);
-    await rebuildIfPublic('delete', { wasPublished: deleted.published }, 'catalogue title deleted');
+    if (deleted.published) await purgeMedia(deleted.cover_image_id);
+    await purgeIfPublic('delete', { wasPublished: deleted.published }, 'catalogue', 'homepage');
     return json({ deleted: id });
   }
   // Malformed JSON is a client error, not a crash: without the catch a bad
@@ -53,8 +53,8 @@ export default async function handler(req: Request) {
     if (!updated) return json({ error: 'Catalogue title not found.' }, { status: 404 });
     // Both ids: the outgoing cover when the image was swapped, and the current
     // one when the title itself was unpublished.
-    await purgeMedia(before.cover_image_id, updated.cover_image_id);
-    await rebuildIfPublic('update', { wasPublished: before.published, isPublished: updated.published }, 'catalogue title updated');
+    if (before.published || updated.published) await purgeMedia(before.cover_image_id, updated.cover_image_id);
+    await purgeIfPublic('update', { wasPublished: before.published, isPublished: updated.published }, 'catalogue', 'homepage');
     return json(updated);
   }
   let created;
@@ -66,7 +66,7 @@ export default async function handler(req: Request) {
     }
     throw error;
   }
-  await rebuildIfPublic('create', { isPublished: created.published }, 'catalogue title created');
+  await purgeIfPublic('create', { isPublished: created.published }, 'catalogue', 'homepage');
   return json(created, { status: 201 });
 }
 

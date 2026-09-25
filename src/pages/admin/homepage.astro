@@ -12,7 +12,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       </div>
       <button class="button" type="button" id="addSlide" aria-describedby="heroSlideLimit">+ Add slide</button>
     </div>
-    <p class="publish-note">Saving an enabled slide while the homepage is published requests the same public rebuild as the rest of this page. Disable a slide first when you want to stage it privately.</p>
+    <p class="publish-note">Saving an enabled slide while the homepage is published refreshes the live site cache. Disable a slide first when you want to stage it privately.</p>
     <div id="heroSlides" class="hero-slide-list" aria-live="polite"></div>
     <p id="heroSlidesStatus" role="status" aria-live="polite"></p>
   </section>
@@ -451,7 +451,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     const res = await sendJson('/api/homepage-admin', 'PUT', payload, 'Unable to save homepage content.');
     const autoplayError = document.querySelector('#autoplayError')!;
     autoplayError.textContent = !res.ok && res.error?.toLowerCase().includes('autoplay') ? res.error : '';
-    setStatus(res.ok ? (payload.published ? 'Homepage published. A public rebuild was requested.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
+    setStatus(res.ok ? (payload.published ? 'Homepage published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
   });
   Promise.all([load(), loadSlides()]);
 </script>
