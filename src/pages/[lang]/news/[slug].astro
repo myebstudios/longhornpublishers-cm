@@ -10,8 +10,8 @@ import { getPublishedNewsDetail } from '../../../lib/news';
  */
 
 
-if (Astro.params.lang !== 'en' || !Astro.params.slug) return new Response(null, { status: 404 });
+if (Astro.params.lang !== 'en' || !Astro.params.slug) return Astro.rewrite('/404-runtime');
 const article = (await getPublishedNewsDetail()).find((row) => row.slug === Astro.params.slug);
-if (!article) return new Response(null, { status: 404 });
+if (!article) return Astro.rewrite('/404-runtime');
 ---
 <NewsArticlePage locale="en" article={article} />

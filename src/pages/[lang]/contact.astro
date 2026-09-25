@@ -1,6 +1,6 @@
 ---
 export const prerender = false;
-if (Astro.params.lang !== 'en') return new Response(null, { status: 404 });
+if (Astro.params.lang !== 'en') return Astro.rewrite('/404-runtime');
 import Contact from '../../components/pages/Contact.astro';
 
 /** English routes only. French uses localized slugs via src/pages/fr/[slug].astro. */

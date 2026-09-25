@@ -1,6 +1,6 @@
 ---
 export const prerender = false;
-if (Astro.params.lang !== 'en') return new Response(null, { status: 404 });
+if (Astro.params.lang !== 'en') return Astro.rewrite('/404-runtime');
 import Legal from '../../components/pages/Legal.astro';
 import type { Locale } from '../../i18n';
 

@@ -19,7 +19,7 @@ type PageKey = Exclude<RouteKey, 'home'>;
 
 const keys: PageKey[] = ['about', 'services', 'catalogue', 'why', 'contact', 'news'];
 const routeKey = keys.find((key) => ROUTES[key].fr === Astro.params.slug);
-if (!routeKey) return new Response(null, { status: 404 });
+if (!routeKey) return Astro.rewrite('/404-runtime');
 
 const PAGES = {
   about: About, services: Services, catalogue: Catalogue,

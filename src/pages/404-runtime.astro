@@ -1,0 +1,9 @@
+---
+export const prerender = false;
+import NotFound from './404.astro';
+
+Astro.response.status = 404;
+Astro.response.statusText = 'Not Found';
+Astro.response.headers.set('Cache-Control', 'no-store');
+---
+<NotFound />

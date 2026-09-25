@@ -25,7 +25,8 @@
     "verify:cms-parity": "node scripts/verify-cms-parity.mjs",
     "verify:production": "node --experimental-strip-types scripts/verify-production.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
-    "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs"
+    "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs",
+    "test:on-demand-routing": "node --test scripts/on-demand-routing.test.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.5",
