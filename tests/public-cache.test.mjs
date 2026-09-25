@@ -20,7 +20,7 @@ test('French and English pages carry the same content dependency tags', () => {
   assert.deepEqual(cacheTagsForPath('/sitemap.xml'), ['site-settings', 'catalogue', 'news']);
   assert.deepEqual(cacheTagsForPath('/admin/'), []);
   assert.deepEqual(cacheTagsForPath('/fr/unknown/'), []);
-  assert.match(CDN_CACHE_CONTROL, /durable/);
+  assert.equal(CDN_CACHE_CONTROL, 'public, durable, max-age=300, stale-while-revalidate=604800');
 });
 
 test('an unavailable purge service does not fail a committed save', async () => {

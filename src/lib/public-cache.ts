@@ -1,4 +1,6 @@
-export const CDN_CACHE_CONTROL = 'public, durable, max-age=300, stale-while-revalidate=3600';
+// Five minutes bounds a failed purge; seven days keeps infrequently visited
+// pages warm and lets the CDN serve stale content through a longer DB outage.
+export const CDN_CACHE_CONTROL = 'public, durable, max-age=300, stale-while-revalidate=604800';
 export const BROWSER_CACHE_CONTROL = 'public, max-age=0, must-revalidate';
 
 /** Tags describe content dependencies, including shared navigation and footer. */
