@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import test from 'node:test';
 import { affectsPublicOutput, purgePublicWith } from '../netlify/functions/_shared/public-cache.ts';
 import { cacheTagsForPath, CDN_CACHE_CONTROL } from '../src/lib/public-cache.ts';
+import { unavailableResponse } from '../src/lib/unavailable-response.ts';
 
 test('draft churn does not invalidate public output', () => {
   assert.equal(affectsPublicOutput('create', { isPublished: false }), false);
@@ -39,4 +40,18 @@ test('an unavailable purge service does not fail a committed save', async () => 
   } finally {
     console.error = originalError;
   }
+});
+
+test('database outage page is bilingual, self-contained, and never cacheable', async () => {
+  const response = unavailableResponse();
+  const body = await response.text();
+  assert.equal(response.status, 503);
+  assert.equal(response.headers.get('cache-control'), 'no-store');
+  assert.equal(response.headers.get('netlify-cdn-cache-control'), null);
+  assert.equal(response.headers.get('netlify-cache-tag'), null);
+  assert.match(response.headers.get('content-type'), /^text\/html/);
+  assert.match(body, /<style>/);
+  assert.match(body, /Please try again shortly/);
+  assert.match(body, /Veuillez réessayer dans quelques instants/);
+  assert.doesNotMatch(body, /<(?:script|link|img)\b/i);
 });

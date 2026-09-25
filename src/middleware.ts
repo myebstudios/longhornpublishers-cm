@@ -1,10 +1,19 @@
 import { defineMiddleware } from 'astro:middleware';
 import { withPublicRender } from './lib/request-context';
 import { BROWSER_CACHE_CONTROL, CDN_CACHE_CONTROL, cacheTagsForPath } from './lib/public-cache';
+import { unavailableResponse } from './lib/unavailable-response';
 
 export const onRequest = defineMiddleware(async ({ url }, next) => {
   const tags = cacheTagsForPath(url.pathname);
-  if (!tags.length) return next();
+  if (!tags.length) {
+    const response = await next();
+    if (response.status >= 400) {
+      response.headers.delete('Netlify-CDN-Cache-Control');
+      response.headers.delete('Netlify-Cache-Tag');
+      response.headers.set('Cache-Control', 'no-store');
+    }
+    return response;
+  }
 
   try {
     // Astro can stream component work after next() resolves. Finish the body
@@ -31,9 +40,6 @@ export const onRequest = defineMiddleware(async ({ url }, next) => {
     return response;
   } catch (error) {
     console.error('[public render] Failed; serving uncached 503.', error);
-    return new Response('Service temporarily unavailable', {
-      status: 503,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8', 'Cache-Control': 'no-store' },
-    });
+    return unavailableResponse();
   }
 });
