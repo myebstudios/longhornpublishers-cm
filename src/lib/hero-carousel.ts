@@ -55,6 +55,9 @@ export function initHeroCarousels(root: ParentNode = document): void {
     };
     let current = 0;
     let timer: number | undefined;
+    let progressFrame: number | undefined;
+    let remaining = interval;
+    let startedAt = 0;
     let pointerStartX: number | null = null;
 
     const autoplayModeEnabled = () => !state.reducedMotion && !state.manuallyStopped;
@@ -63,6 +66,7 @@ export function initHeroCarousels(root: ParentNode = document): void {
       if (state.reducedMotion) {
         toggle.disabled = true;
         toggle.textContent = labels.reduced;
+        toggle.setAttribute('aria-label', labels.reduced);
         toggle.dataset.state = 'disabled';
         toggle.setAttribute('aria-pressed', 'true');
         return;
@@ -70,14 +74,21 @@ export function initHeroCarousels(root: ParentNode = document): void {
       toggle.disabled = false;
       const playing = autoplayModeEnabled();
       toggle.textContent = playing ? labels.pause : labels.play;
+      toggle.setAttribute('aria-label', playing ? labels.pause : labels.play);
       toggle.dataset.state = playing ? 'playing' : 'paused';
       toggle.setAttribute('aria-pressed', String(!playing));
     };
 
-    const clearTimer = () => {
-      if (timer !== undefined) window.clearTimeout(timer);
-      timer = undefined;
-      carousel.dataset.running = 'false';
+    const pauseTimer = () => {
+      if (timer !== undefined) {
+        window.clearTimeout(timer);
+        remaining = Math.max(0, remaining - (performance.now() - startedAt));
+        timer = undefined;
+      }
+      if (progressFrame !== undefined) {
+        window.cancelAnimationFrame(progressFrame);
+        progressFrame = undefined;
+      }
     };
 
     const show = (nextIndex: number, announce = false) => {
@@ -105,20 +116,47 @@ export function initHeroCarousels(root: ParentNode = document): void {
       }
     };
 
-    const schedule = () => {
-      clearTimer();
-      updateToggle();
-      if (!canHeroAutoplay(state)) return;
-      // Restart the progress animation for the full interval after any pause.
-      requestAnimationFrame(() => { carousel.dataset.running = 'true'; });
+    const startTimer = () => {
+      startedAt = performance.now();
       timer = window.setTimeout(() => {
+        timer = undefined;
+        remaining = interval;
+        carousel.dataset.running = 'false';
         show(current + 1);
         schedule();
-      }, interval);
+      }, remaining);
+    };
+
+    const schedule = () => {
+      pauseTimer();
+      updateToggle();
+      if (!canHeroAutoplay(state)) {
+        if (state.manuallyStopped || state.reducedMotion) {
+          carousel.dataset.running = 'false';
+          remaining = interval;
+        } else {
+          carousel.dataset.progressPaused = 'true';
+        }
+        return;
+      }
+      if (carousel.dataset.running === 'true') {
+        carousel.dataset.progressPaused = 'false';
+        startTimer();
+        return;
+      }
+      remaining = interval;
+      progressFrame = window.requestAnimationFrame(() => {
+        progressFrame = undefined;
+        if (!canHeroAutoplay(state)) return;
+        carousel.dataset.running = 'true';
+        carousel.dataset.progressPaused = 'false';
+        startTimer();
+      });
     };
 
     const takeManualControl = (nextIndex: number) => {
       state.manuallyStopped = true;
+      carousel.dataset.running = 'false';
       show(nextIndex, true);
       schedule();
     };

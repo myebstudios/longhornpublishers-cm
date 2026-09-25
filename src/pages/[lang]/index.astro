@@ -14,6 +14,7 @@ import {
   SERVICE_IMG, disciplineLabel,
 } from '../../data/presentation';
 import { responsive } from '../../lib/images';
+import { getDevHeroSlides } from '../../data/dev-hero-slides';
 import {
   articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
 } from '../../lib/news';
@@ -30,6 +31,11 @@ const managedHeroSlides = (await getHomepageHeroSlides(lang)).map((slide) => ({
   primary_cta_href: localizeCmsHref(slide.primary_cta_href, lang),
   secondary_cta_href: slide.secondary_cta_href ? localizeCmsHref(slide.secondary_cta_href, lang) : null,
 }));
+// Preserve published CMS slides first, then fill a short local set to three so
+// developers can exercise the controls. Production retains the static fallback.
+const heroSlides = import.meta.env.DEV && managedHeroSlides.length < 3
+  ? [...managedHeroSlides, ...getDevHeroSlides(lang).slice(managedHeroSlides.length)]
+  : managedHeroSlides;
 const heroHeadline = homepage ? localized(lang, homepage.hero_headline_en, homepage.hero_headline_fr) : null;
 const heroSubheadline = homepage ? localized(lang, homepage.hero_subheadline_en, homepage.hero_subheadline_fr) : null;
 const heroCta = homepage ? localized(lang, homepage.hero_cta_label_en, homepage.hero_cta_label_fr) : null;
@@ -65,13 +71,13 @@ const cardImg = (id: string, discipline: string) => responsive(SERVICE_IMG[id] ?
 // published the whole section is omitted — an empty news band on the homepage
 // would read as neglect rather than as a deliberate blank.
 const latestNews = await getPublishedNews(3);
-const firstHeroImage = responsive(managedHeroSlides[0]?.image ?? mediaPath(homepage?.hero_image_id, 'lh-hero.jpg'));
+const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.hero_image_id, 'lh-hero.jpg'));
 ---
 
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home" preloadImage={firstHeroImage}>
-  {managedHeroSlides.length ? (
+  {heroSlides.length ? (
     <HeroCarousel
-      slides={managedHeroSlides}
+      slides={heroSlides}
       locale={lang}
       autoplayEnabled={homepage?.hero_autoplay_enabled ?? true}
       autoplayInterval={homepage?.hero_autoplay_interval ?? 6000}

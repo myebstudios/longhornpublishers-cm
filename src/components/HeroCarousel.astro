@@ -1,5 +1,6 @@
 ---
 import Button from './Button.astro';
+import CarouselNavButton from './CarouselNavButton.astro';
 import { responsive } from '../lib/images';
 import type { Locale } from '../i18n';
 
@@ -100,11 +101,8 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
 
   {multiple && (
     <div class="hero-carousel__chrome" data-hero-controls>
-      <div class="hero-carousel__progress" aria-hidden="true"><span></span></div>
       <div class="wrap hero-carousel__toolbar">
-        <button class="hero-carousel__arrow" type="button" data-hero-previous aria-label={copy.previous}>
-          <span aria-hidden="true">←</span>
-        </button>
+        <CarouselNavButton direction="prev" label={copy.previous} data-hero-previous={true} />
         <span class="hero-carousel__counter" data-hero-counter>{`1 / ${slides.length}`}</span>
         <div class="hero-carousel__dots" role="group" aria-label={copy.region}>
           {slides.map((_, index) => (
@@ -117,6 +115,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
             ><span></span></button>
           ))}
         </div>
+        <CarouselNavButton direction="next" label={copy.next} data-hero-next={true} />
         <button
           class="hero-carousel__toggle"
           type="button"
@@ -124,11 +123,9 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
           data-play-label={copy.play}
           data-pause-label={copy.pause}
           data-reduced-label={copy.reduced}
+          aria-label={autoplayEnabled ? copy.pause : copy.play}
           aria-pressed={autoplayEnabled ? 'false' : 'true'}
         >{autoplayEnabled ? copy.pause : copy.play}</button>
-        <button class="hero-carousel__arrow" type="button" data-hero-next aria-label={copy.next}>
-          <span aria-hidden="true">→</span>
-        </button>
       </div>
     </div>
   )}
@@ -148,6 +145,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
 
 <style>
   .hero-carousel {
+    --hero-action-inset: clamp(6rem, 9vw, 8rem);
     position: relative;
     isolation: isolate;
     overflow: hidden;
@@ -163,16 +161,16 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     isolation: isolate;
     grid-area: hero-stack;
     display: flex;
-    align-items: flex-end;
-    min-height: clamp(540px, 75vh, 680px);
-    padding-block: calc(var(--header-h) + clamp(4rem, 8vh, 7rem)) clamp(8rem, 12vh, 10rem);
+    align-items: stretch;
+    min-height: clamp(680px, 74vh, 855px);
+    padding-block: calc(var(--header-h) + 4rem) var(--hero-action-inset);
     opacity: 0;
     visibility: hidden;
     pointer-events: none;
     transition: opacity .45s ease, visibility 0s linear .45s;
   }
   .hero-carousel--single .hero-carousel__slide {
-    padding-bottom: clamp(4rem, 8vh, 7rem);
+    padding-bottom: 4rem;
   }
   .hero-carousel__slide.is-active {
     z-index: 1;
@@ -200,8 +198,15 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     height: 100%;
     object-fit: cover;
   }
-  .hero-carousel__wrap { width: 100%; }
-  .hero-carousel__content { width: 100%; max-width: 54rem; }
+  .hero-carousel__wrap { display: flex; }
+  .hero-carousel__content {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    width: 100%;
+    max-width: 54rem;
+  }
+  .hero-carousel__content > .eyebrow { align-self: flex-start; max-width: 100%; }
   .hero-carousel h1 {
     margin-block: 1.25rem 1.4rem;
     line-height: 1.15;
@@ -224,33 +229,16 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     position: absolute;
     z-index: 3;
     right: 0;
-    bottom: 0;
+    bottom: var(--hero-action-inset);
     left: 0;
     display: block;
-  }
-  .hero-carousel__progress {
-    height: 3px;
-    background: rgba(255,255,255,.22);
-  }
-  .hero-carousel__progress span {
-    display: block;
-    width: 100%;
-    height: 100%;
-    background: var(--green);
-    transform: scaleX(0);
-    transform-origin: left;
-  }
-  .hero-carousel[data-running="true"] .hero-carousel__progress span {
-    animation: hero-carousel-progress var(--hero-autoplay-ms, 6000ms) linear forwards;
   }
   .hero-carousel__toolbar {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: .75rem;
-    padding-block: 1rem 1.25rem;
+    justify-content: flex-end;
+    gap: .4rem;
   }
-  .hero-carousel__arrow,
   .hero-carousel__toggle,
   .hero-carousel__dot {
     border: 1px solid rgba(255,255,255,.5);
@@ -258,32 +246,29 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     background: rgba(59,15,27,.58);
     cursor: pointer;
   }
-  .hero-carousel__arrow {
-    display: grid;
+  .hero-carousel :global(.carousel__btn) {
+    flex: none;
+    border-color: rgba(255,255,255,.5);
+    color: var(--white);
+    background: rgba(59,15,27,.58);
+  }
+  .hero-carousel :global(.carousel__btn:hover) { color: var(--burgundy-deep); }
+  .hero-carousel__toggle {
     width: 2.75rem;
     height: 2.75rem;
-    place-items: center;
+    padding: 0;
     border-radius: 50%;
-    font-size: 1.15rem;
-  }
-  .hero-carousel__toggle {
-    min-height: 2.75rem;
-    padding-inline: .9rem;
-    border-radius: 999px;
     font: inherit;
-    font-size: var(--step--1);
+    font-size: 0;
   }
+  .hero-carousel__toggle::after { content: "Ⅱ"; font-size: 1rem; }
+  .hero-carousel__toggle[data-state="paused"]::after { content: "▶"; }
   .hero-carousel__toggle:disabled { cursor: not-allowed; opacity: .65; }
-  .hero-carousel__counter {
-    min-width: 3.25rem;
-    font-size: var(--step--1);
-    font-variant-numeric: tabular-nums;
-    text-align: center;
-  }
-  .hero-carousel__dots { display: flex; align-items: center; gap: .35rem; }
+  .hero-carousel__counter { display: none; }
+  .hero-carousel__dots { display: flex; align-items: center; gap: 0; }
   .hero-carousel__dot {
     display: grid;
-    width: 2.75rem;
+    width: 2rem;
     height: 2.75rem;
     padding: 0;
     place-items: center;
@@ -292,32 +277,53 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     background: transparent;
   }
   .hero-carousel__dot span {
+    position: relative;
+    overflow: hidden;
     width: .6rem;
     height: .6rem;
     border-radius: 50%;
     background: rgba(255,255,255,.5);
     transition: width .2s ease, background-color .2s ease;
   }
-  .hero-carousel__dot.is-active span { width: 1.35rem; border-radius: 999px; background: var(--green); }
+  .hero-carousel__dot.is-active span { width: 1.5rem; border-radius: 999px; background: rgba(255,255,255,.4); }
+  .hero-carousel__dot.is-active span::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    background: var(--green);
+    transform: scaleX(0);
+    transform-origin: left;
+  }
+  .hero-carousel[data-running="true"] .hero-carousel__dot.is-active span::after {
+    animation: hero-dot-progress var(--hero-autoplay-ms, 6000ms) linear forwards;
+  }
+  .hero-carousel[data-progress-paused="true"] .hero-carousel__dot.is-active span::after {
+    animation-play-state: paused;
+  }
+  .hero-carousel[data-autoplay-enabled="false"] .hero-carousel__dot.is-active span,
+  .hero-carousel[data-running="false"] .hero-carousel__dot.is-active span { background: var(--green); }
   .hero-carousel :is(button, a):focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
 
-  @keyframes hero-carousel-progress { to { transform: scaleX(1); } }
+  @keyframes hero-dot-progress { to { transform: scaleX(1); } }
 
   @media (max-width: 760px) {
+    .hero-carousel { --hero-action-inset: 10rem; }
     .hero-carousel__slide {
-      min-height: clamp(500px, 85vh, 640px);
-      padding-top: calc(var(--header-h) + 4rem);
-      padding-bottom: 8.5rem;
+      min-height: clamp(640px, 90vh, 780px);
+      padding-top: calc(var(--header-h) + 3rem);
+      padding-bottom: var(--hero-action-inset);
     }
     .hero-carousel--single .hero-carousel__slide { padding-bottom: 4rem; }
-    .hero-carousel__toolbar { gap: .35rem; padding-inline: .75rem; }
-    .hero-carousel__counter { display: none; }
-    .hero-carousel__toggle { max-width: 10rem; }
+    .hero-carousel[data-enhanced="true"] .hero-carousel__chrome { bottom: 2rem; }
+    .hero-carousel__toolbar { gap: .25rem; }
+    .hero-carousel__dot { width: 1.8rem; }
   }
 
   @media (prefers-reduced-motion: reduce) {
     .hero-carousel__slide { transition: none; }
-    .hero-carousel__progress { display: none; }
     .hero-carousel__dot span { transition: none; }
+    .hero-carousel__dot.is-active span { background: var(--green); }
+    .hero-carousel__dot.is-active span::after { animation: none !important; }
   }
 </style>
