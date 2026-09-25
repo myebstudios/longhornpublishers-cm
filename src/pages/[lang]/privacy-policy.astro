@@ -1,7 +1,9 @@
 ---
+export const prerender = false;
+if (Astro.params.lang !== 'en') return new Response(null, { status: 404 });
 import Legal from '../../components/pages/Legal.astro';
 import type { Locale } from '../../i18n';
-export function getStaticPaths() { return [{ params: { lang: 'en' } }]; }
+
 const { lang } = Astro.params as { lang: Locale };
 ---
 <Legal locale={lang} page="privacy_policy" />

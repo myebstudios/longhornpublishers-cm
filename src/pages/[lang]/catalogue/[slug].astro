@@ -1,36 +1,17 @@
 ---
+export const prerender = false;
 import Layout from '../../../layouts/Layout.astro';
 import {
   coverImage, curriculum, description, subjectName, titleText, getPublishedTitles,
-  type CatalogueTitle,
 } from '../../../lib/catalogue';
-import { LOCALES, ROUTES, path, useTranslations, type Locale } from '../../../i18n';
+import { path, useTranslations, type Locale } from '../../../i18n';
 
-export async function getStaticPaths() {
-  // This route's directory segment is the literal `catalogue`, so it only lines
-  // up with ROUTES.catalogue while that slug is the same in every locale. If the
-  // French slug is ever localized, the listing and sitemap would emit URLs this
-  // route does not generate — fail the build loudly rather than ship 404s.
-  const segments = new Set(LOCALES.map((lang) => ROUTES.catalogue[lang]));
-  if (segments.size > 1 || !segments.has('catalogue')) {
-    throw new Error(
-      `ROUTES.catalogue must be 'catalogue' in every locale while detail pages live in ` +
-      `src/pages/[lang]/catalogue/. Found: ${JSON.stringify(ROUTES.catalogue)}. ` +
-      `Localizing it means renaming this directory to a dynamic segment too.`,
-    );
-  }
 
-  // Slugs are a single database column shared by both locales, so one published
-  // title yields exactly one page per locale. No published titles means no
-  // detail routes — the listing's empty state covers that case.
-  const titles = await getPublishedTitles();
-  return LOCALES.flatMap((lang) =>
-    titles.map((title) => ({ params: { lang, slug: title.slug }, props: { title } })),
-  );
-}
 
 const { lang } = Astro.params as { lang: Locale };
-const { title } = Astro.props as { title: CatalogueTitle };
+if ((lang !== 'en' && lang !== 'fr') || !Astro.params.slug) return new Response(null, { status: 404 });
+const title = (await getPublishedTitles()).find((row) => row.slug === Astro.params.slug);
+if (!title) return new Response(null, { status: 404 });
 const t = useTranslations(lang);
 
 const name = titleText(title, lang);

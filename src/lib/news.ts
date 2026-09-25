@@ -1,11 +1,5 @@
 /**
- * Build-time reads of published news from Netlify DB.
- *
- * Docs/technical_architecture.md §16 keeps the public site fully static-rendered
- * while reading published content from the database, so these run during
- * `astro build` and the result is baked into the HTML. A newly published
- * article therefore appears after the next deploy, not instantly — see the
- * deploy dependency noted in `getPublishedNews`.
+ * Request-time reads of published news from Netlify DB.
  */
 import { path, type Locale } from '../i18n';
 import { getBuildDatabase } from './build-database';
@@ -105,14 +99,10 @@ export function publishedOn(article: NewsArticle, locale: Locale): string {
  *
  * Filters on `published` alone — that checkbox is the editor's explicit
  * publish switch in the admin panel. `publish_date` is treated as display
- * metadata and deliberately not used to hide future-dated rows, because a
- * static build cannot later reveal them on its own; a post dated tomorrow would
- * silently vanish until someone happened to redeploy.
+ * metadata and deliberately not used to hide future-dated rows.
  *
- * Resolves to `[]` rather than throwing when the database is unreachable — a
- * build without DATABASE_URL (local checkouts, CI without the secret) must
- * still produce a site, falling back to the same empty state used before the
- * first article is written.
+ * Build-time fallback remains available for non-public prerendering. During a
+ * public request, a failed query aborts rendering and returns an uncached 503.
  */
 export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
   try {
@@ -136,7 +126,7 @@ export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
   } catch (error) {
     failIfProductionDatabaseUnavailable('news', error);
     console.warn(
-      '[news] Could not read article bodies at build time; no detail routes will be generated.',
+      '[news] Could not read article bodies; rendering the build fallback.',
       error instanceof Error ? error.message : error,
     );
     return [];
@@ -164,7 +154,7 @@ export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
   } catch (error) {
     failIfProductionDatabaseUnavailable('news', error);
     console.warn(
-      '[news] Could not read published articles at build time; rendering the empty state instead.',
+      '[news] Could not read published articles; rendering the build fallback.',
       error instanceof Error ? error.message : error,
     );
     return [];

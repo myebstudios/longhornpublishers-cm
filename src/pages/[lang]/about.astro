@@ -1,7 +1,9 @@
 ---
+export const prerender = false;
+if (Astro.params.lang !== 'en') return new Response(null, { status: 404 });
 import About from '../../components/pages/About.astro';
 
 /** English routes only. French uses localized slugs via src/pages/fr/[slug].astro. */
-export function getStaticPaths() { return [{ params: { lang: 'en' } }]; }
+
 ---
 <About locale="en" />

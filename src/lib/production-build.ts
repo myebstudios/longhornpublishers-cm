@@ -1,17 +1,14 @@
-/**
- * Public CMS content is read while Astro builds static pages. Local and preview
- * builds may intentionally lack a database connection, but production must never
- * deploy that empty fallback over the live catalogue and news.
- *
- * The underlying driver error is attached to the thrown message: without it a
- * failed production build only reports "database is unavailable", which is true
- * of a missing connection string, a TLS failure, and a broken migration alike.
- */
+/** A failed request-time CMS read must abort public rendering before caching. */
+import { inPublicRender } from './request-context';
+
 export function failIfProductionDatabaseUnavailable(
   area: string,
   error?: unknown,
 ): void {
-  if (process.env.CONTEXT !== 'production') return;
+  // Parity verification deliberately renders the reviewed fallback through a
+  // local on-demand server with no database. Never permit that mode in prod.
+  if (process.env.CONTEXT !== 'production' && process.env.CMS_PARITY_FALLBACK === '1') return;
+  if (!inPublicRender()) return;
 
   const chain: string[] = [];
   for (let e: unknown = error; e !== undefined && e !== null && chain.length < 5; ) {
@@ -24,7 +21,7 @@ export function failIfProductionDatabaseUnavailable(
     .join(' ');
 
   throw new Error(
-    `[${area}] Database read failed during a production build; refusing to deploy empty CMS content.\n`
+    `[${area}] Database read failed during public rendering; refusing to cache fallback content.\n`
       + `  cause: ${cause}\n`
       + `  connection env: ${present}`,
   );

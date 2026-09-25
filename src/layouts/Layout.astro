@@ -15,9 +15,10 @@ interface Props {
   alternates?: Record<Locale, string>;
   image?: string;
   type?: 'website' | 'article';
+  preloadImage?: { src: string; srcset?: string };
 }
 
-const { title, description, locale, routeKey, alternates, image, type } = Astro.props;
+const { title, description, locale, routeKey, alternates, image, type, preloadImage } = Astro.props;
 const localePath = (target: Locale) =>
   alternates?.[target] ?? (routeKey ? path(routeKey, target) : '/');
 const t = useTranslations(locale);
@@ -80,6 +81,7 @@ const organizationSchema = {
       <meta name="robots" content="noindex" />
     )}
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    {preloadImage && <link rel="preload" as="image" href={preloadImage.src} imagesrcset={preloadImage.srcset} imagesizes={preloadImage.srcset ? '100vw' : undefined} fetchpriority="high" />}
     <link rel="sitemap" type="application/xml" href="/sitemap.xml" />
     <script type="application/ld+json" set:html={JSON.stringify(organizationSchema)} />
     <script>

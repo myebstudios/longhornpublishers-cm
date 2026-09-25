@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../../components/Hero.astro';
 import HeroCarousel from '../../components/HeroCarousel.astro';
@@ -8,7 +9,7 @@ import Carousel from '../../components/Carousel.astro';
 import CtaBand from '../../components/CtaBand.astro';
 import Icon from '../../components/Icon.astro';
 import Button from '../../components/Button.astro';
-import { LOCALES, localizeCmsHref, path, type Locale, useTranslations } from '../../i18n';
+import { localizeCmsHref, path, type Locale, useTranslations } from '../../i18n';
 import {
   SERVICE_IMG, disciplineLabel,
 } from '../../data/presentation';
@@ -19,7 +20,7 @@ import {
 import { coverImage, getPublishedTitles, titleText } from '../../lib/catalogue';
 import { getHomepageContent, getHomepageHeroSlides, getPublishingContent, localized, mediaPath, paragraphs } from '../../lib/cms-content';
 
-export function getStaticPaths() { return LOCALES.map((lang) => ({ params: { lang } })); }
+if (Astro.params.lang !== 'en' && Astro.params.lang !== 'fr') return new Response(null, { status: 404 });
 const { lang } = Astro.params as { lang: Locale };
 const t = useTranslations(lang);
 const homepage = await getHomepageContent();
@@ -64,9 +65,10 @@ const cardImg = (id: string, discipline: string) => responsive(SERVICE_IMG[id] ?
 // published the whole section is omitted — an empty news band on the homepage
 // would read as neglect rather than as a deliberate blank.
 const latestNews = await getPublishedNews(3);
+const firstHeroImage = responsive(managedHeroSlides[0]?.image ?? mediaPath(homepage?.hero_image_id, 'lh-hero.jpg'));
 ---
 
-<Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home">
+<Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home" preloadImage={firstHeroImage}>
   {managedHeroSlides.length ? (
     <HeroCarousel
       slides={managedHeroSlides}

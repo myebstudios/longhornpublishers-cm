@@ -1,10 +1,5 @@
 /**
- * Build-time reads of published catalogue titles from Netlify DB.
- *
- * Mirrors src/lib/news.ts: Docs/technical_architecture.md §16 keeps the public
- * site static-rendered while reading published content from the database, so
- * these run during `astro build` and a newly published title appears on the
- * next deploy rather than instantly.
+ * Request-time reads of published catalogue titles from Netlify DB.
  */
 import type { Locale } from '../i18n';
 import { getBuildDatabase } from './build-database';
@@ -112,9 +107,8 @@ function safeParse(value: string): unknown {
 /**
  * Published titles, newest first, with subject names joined.
  *
- * Resolves to `[]` rather than throwing when the database is unreachable, so a
- * build without DATABASE_URL still produces a site and falls back to the
- * "nothing published yet" empty state.
+ * Build-time fallback remains available for non-public prerendering. During a
+ * public request, a failed query aborts rendering and returns an uncached 503.
  */
 export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle[]> {
   try {
@@ -149,7 +143,7 @@ export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle
   } catch (error) {
     failIfProductionDatabaseUnavailable('catalogue', error);
     console.warn(
-      '[catalogue] Could not read published titles at build time; rendering the empty state instead.',
+      '[catalogue] Could not read published titles; rendering the build fallback.',
       error instanceof Error ? error.message : error,
     );
     return [];

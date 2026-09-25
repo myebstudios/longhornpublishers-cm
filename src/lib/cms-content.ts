@@ -171,9 +171,7 @@ const parseArray = <T>(value: unknown): T[] => {
   return [];
 };
 
-let settingsPromise: Promise<SiteSettings> | undefined;
-export function getSiteSettings(): Promise<SiteSettings> {
-  settingsPromise ??= (async () => {
+export async function getSiteSettings(): Promise<SiteSettings> {
     try {
       const [row] = await getBuildDatabase().sql`SELECT * FROM site_settings WHERE id = 'default'`;
       if (!row) return FALLBACK_SITE_SETTINGS;
@@ -187,8 +185,6 @@ export function getSiteSettings(): Promise<SiteSettings> {
       console.warn('[site settings] Database unavailable; using reviewed static fallback.');
       return FALLBACK_SITE_SETTINGS;
     }
-  })();
-  return settingsPromise;
 }
 
 /**
@@ -221,9 +217,7 @@ export function getSiteSettings(): Promise<SiteSettings> {
  * unpublishing global configuration would silently revert company details and
  * SEO across every page.
  */
-let homepagePromise: Promise<HomepageContent | null> | undefined;
-export function getHomepageContent(): Promise<HomepageContent | null> {
-  homepagePromise ??= (async () => {
+export async function getHomepageContent(): Promise<HomepageContent | null> {
     try {
       const [row] = await getBuildDatabase().sql`SELECT * FROM homepage_content WHERE id = 'default' AND published = true`;
       if (!row) return null;
@@ -237,38 +231,12 @@ export function getHomepageContent(): Promise<HomepageContent | null> {
       console.warn('[homepage content] Database unavailable; using reviewed static fallback.');
       return null;
     }
-  })();
-  return homepagePromise;
 }
 
-const homepageHeroPromises = new Map<Locale, Promise<HomepageHeroSlide[]>>();
-export function getHomepageHeroSlides(locale: Locale): Promise<HomepageHeroSlide[]> {
-  let pending = homepageHeroPromises.get(locale);
-  if (!pending) {
-    pending = (async () => {
+export async function getHomepageHeroSlides(locale: Locale): Promise<HomepageHeroSlide[]> {
       try {
         const db = getBuildDatabase();
-        // Netlify applies migrations after the build, so the deploy that carries
-        // 010 and 011 builds against a schema that has neither. Probe first so
-        // that deploy stays buildable: no table means the legacy hero renders,
-        // exactly as before the carousel. Connection failures still throw below.
-        // Once present, demo rows are public only under the guarded local runtime.
-        const [schema] = await db.sql`
-          SELECT
-            to_regclass('public.homepage_hero_slides') IS NOT NULL AS has_slides_table,
-            EXISTS (
-              SELECT 1 FROM information_schema.columns
-              WHERE table_schema = 'public'
-                AND table_name = 'homepage_hero_slides'
-                AND column_name = 'is_demo'
-            ) AS has_demo_origin
-        `;
-        if (!schema?.has_slides_table) {
-          console.warn('[homepage hero slides] Table not migrated yet; rendering the legacy hero.');
-          return [];
-        }
-        const excludeDemo = Boolean(schema?.has_demo_origin) && !canRenderLocalDemoContent();
-        const rows = excludeDemo
+        const rows = !canRenderLocalDemoContent()
           ? await db.sql`
               SELECT slides.*
               FROM homepage_hero_slides AS slides
@@ -306,15 +274,9 @@ export function getHomepageHeroSlides(locale: Locale): Promise<HomepageHeroSlide
         console.warn('[homepage hero slides] Database unavailable; returning no managed slides.');
         return [];
       }
-    })();
-    homepageHeroPromises.set(locale, pending);
   }
-  return pending;
-}
 
-let aboutPromise: Promise<AboutContent | null> | undefined;
-export function getAboutContent(): Promise<AboutContent | null> {
-  aboutPromise ??= (async () => {
+export async function getAboutContent(): Promise<AboutContent | null> {
     try {
       const [row] = await getBuildDatabase().sql`SELECT * FROM about_page WHERE id = 'default' AND published = true`;
       if (!row) return null;
@@ -327,13 +289,9 @@ export function getAboutContent(): Promise<AboutContent | null> {
       console.warn('[about page] Database unavailable; using reviewed static fallback.');
       return null;
     }
-  })();
-  return aboutPromise;
 }
 
-let whyPromise: Promise<WhyContent | null> | undefined;
-export function getWhyContent(): Promise<WhyContent | null> {
-  whyPromise ??= (async () => {
+export async function getWhyContent(): Promise<WhyContent | null> {
     try {
       const [row] = await getBuildDatabase().sql`SELECT * FROM why_choose_us WHERE id = 'default' AND published = true`;
       if (!row) return null;
@@ -346,13 +304,9 @@ export function getWhyContent(): Promise<WhyContent | null> {
       console.warn('[why choose us] Database unavailable; using reviewed static fallback.');
       return null;
     }
-  })();
-  return whyPromise;
 }
 
-let publishingPromise: Promise<{ services: Service[]; process: Step[] }> | undefined;
-export function getPublishingContent(): Promise<{ services: Service[]; process: Step[] }> {
-  publishingPromise ??= (async () => {
+export async function getPublishingContent(): Promise<{ services: Service[]; process: Step[] }> {
     try {
       const db = getBuildDatabase();
       const serviceRows = await db.sql`SELECT * FROM services WHERE published = true ORDER BY sort_order, created_at`;
@@ -402,13 +356,9 @@ export function getPublishingContent(): Promise<{ services: Service[]; process: 
       console.warn('[publishing services] Database unavailable; using reviewed static fallback.');
       return { services: FALLBACK_SERVICES, process: FALLBACK_PROCESS };
     }
-  })();
-  return publishingPromise;
 }
 
-let contactPromise: Promise<ContactContent | null> | undefined;
-export function getContactContent(): Promise<ContactContent | null> {
-  contactPromise ??= (async () => {
+export async function getContactContent(): Promise<ContactContent | null> {
     try {
       const [row] = await getBuildDatabase().sql`SELECT * FROM contact_settings WHERE id = 'default' AND published = true`;
       if (!row) return null;
@@ -423,15 +373,9 @@ export function getContactContent(): Promise<ContactContent | null> {
       console.warn('[contact page] Database unavailable; using reviewed static fallback.');
       return null;
     }
-  })();
-  return contactPromise;
 }
 
-const legalPromises = new Map<LegalPageContent['page'], Promise<LegalPageContent | null>>();
-export function getLegalPage(page: LegalPageContent['page']): Promise<LegalPageContent | null> {
-  let pending = legalPromises.get(page);
-  if (!pending) {
-    pending = (async () => {
+export async function getLegalPage(page: LegalPageContent['page']): Promise<LegalPageContent | null> {
       try {
         const [row] = await getBuildDatabase().sql`SELECT * FROM legal_pages WHERE page = ${page} AND published = true`;
         return row ? row as unknown as LegalPageContent : null;
@@ -440,11 +384,7 @@ export function getLegalPage(page: LegalPageContent['page']): Promise<LegalPageC
         console.warn(`[legal page: ${page}] Database unavailable; using reviewed static fallback.`);
         return null;
       }
-    })();
-    legalPromises.set(page, pending);
   }
-  return pending;
-}
 
 export const localized = <T>(locale: Locale, en: T, fr: T): T => locale === 'fr' ? fr : en;
 export const mediaPath = (id: string | null | undefined, fallback: string): string => id ? `/api/media/${id}` : fallback;

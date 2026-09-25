@@ -1,7 +1,7 @@
 import { LOCALES, NAV_KEYS, path } from '../i18n';
 import { getPublishedTitles } from '../lib/catalogue';
 
-export const prerender = true;
+export const prerender = false;
 
 /**
  * Includes only public routes that are implemented today. Admin routes stay out

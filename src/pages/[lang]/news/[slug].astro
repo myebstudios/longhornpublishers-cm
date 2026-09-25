@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import NewsArticlePage from '../../../components/pages/NewsArticle.astro';
 import { getPublishedNewsDetail } from '../../../lib/news';
 
@@ -7,11 +8,10 @@ import { getPublishedNewsDetail } from '../../../lib/news';
  * (/fr/actualites/) via src/pages/fr/actualites/[slug].astro, because
  * ROUTES.news is not the same string in both locales.
  */
-export async function getStaticPaths() {
-  const articles = await getPublishedNewsDetail();
-  return articles.map((article) => ({ params: { lang: 'en', slug: article.slug }, props: { article } }));
-}
 
-const { article } = Astro.props;
+
+if (Astro.params.lang !== 'en' || !Astro.params.slug) return new Response(null, { status: 404 });
+const article = (await getPublishedNewsDetail()).find((row) => row.slug === Astro.params.slug);
+if (!article) return new Response(null, { status: 404 });
 ---
 <NewsArticlePage locale="en" article={article} />

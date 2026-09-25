@@ -1,4 +1,5 @@
 ---
+export const prerender = false;
 import About from '../../components/pages/About.astro';
 import Services from '../../components/pages/Services.astro';
 import Catalogue from '../../components/pages/Catalogue.astro';
@@ -14,12 +15,11 @@ import { ROUTES, type RouteKey } from '../../i18n';
  */
 type PageKey = Exclude<RouteKey, 'home'>;
 
-export function getStaticPaths() {
-  const keys: PageKey[] = ['about', 'services', 'catalogue', 'why', 'contact', 'news'];
-  return keys.map((routeKey) => ({ params: { slug: ROUTES[routeKey].fr }, props: { routeKey } }));
-}
 
-const { routeKey } = Astro.props as { routeKey: PageKey };
+
+const keys: PageKey[] = ['about', 'services', 'catalogue', 'why', 'contact', 'news'];
+const routeKey = keys.find((key) => ROUTES[key].fr === Astro.params.slug);
+if (!routeKey) return new Response(null, { status: 404 });
 
 const PAGES = {
   about: About, services: Services, catalogue: Catalogue,

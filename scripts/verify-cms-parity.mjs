@@ -1,64 +1,19 @@
-/**
- * Does the CMS-backed site still render the approved copy?
- *
- * This guard exists because homepage_content.trust_stats once held stale copy
- * while fallback builds looked correct. It now enforces two invariants:
- *
- * 1. Every non-home public route, plus everything below the homepage hero,
- *    remains byte-identical between a CMS build and the reviewed fallback.
- * 2. Migration 010's slide 1 matches every legacy hero field and both reviewed
- *    CTA defaults. Carousel markup intentionally differs from Hero.astro, so
- *    comparing the two hero regions as HTML would reject the correct feature.
- *
- * The CMS build must also prove structurally that homepage_content and slide 1
- * rows were rendered. Build log wording is not evidence of a database read.
- *
- * Usage:
- *   npm run db:start && npm run db:migrate
- *   npm run verify:cms-parity
- */
-import { execFileSync } from 'node:child_process';
-import { readdirSync, readFileSync, rmSync, statSync } from 'node:fs';
-import path from 'node:path';
+/** Compare reviewed fallback copy with database-backed on-demand pages. */
+import { execFileSync, spawn } from 'node:child_process';
 import { getDatabase } from '@netlify/database';
 import {
-  assertCmsHomepageEvidence,
-  backfilledHeroMismatches,
-  normalizePublicRoute,
+  assertCmsHomepageEvidence, backfilledHeroMismatches, normalizePublicRoute,
 } from './cms-parity-lib.mjs';
 import { url } from './local-db.mjs';
 
-const run = (command, args, env) =>
-  execFileSync(command, args, { encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'], env: { ...process.env, ...env } });
-
-/** Every built public HTML route, relative-path keyed. Admin routes render no CMS content. */
-function snapshot(dir, base = dir, into = new Map()) {
-  for (const entry of readdirSync(dir)) {
-    const full = path.join(dir, entry);
-    if (statSync(full).isDirectory()) {
-      if (path.relative(base, full).split(path.sep)[0] === 'admin') continue;
-      snapshot(full, base, into);
-    } else if (entry.endsWith('.html')) {
-      into.set(path.relative(base, full), readFileSync(full, 'utf8'));
-    }
-  }
-  return into;
-}
-
-function build(label, env) {
-  process.stdout.write(`  building ${label}… `);
-  rmSync('dist', { recursive: true, force: true });
-  try {
-    run('npm', ['run', 'build'], env);
-  } catch (error) {
-    console.log('FAILED');
-    if (error?.stderr) process.stderr.write(String(error.stderr));
-    throw error;
-  }
-  const captured = snapshot('dist');
-  console.log(`${captured.size} routes`);
-  return captured;
-}
+const routes = [
+  '/404.html',
+  '/en/', '/en/about/', '/en/services/', '/en/catalogue/', '/en/why-choose-us/',
+  '/en/contact/', '/en/news/', '/en/privacy-policy/', '/en/terms-of-use/',
+  '/fr/', '/fr/a-propos/', '/fr/services-edition/', '/fr/catalogue/',
+  '/fr/pourquoi-nous-choisir/', '/fr/contact/', '/fr/actualites/',
+  '/fr/politique-de-confidentialite/', '/fr/conditions-utilisation/',
+];
 
 async function loadCmsEvidence() {
   try {
@@ -78,58 +33,76 @@ async function loadCmsEvidence() {
     if (!slide) throw new Error('The backfilled slide 1 row is missing.');
     const mismatches = backfilledHeroMismatches(homepage, slide);
     if (mismatches.length) {
-      const detail = mismatches
-        .map(({ field, expected, actual }) => `    ${field}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`)
-        .join('\n');
-      throw new Error(`Backfilled slide 1 no longer matches the legacy hero:\n${detail}`);
+      throw new Error('Backfilled slide 1 no longer matches the legacy hero:\n' +
+        mismatches.map(({ field, expected, actual }) =>
+          `    ${field}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`).join('\n'));
     }
-    return { slideId: String(slide.id) };
+    return String(slide.id);
   } catch (error) {
-    console.error('  FAILED — could not prove database-backed homepage parity.');
-    console.error(`  ${error instanceof Error ? error.message : String(error)}`);
-    console.error('  Run: npm run db:start && npm run db:migrate');
+    console.error('FAILED — could not prove database-backed homepage parity.');
+    console.error(error instanceof Error ? error.message : String(error));
+    console.error('Run: npm run db:start && npm run db:migrate');
     process.exit(2);
   }
 }
 
-console.log('CMS parity check — proving database reads and building twice against the same commit\n');
-const evidence = await loadCmsEvidence();
-const cms = build('with CMS   ', { CMS_DATABASE_URL: url });
-const fallback = build('with i18n  ', { CMS_DATABASE_URL: '' });
-
-for (const route of ['en/index.html', 'fr/index.html']) {
-  try {
-    assertCmsHomepageEvidence(route, cms.get(route) ?? '', evidence.slideId);
-  } catch (error) {
-    console.error(`\n  FAILED — ${error instanceof Error ? error.message : String(error)}`);
-    console.error('  The CMS build did not prove that it rendered database rows; refusing a fallback-vs-fallback pass.');
-    process.exit(2);
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const astroBin = new URL('../node_modules/astro/bin/astro.mjs', import.meta.url).pathname;
+let startedServer = false;
+async function startServer(port, env) {
+  const child = spawn(process.execPath, [astroBin, 'dev', '--host', '127.0.0.1', '--port', String(port)], {
+    env: { ...process.env, CONTEXT: 'dev', ...env }, stdio: ['ignore', 'pipe', 'pipe'],
+  });
+  let output = '';
+  child.stdout.on('data', (chunk) => { output += chunk; });
+  child.stderr.on('data', (chunk) => { output += chunk; });
+  const base = `http://127.0.0.1:${port}`;
+  for (let i = 0; i < 100; i++) {
+    try { const response = await fetch(base + '/en/'); if (response.status === 200) { startedServer = true; return base; } } catch {}
+    if (child.exitCode && child.exitCode !== 0) break;
+    await delay(300);
   }
+  throw new Error(`Could not start parity server on ${port}: ${output.slice(-1500)}`);
+}
+function stopServer() {
+  if (!startedServer) return;
+  execFileSync(process.execPath, [astroBin, 'dev', 'stop'], { stdio: 'ignore' });
+  startedServer = false;
+}
+async function snapshot(base) {
+  const results = new Map();
+  for (const route of routes) {
+    const response = await fetch(base + route);
+    if (response.status !== 200 && !(route === '/404.html' && response.status === 404)) {
+      throw new Error(`${base}${route} returned ${response.status}`);
+    }
+    results.set(route, await response.text());
+  }
+  return results;
 }
 
-const routes = [...new Set([...cms.keys(), ...fallback.keys()])].sort();
-const differing = routes.filter((route) =>
-  normalizePublicRoute(route, cms.get(route) ?? '') !== normalizePublicRoute(route, fallback.get(route) ?? ''),
-);
-
-console.log(`\n  compared ${routes.length} public routes`);
-if (!differing.length) {
-  console.log('  PASS — database rows were rendered, slide 1 matches the legacy hero,');
-  console.log('  and all approved copy outside the hero is byte-for-byte identical.\n');
-  process.exit(0);
+console.log('CMS parity check — comparing on-demand pages against approved fallback copy');
+const slideId = await loadCmsEvidence();
+try {
+  const cmsBase = await startServer(4361, { CMS_DATABASE_URL: url, CMS_PARITY_FALLBACK: '' });
+  const cms = await snapshot(cmsBase);
+  stopServer();
+  const fallbackBase = await startServer(4362, { CMS_DATABASE_URL: '', CMS_PARITY_FALLBACK: '1' });
+  const fallback = await snapshot(fallbackBase);
+  for (const route of ['/en/', '/fr/']) {
+    assertCmsHomepageEvidence(route, cms.get(route) ?? '', slideId);
+  }
+  const differing = routes.filter((route) => {
+    const key = route === '/404.html' ? '404.html' : route.slice(1) + 'index.html';
+    return normalizePublicRoute(key, cms.get(route) ?? '') !==
+      normalizePublicRoute(key, fallback.get(route) ?? '');
+  });
+  console.log(`Compared ${routes.length} public routes.`);
+  if (differing.length) throw new Error(`Approved copy differs outside the homepage hero:\n${differing.join('\n')}`);
+  console.log('PASS — database rows rendered, slide 1 matches the legacy hero, and approved copy is unchanged.');
+} catch (error) {
+  console.error(error instanceof Error ? error.message : String(error));
+  process.exitCode = 1;
+} finally {
+  stopServer();
 }
-
-console.error(`\n  FAIL — ${differing.length} route(s) differ outside the homepage hero:\n`);
-for (const route of differing) console.error(`    ${route}`);
-console.error(`
-  Each difference is one of:
-    - a CMS row holding copy that diverges from the approved dictionaries
-      (fix with a migration updating the row, not by editing the dictionaries), or
-    - a reader that renders CMS content differently from its fallback.
-
-  To see the text, capture both and diff:
-    CMS_DATABASE_URL="$(npm run -s db:url)" npm run build && node scripts/capture-public-html.mjs dist /tmp/cms
-    npm run build && node scripts/capture-public-html.mjs dist /tmp/fallback
-    diff -r /tmp/cms /tmp/fallback
-`);
-process.exit(1);
