@@ -1,0 +1,58 @@
+# CLIENT-3B UX implementation plan
+
+**Source:** `Docs/CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx` (client corrections received 2026-09-28). **Audience:** SoSo, Marketing, QA, Yv. This is a UI and content handoff for Home, About, Services, and Catalogue; it does not approve catalogue membership, cover rights, new product claims, or final French copy.
+
+## 1. Content and navigation decisions
+
+| Surface | Required change | Implementation location |
+| --- | --- | --- |
+| Home hero | Lead with **“Expanding Minds”** and **“Enriching lives through knowledge”** as the two-level headline/subheadline. Preserve a clear primary contact action. Apply to the static fallback **and** approved CMS slide 1 so visitors do not see different positioning by data state. Coordinate with the separately pending hero copy approval before publishing. | `src/i18n/en.ts`, `fr.ts`; `src/pages/[lang]/index.astro`; homepage CMS/slide copy. |
+| Home trust and Who We Are | Replace “Local publishing team” with the client’s **“Educational content creators and service providers”** positioning. Replace Who We Are paragraph 2 with the client’s Tsinga/Yaoundé paragraph describing content creation, platform business, Central African market, and EN/FR materials. Keep the first paragraph unless Marketing supplies a replacement. | `t.home.trust`, `t.home.whoWeAre.body`; `homepage_content.who_we_are_copy_*` and trust stats; `index.astro`. |
+| About heritage | Replace paragraph 2 with the client’s proximity statement about serving the Cameroonian and Central African publishing ecosystem in both official languages. Keep paragraph 1 and 3. Remove **“Local Judgement”** from the heading; use a short location-focused accent after EN/FR review. Change the link label to **“Why choose us”**. | `t.about.heritage`; managed `about_page.heritage_copy_*`; `About.astro`. |
+| About identity | Purpose: **“To enrich lives through knowledge.”** Mission: **“To develop and deliver high-quality learning and teaching materials that support learners, educators and institutions.”** Keep four cards and update corresponding managed EN/FR fields; review Vision and Values for the geographic correction. | `t.about.identity.items`; `about_page.purpose_*`, `mission_*`, `vision_*`; `About.astro`. |
+| Geography | Remove **DRC, RDC, Congo, Congolese** claims from public copy, CMS rows, trust statistics, hero slides, page titles/descriptions, catalogue alignment, alt text and structured metadata. **Central African market** remains because the client explicitly uses it; do not substitute a country claim. | EN/FR dictionaries, CMS content, `src/data/site.ts`, layouts and public pages. Run a public-route text audit after implementation. |
+
+## 2. Six offerings and the Publishing detail hierarchy
+
+Use **one ordered offering model** for Home preview and Services overview. It is separate from the existing six production tasks in `src/data/site.ts` / `getPublishingContent()`. Do not relabel Editing, Proofreading, Translation, Designing, Illustration, and Printing as the new six cards: those remain capabilities **within Publishing**.
+
+| Order | EN card label | Proposed FR label for translation review | State and destination |
+| --- | --- | --- | --- |
+| 1 | Publishing | Édition | Active; link to `#publishing` and show the existing production capabilities beneath it. |
+| 2 | Tertiary | Enseignement supérieur | Active; provide a short approved description and a contact action. Do not invent a title list or qualification claim. |
+| 3 | Cambridge | Cambridge | Active; use approved product wording only; a contact action until a verified catalogue subset exists. No endorsement/accreditation badge. |
+| 4 | Reference books | Ouvrages de référence | Active; examples may read “Bibles” and “Law Africa” exactly as the client supplied, after rights/product verification. Contact action. |
+| 5 | LoHo | LoHo | **Coming soon / Bientôt disponible**; no purchase, launch-date, or live-product CTA. |
+| 6 | E-Marketing | E-Marketing | **Coming soon / Bientôt disponible**; no service-detail or quote CTA implying current availability. |
+
+**Services page journey.** Set the hero to **“Every Stage. Every Solution”** with the client’s supporting sentence: “From turning manuscripts into refined publications, to providing up-to-date Cambridge, tertiary, and reference materials — we serve every stage of your journey.” Replace “Three disciplines, six services” in the overview with a neutral “Our services” heading. Move the existing “From manuscript to masterpiece” message into the **Publishing** section, rather than discarding it. The overview shows six equal cards in the order above; the last two have a persistent text status plus a subdued treatment, and are not interactive if they have no destination. The four current offerings lead to a section or a clearly labelled enquiry route. Keep the five-step process as the Publishing workflow, not as a promise that every offered product follows identical steps.
+
+**Publishing detail.** Under `#publishing`, retain Editing, Proofreading, Translation, Designing, Illustration and Printing as nested capability sections. For Editing, render the client’s opening paragraph, then a semantic seven-item list: language accuracy, clarity, flow, organisation, structure, consistency, overall readability. Follow with the short “Our role” statement about preserving the author’s voice and strengthening the publication. For Translation, show both direction labels **English ↔ French** and **French ↔ English** once, then the client’s explanatory paragraphs as readable text. Remove the final “Because production sits…” paragraph from Printing in both languages. Keep the capability cards/anchors out of the six-offering count.
+
+**Component handoff.** `Services.astro` currently maps `services` to both its six overview cards and zigzag detail sections; `index.astro` maps the same records to the Home service carousel. Introduce a separate bilingual ordered offering collection (or CMS model with equivalent published/coming-soon status). Home uses it for six preview cards; Services uses it for the six overview cards. The existing service records render only inside Publishing. Use stable slugs/IDs and EN/FR labels; never use translated labels as keys. Do not create empty detail sections for Tertiary, Cambridge, or Reference books while their approved body copy is absent.
+
+## 3. Catalogue split and cover policy
+
+Display two explicit groups on `/en/catalogue/` and `/fr/catalogue/`: **“Titles on the National Book List” / “Titres inscrits sur la liste nationale des ouvrages”** and **“Other developed titles” / “Autres titres développés”** (French labels pending client language review). The group name is a factual claim. Assign a title to the National Book List group **only** when the client supplies evidence matching the exact title, edition and product code/ISBN. “Curriculum-aligned,” `featured`, an uploaded cover, or a product-code prefix is not proof. A title may enter Other developed titles only when its development and public display are authorized; unresolved titles stay draft/unclassified and do not appear publicly.
+
+**Cover rule, enforced in data and render paths:** show a book cover only if that title is published, verified against the National Book List, and its exact cover and rights are approved. Other developed titles render as text-led cards with title, verified metadata and enquiry link, even if an image was uploaded privately. Apply the same guard in the catalogue grid, detail route, Home preview, image preload/social metadata and any JSON/API view. Never expose a hidden cover through `src/lib/catalogue.ts::coverImage()` or a public media URL. The Home cover-only carousel includes verified National Book List titles only; when there are none, omit that carousel and offer a text-led catalogue link/preview instead. A “featured” flag alone cannot bypass the gate.
+
+**Data and admin requirement for SoSo:** add an explicit title classification (`national_book_list_verified`, `other_developed`, `unclassified`) plus private verification reference and reviewer/date for National Book List membership. Do not infer membership from a null/false flag. Keep existing publication authorization separate. Update `getPublishedTitles()`, shared card/detail rendering, homepage selection and admin validation to apply the same rule. The current `Docs/catalogue_import_runbook.md` requires a cover for every imported title; revise that gate before any new import so it allows authorized text-only Other titles while retaining strict cover checks for verified National Book List titles. This plan makes no client title or cover approval decision.
+
+**Filter behavior.** Keep one search and Level/Subject/Language filter set for both groups; each group has a heading and result count, and empty groups disappear from filtered results with a single announced overall count. If there are no authorized published titles in either group, keep the current catalogue coming-soon state. Do not add a “National Book List” chip to unverified items or label the entire catalogue as nationally approved.
+
+## 4. Responsive and bilingual acceptance
+
+- **Desktop:** six offering cards use a 3×2 grid with equal card heights and consistent badge placement. **Tablet:** 2 columns. **Mobile:** 1 column with all six readable in document order; do not rely on hover for summaries or “coming soon.” Home may retain its accessible horizontal card carousel with visible previous/next controls, but the six offerings must all be reachable by keyboard and touch.
+- At 320–375 px, headings, French labels, the seven Editing points and bilingual Translation direction labels must wrap without clipping or pushing CTAs over controls. Do not set fixed card or section heights. Coming-soon state needs text, not color alone; disabled offerings are plain articles, not focusable dead links.
+- Group headings and title cards use semantic headings. Filters operate across groups and announce changed counts. Text-only title cards keep the same clickable title and enquiry action as covered cards; detail pages omit the cover region cleanly instead of showing an empty book-shaped placeholder.
+- EN and FR routes must agree on offering order, availability, catalogue membership and cover eligibility. Have Marketing approve French translations and terminology; avoid automatic translation of client copy or product names. Verify both CMS-backed and fallback states so stale DRC/Congo wording cannot return on a cache miss.
+
+## 5. Dependencies and acceptance for implementation
+
+1. **Marketing/Yv:** approve final EN/FR microcopy, especially “platform business providers,” the About heading replacement, the Cambridge and Reference descriptions, and whether LoHo is an elementary product or an e-learning product (the DOCX uses both terms). Until clarified, label it only “LoHo — Coming soon.”
+2. **Client/content owner:** provide per-title National Book List evidence and cover rights. No title gains that label or cover based on design judgment.
+3. **SoSo:** separate offering navigation from Publishing capabilities; add fail-closed catalogue classification/cover checks; update CMS/admin/import behavior and both locale fallbacks. Preserve current draft/publication gates.
+4. **QA/Dell:** check all six cards and two catalogue groups in EN/FR at mobile, tablet and desktop; verify no non-verified cover appears on list, detail, Home, metadata or media paths; search rendered routes for DRC/Congo variants; check zero dead coming-soon links and keyboard access.
+
+No existing user-edited design docs or production records are changed by this handoff.
