@@ -17,6 +17,7 @@
     "test:cms": "node --experimental-strip-types --test tests/cms-validation.test.mjs",
     "test:hero": "node --experimental-strip-types --test tests/hero-carousel.test.mjs",
     "test:hero-admin": "node --experimental-strip-types --test tests/admin-hero-slides.test.mjs",
+    "test:hero-launch": "node --experimental-strip-types --test tests/hero-launch-set.test.mjs",
     "test:cms-parity": "node --test tests/cms-parity.test.mjs",
     "test:public-cache": "node --experimental-strip-types --test tests/public-cache.test.mjs",
     "db:start": "node scripts/local-db.mjs start",
@@ -26,6 +27,7 @@
     "verify:cms-parity": "node scripts/verify-cms-parity.mjs",
     "verify:production": "node --experimental-strip-types scripts/verify-production.mjs",
     "seed:demo": "node scripts/seed-demo.mjs",
+    "stage:hero-launch": "node scripts/stage-hero-launch.mjs",
     "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs",
     "test:on-demand-routing": "node --test scripts/on-demand-routing.test.mjs"
   },

@@ -1,0 +1,58 @@
+[
+  {
+    "slide": 1,
+    "source": "public/img/lh-hero.jpg",
+    "upload": "Assets/hero-launch/slide-1-lh-hero.jpg",
+    "width": 1920,
+    "height": 767,
+    "bytes": {
+      "source": 299707,
+      "jpeg": 166993,
+      "webp": 98046,
+      "avif": 62824
+    },
+    "warning": null
+  },
+  {
+    "slide": 2,
+    "source": "public/img/lh-catalogue-shelves.jpg",
+    "upload": "Assets/hero-launch/slide-2-lh-catalogue-shelves.jpg",
+    "width": 410,
+    "height": 410,
+    "bytes": {
+      "source": 99906,
+      "jpeg": 44712,
+      "webp": 37268,
+      "avif": 21849
+    },
+    "warning": "Source is 410x410; a full-bleed hero needs >= 1280 px wide. Replace before launch."
+  },
+  {
+    "slide": 3,
+    "source": "public/img/lh-bilingual-editor-wide.jpg",
+    "upload": "Assets/hero-launch/slide-3-lh-bilingual-editor-wide.jpg",
+    "width": 1400,
+    "height": 933,
+    "bytes": {
+      "source": 259394,
+      "jpeg": 143852,
+      "webp": 92756,
+      "avif": 57959
+    },
+    "warning": null
+  },
+  {
+    "slide": 4,
+    "source": "public/img/lh-print-inspection-wide.jpg",
+    "upload": "Assets/hero-launch/slide-4-lh-print-inspection-wide.jpg",
+    "width": 1400,
+    "height": 933,
+    "bytes": {
+      "source": 263616,
+      "jpeg": 147364,
+      "webp": 82774,
+      "avif": 56763
+    },
+    "warning": null
+  }
+]
