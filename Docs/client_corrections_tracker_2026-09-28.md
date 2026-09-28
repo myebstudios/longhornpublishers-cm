@@ -31,7 +31,8 @@ Source: `CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx`, received after the
 
 - Which exact titles are on Cameroon’s National Book List? Until verified, the safe rule is to withhold booklist classification and covers for unconfirmed titles.
 - Is LoHo an “E-learning product” or an “Elementary product”? The source uses both.
-- Is the Core Identity order Vision then Mission, or Mission then Vision?
+- The site has Purpose, Vision, Mission and Values cards. We propose the short statement for Purpose and the learning-materials statement for Mission; the client may correct that placement.
+- The staged four-slide HERO-7 launch set still contains pre-correction copy. Keep that production swap gated and reconcile its slide 1 and geography claims before any later launch, so it cannot undo C01 or C03.
 
 ## Book List evidence found
 
