@@ -224,6 +224,11 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     gap: 1rem;
     margin-top: 2.25rem;
   }
+  /* Above 760px the controls share the CTA row, so keep CTAs clear of them:
+     prev + next + toggle (2.75rem each) + up to five 2rem dots + gaps. */
+  .hero-carousel[data-enhanced="true"]:not(.hero-carousel--single) .hero-carousel__cta {
+    padding-inline-end: 20rem;
+  }
   .hero-carousel__chrome { display: none; }
   .hero-carousel[data-enhanced="true"] .hero-carousel__chrome {
     position: absolute;
@@ -315,6 +320,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
       padding-bottom: var(--hero-action-inset);
     }
     .hero-carousel--single .hero-carousel__slide { padding-bottom: 4rem; }
+    .hero-carousel[data-enhanced="true"]:not(.hero-carousel--single) .hero-carousel__cta { padding-inline-end: 0; }
     .hero-carousel[data-enhanced="true"] .hero-carousel__chrome { bottom: 2rem; }
     .hero-carousel__toolbar { gap: .25rem; }
     .hero-carousel__dot { width: 1.8rem; }
