@@ -18,7 +18,7 @@ Source: `CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx`, received after the
 | C12 | Editing: replace service detail with supplied process, seven assessment points, and “Preserve the author's voice. Strengthen the publication.” | Marty / SoSo | Full copy and list render in EN/FR. |
 | C13 | Translation: English/French in both directions, supplied service description and audience focus | Marty / SoSo | Full copy renders in EN/FR, without a word-for-word claim presented as the service approach. |
 | C14 | Printing: remove the final paragraph beginning “Because production sits…” | SoSo / Dell | Paragraph is absent from local and live EN/FR pages. |
-| C15 | Catalogue: show covers only for National Book List titles | Z / SoSo / Dell | Covers are visible only for titles with verified National Book List status; unverified titles have no public cover. |
+| C15 | Catalogue: show covers only for National Book List titles | Z / SoSo / Dell | Covers are visible only for titles with verified National Book List status; unverified titles have no public cover, including via their old direct media URLs (403/404 after CDN purge). Private editor storage remains intact. |
 
 ## Release sequence
 
