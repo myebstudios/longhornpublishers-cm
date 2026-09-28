@@ -20,9 +20,9 @@
   --color-ink:            #1A1216;
   --color-ink-soft:       #5A4C52;
 
-  --font-display: "Poppins", "Montserrat", system-ui, sans-serif;
-  --font-body:    "Inter", system-ui, sans-serif;
-  --font-accent:  "Fraunces", Georgia, serif;
+  --font-display: "Poppins", "Poppins Fallback", "Montserrat", system-ui, sans-serif;
+  --font-body:    "Inter", "Inter Fallback", system-ui, sans-serif;
+  --font-accent:  "Fraunces", "Fraunces Fallback", Georgia, serif;
 
   --radius-brand:    18px;
   --radius-brand-lg: 28px;
@@ -64,9 +64,9 @@ ul, ol { list-style: none; padding: 0; }
   --line-light:      rgba(255, 255, 255, .16);
 
   /* Type */
-  --font-display: "Poppins", "Montserrat", system-ui, sans-serif;
-  --font-body:    "Inter", system-ui, sans-serif;
-  --font-accent:  "Fraunces", Georgia, serif;
+  --font-display: "Poppins", "Poppins Fallback", "Montserrat", system-ui, sans-serif;
+  --font-body:    "Inter", "Inter Fallback", system-ui, sans-serif;
+  --font-accent:  "Fraunces", "Fraunces Fallback", Georgia, serif;
 
   --step--1: clamp(.82rem, .8rem + .1vw, .89rem);
   --step-0:  clamp(1rem, .96rem + .18vw, 1.09rem);
@@ -1112,9 +1112,9 @@ body.nav-open {
   --line: rgba(26, 18, 22, .12);
   --line-light: rgba(255, 255, 255, .16);
 
-  --font-display: "Poppins", "Montserrat", system-ui, sans-serif;
-  --font-body: "Inter", system-ui, sans-serif;
-  --font-accent: "Fraunces", Georgia, serif;
+  --font-display: "Poppins", "Poppins Fallback", "Montserrat", system-ui, sans-serif;
+  --font-body: "Inter", "Inter Fallback", system-ui, sans-serif;
+  --font-accent: "Fraunces", "Fraunces Fallback", Georgia, serif;
 
   --step--1: clamp(.82rem, .8rem + .1vw, .89rem);
   --step-0:  clamp(1rem, .96rem + .18vw, 1.09rem);

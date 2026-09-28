@@ -5,3 +5,18 @@
 @font-face { font-family: 'Poppins'; font-style: normal; font-weight: 500; font-display: optional; src: url('/fonts/poppins-latin-500.woff2') format('woff2'); }
 @font-face { font-family: 'Poppins'; font-style: normal; font-weight: 600; font-display: optional; src: url('/fonts/poppins-latin-600.woff2') format('woff2'); }
 @font-face { font-family: 'Poppins'; font-style: normal; font-weight: 700; font-display: optional; src: url('/fonts/poppins-latin-700.woff2') format('woff2'); }
+
+/* Metric-matched fallbacks. Until a web font is ready the browser lays text out
+   in these, sized so each occupies the web font's space: no reflow when the
+   font arrives, and a cold visit that misses the optional window keeps the same
+   line breaks. Values: @capsizecss/unpack xWidthAvg and vertical metrics of the
+   woff2 files above against Arial/Georgia (Liberation Sans is metric-compatible
+   with Arial). Platforms without these faces (e.g. Android) fall through to the
+   next family in the stack. */
+@font-face { font-family: 'Poppins Fallback'; font-weight: 400; src: local('Arial'), local('ArialMT'), local('Liberation Sans'); size-adjust: 112.16%; ascent-override: 93.62%; descent-override: 31.21%; line-gap-override: 8.92%; }
+@font-face { font-family: 'Poppins Fallback'; font-weight: 500; src: local('Arial'), local('ArialMT'), local('Liberation Sans'); size-adjust: 113.50%; ascent-override: 92.51%; descent-override: 30.84%; line-gap-override: 8.81%; }
+@font-face { font-family: 'Poppins Fallback'; font-weight: 600; src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'); size-adjust: 106.25%; ascent-override: 98.82%; descent-override: 32.94%; line-gap-override: 9.41%; }
+@font-face { font-family: 'Poppins Fallback'; font-weight: 700; src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'); size-adjust: 107.30%; ascent-override: 97.86%; descent-override: 32.62%; line-gap-override: 9.32%; }
+@font-face { font-family: 'Inter Fallback'; font-weight: 400 500; src: local('Arial'), local('ArialMT'), local('Liberation Sans'); size-adjust: 107.12%; ascent-override: 90.44%; descent-override: 22.52%; line-gap-override: 0%; }
+@font-face { font-family: 'Inter Fallback'; font-weight: 600; src: local('Arial Bold'), local('Arial-BoldMT'), local('Liberation Sans Bold'); size-adjust: 99.49%; ascent-override: 97.37%; descent-override: 24.24%; line-gap-override: 0%; }
+@font-face { font-family: 'Fraunces Fallback'; font-style: italic; font-weight: 300 400; src: local('Georgia Italic'), local('Georgia-Italic'); size-adjust: 112.52%; ascent-override: 86.92%; descent-override: 22.66%; line-gap-override: 0%; }
