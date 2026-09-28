@@ -59,3 +59,33 @@ The masters come from `node scripts/prepare-hero-launch-images.mjs`: progressive
 - **Local DB `54329` keeps the launch set staged** (4 enabled launch slides; `443c73d4…` disabled) for QA-HERO-7 Phase 1. Undo with `npm run stage:hero-launch -- --rollback`.
 - The snapshot is in `.netlify/hero-launch-snapshot.json`. Local blobs `…07e1`–`…07e4` are in `.netlify/blobs-serve`. Both paths are gitignored.
 - Screenshots and raw metrics are in `tmp/hero7/` (gitignored). My dev server is stopped and the temporary worktree removed.
+
+## Addendum — a11y fixes and mobile image assessment (2026-09-28, `fbaad0e`)
+
+### Fixed: QA P2 region focus ring, QA P3 dot-group label (UX-2 "fix code" items)
+
+- **Focus ring.** The region's own `outline` paints *beneath* the z-indexed slides. Chrome draws an element's outline before its positive-z-index children, so a computed-style check passes while nothing is visible (confirmed by screenshot). The ring is now a `:focus-visible::after` overlay: inset 6 px, `z-index: 4` (above the slides and controls), 3 px `--green`. It is visible in EN/FR at 1280×800 (`tmp/hero7/{en,fr}-region-focus.png`).
+- **Dot group.** The accessible tree is now region "Main hero" → group "Choose a slide", and region "En-tête principal" → group "Choisir une diapositive".
+- `test:hero` 5/5 (new source-contract test). `test:hero-admin` 5, `test:cms` 19 and `test:hero-launch` 6 pass. `CONTEXT=production npm run build` exits 0.
+
+### Assessed, not changed: QA P2 "mobile hero image soft and not LCP"
+
+Measured locally at 375 px @2x, serving slide 1 through request interception:
+
+| Image served | Viewport | Image box | LCP element |
+|---|---|---|---|
+| `w=960` (960×384, the current prod choice) | 375×812 | 375×896, covers viewport | H1 (45 080) |
+| `w=960` | 375×1000 | 375×896, smaller than viewport | **IMG** (343 500) |
+| Native portrait crop 333×767 | 375×812 | covers viewport | H1 (45 080) |
+| Native portrait crop 333×767 | 375×1000 | smaller than viewport | **IMG** (255 411) |
+
+1. **"Not LCP" is not caused by resolution.** Chrome excludes an image that covers the whole viewport from LCP, treating it as a background. The hero is taller than a phone screen, so the H1 is the LCP on phones whatever image is served. The same rule explains the desktop runs: at 1280×800 (hero 821 px) the H1 is LCP, and at 1440×900 (hero 853 px) the IMG is. A text LCP is not a defect; it paints earlier than the image. No code change is recommended for this part.
+2. **The softness is real, and a code-only change helps but cannot cure it.** Today a phone gets `w=960` (384 px tall) stretched over ~1 790 device px: **~4.7 device px per image px**. Art-directing a portrait crop — `<picture>` with a portrait `<source>` asking the Image CDN for `fit=cover&w=…&h=…` at the source's native height, plus a matching `media`-scoped preload — would give ~2.3× for slide 1 (767 px tall) and ~1.9× for slides 3–4 (933 px). That is about twice as sharp, at roughly half the bytes (the 333×767 crop is 34 KB against 62 KB for `w=960`, as JPEG q75), with the same composition `object-fit: cover` shows now.
+   - **Limits:** detail is capped by source height, so only taller photography (runbook G2) removes the softness. Uploaded media has no recorded height, so the crop would request a fixed height and the CDN would upscale sources shorter than that. `useCdn` is off in `astro dev`, so the change can only be verified on a deploy preview, which needs a push. It is **not** in this commit; I recommend a separate ticket once pushing a preview is approved.
+3. **`Assets/LH hero.png` is not a usable "less-wide" slide 1 source** (QA suggestion). It is a greyscale layout wireframe, not photography.
+
+### Recheck handoff for Dell
+
+- **Base:** `fbaad0e` on `main` (local, unpushed). `/tmp/qa7wt` is at `9a93d35` and lacks this fix; recreate it or check out `fbaad0e`.
+- **Local DB `54329`:** still staged with the four launch slides. Nothing here changed data or images.
+- **Recheck:** Tab to the region shows a green inset ring in EN/FR. The dot group is announced as "Choose a slide" / "Choisir une diapositive". Arrow keys still act on the focused region. The ring disappears when focus moves to a control, which then shows its own ring. There is no ring on mouse click (`:focus-visible`).
