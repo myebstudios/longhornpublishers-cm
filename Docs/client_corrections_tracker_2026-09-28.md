@@ -36,3 +36,7 @@ Source: `CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx`, received after the
 ## Book List evidence found
 
 The [Ministry of Basic Education’s official 2025–2026 list](https://www.minedub.cm/wp-content/uploads/2025/04/MANUELS-SCOLAIRE-2025-2026.pdf) includes **Workbook of English, Class 5** by LONGHORN. This confirms a historical listing for one current catalogue title, but the client still needs to confirm which titles should be presented as listed for the current site. The list does not establish the status of the other three current catalogue titles, and a 2025–2026 listing alone is not treated as proof of current-year status.
+
+## Live geography baseline
+
+Anonymous HTML reads on 2026-09-28 still contain `DRC`, `RDC`, `Congo`, or `Congolese` on every sampled route. Match counts in page source (including metadata): EN home 3, About 3, Services 1, Catalogue 7, Why 2, Contact 1; FR home 3, About 3, Services 1, Catalogue 7, Why 2, Contact 1. Dell should repeat this read after release and expand it to the remaining routes and catalogue details. Counts alone do not prove copy quality; inspect context for each match.
