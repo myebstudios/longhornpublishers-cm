@@ -89,3 +89,20 @@ Measured locally at 375 px @2x, serving slide 1 through request interception:
 - **Base:** `fbaad0e` on `main` (local, unpushed). `/tmp/qa7wt` is at `9a93d35` and lacks this fix; recreate it or check out `fbaad0e`.
 - **Local DB `54329`:** still staged with the four launch slides. Nothing here changed data or images.
 - **Recheck:** Tab to the region shows a green inset ring in EN/FR. The dot group is announced as "Choose a slide" / "Choisir une diapositive". Arrow keys still act on the focused region. The ring disappears when focus moves to a control, which then shows its own ring. There is no ring on mouse click (`:focus-visible`).
+
+## Addendum — tablet first-load shift (2026-09-28, `91b7d51`)
+
+**Cause.** The `data-enhanced` CTA reserve was already fixed by `0cc810f`. The remaining 768 px load shift (~0.018 EN/FR on every normal load at `3769712`) fired at ~81 ms, *before* enhancement. Text was first laid out in the unmatched system fallback. When Poppins arrived inside the `font-display: optional` block window, the wider CTA labels rewrapped, the hero grew 758→786 px, and the trust bar moved 28 px.
+
+**Fix.** `public/fonts/fonts.css` now declares metric-matched fallback faces: `size-adjust` plus ascent/descent/line-gap overrides, computed with `@capsizecss/unpack` from the committed woff2 files against Arial/Liberation Sans and Georgia Italic. They cover Poppins 400–700, Inter 400–600 and Fraunces italic. Each is inserted after its web font in the three `global.css` stacks. The Poppins 400 values match the published Next.js/fontaine values (112.16 / 93.62 / 31.21 / 8.92 %).
+
+| Check (fresh context, reduced motion, staged DB) | `3769712` | `91b7d51` |
+|---|---|---|
+| First-load CLS, normal fonts, EN/FR × 761/768/820/900/1024/1100/1280 | max 0.0190 (FR 768) | **max 0.0004** |
+| Fonts delayed 1.8 s (async, non-blocking): EN 1100 | 0.0366 | 0.0369 |
+| Fonts delayed 1.8 s: FR 1024 | 0.0008 | 0.0001 |
+| Responsive clipping/overlap, rotation CLS, LCP candidate, eager image | pass | pass (unchanged) |
+
+**Residual (accepted-risk candidate).** On a delayed cold visit at EN 1100, inactive slide 2's H1 ("Curriculum-aligned learning materials, built for success.") sits on a line-break boundary: 2 lines in the fallback, 3 in Poppins. When the font arrives, the grid stack grows 70 px (CLS 0.037, below the 0.1 "good" threshold). Average-width matching cannot remove every wrap flip. The G1a wording decision changes this headline anyway, so re-measure after sign-off. Platforms without Arial/Georgia (e.g. Android) fall through to the existing stack unchanged.
+
+**Validation.** `CONTEXT=production npm run build` exits 0. `test:hero` 5, `test:hero-admin` 5, `test:cms` 19, `test:public-cache` 4, `test:cms-parity` 3 and `test:hero-launch` 6 all pass. **Dell recheck needed.** This landed after the Phase 1 pass at `3769712` and touches global font stacks, so the site outside the hero also needs a visual check.
