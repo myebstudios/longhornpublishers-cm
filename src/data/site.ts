@@ -119,7 +119,6 @@ export const SERVICES: Service[] = [
       short: 'Production, finishing and delivery at volume.',
       body: [
         'Print production, binding and finishing at the volumes an institutional rollout requires, with stock specification and proofing agreed before the run.',
-        'Because production sits in the same house as editorial, print problems get caught while they are still fixable.',
       ],
     },
     fr: {
@@ -127,7 +126,6 @@ export const SERVICES: Service[] = [
       short: 'Production, façonnage et livraison en volume.',
       body: [
         'Production, reliure et façonnage aux volumes qu’exige un déploiement institutionnel, avec spécification du papier et bon à tirer validés avant le lancement.',
-        'La production étant intégrée à la maison d’édition, les problèmes d’impression sont détectés tant qu’ils sont encore corrigeables.',
       ],
     },
   },
