@@ -40,6 +40,22 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <label>French curriculum alignment<textarea name="curriculum_alignment_fr" placeholder="Conforme au programme officiel du MINEDUB..."></textarea></label>
       </div>
 
+      <fieldset class="classification">
+        <legend>Catalogue classification</legend>
+        <label>Classification
+          <select name="classification" aria-describedby="classificationHint">
+            <option value="unclassified">Unclassified — not shown publicly</option>
+            <option value="other_developed">Other developed title — text only, no cover</option>
+            <option value="national_book_list_verified">National Book List — verified</option>
+          </select>
+        </label>
+        <p id="classificationHint" class="cover__hint">Choose “National Book List” only with evidence for this exact title, edition and product code. Evidence fields are private and never shown on the site.</p>
+        <label>Evidence reference (private)<input name="booklist_evidence_ref" maxlength="500" placeholder="e.g. MINEDUB list 2026–2027, p. 12, line 4" /></label>
+        <label>Verified by (private)<input name="booklist_verified_by" maxlength="120" /></label>
+        <label>Verification date<input name="booklist_verified_at" type="date" /></label>
+        <label class="check"><input name="cover_rights_approved" type="checkbox" /> Cover and publication rights approved — show the cover publicly (National Book List titles only)</label>
+      </fieldset>
+
       <fieldset class="cover">
         <legend>Cover Image (3:4 Portrait)</legend>
         <input type="hidden" name="cover_image_id" />
@@ -161,7 +177,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       language_fr: (form.elements.namedItem('language_fr') as HTMLInputElement).checked,
       featured: (form.elements.namedItem('featured') as HTMLInputElement).checked,
       published: (form.elements.namedItem('published') as HTMLInputElement).checked,
-    }, ['id', 'subject_id', 'cover_image_id']);
+      classification: data.get('classification') || 'unclassified',
+      booklist_evidence_ref: data.get('booklist_evidence_ref'),
+      booklist_verified_by: data.get('booklist_verified_by'),
+      booklist_verified_at: data.get('booklist_verified_at'),
+      cover_rights_approved: (form.elements.namedItem('cover_rights_approved') as HTMLInputElement).checked,
+    }, ['id', 'subject_id', 'cover_image_id', 'booklist_evidence_ref', 'booklist_verified_by', 'booklist_verified_at']);
   };
 
   const edit = async (entry: CmsRecord) => {
@@ -182,6 +203,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
     (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
     (form.elements.namedItem('cover_image_id') as HTMLInputElement).value = entry.cover_image_id ?? '';
+    (form.elements.namedItem('classification') as HTMLSelectElement).value = entry.classification ?? 'unclassified';
+    (form.elements.namedItem('booklist_evidence_ref') as HTMLInputElement).value = entry.booklist_evidence_ref ?? '';
+    (form.elements.namedItem('booklist_verified_by') as HTMLInputElement).value = entry.booklist_verified_by ?? '';
+    (form.elements.namedItem('booklist_verified_at') as HTMLInputElement).value = entry.booklist_verified_at ? String(entry.booklist_verified_at).slice(0, 10) : '';
+    (form.elements.namedItem('cover_rights_approved') as HTMLInputElement).checked = Boolean(entry.cover_rights_approved);
     releasePreviewUrl();
     coverField.value = '';
     renderCover(entry.cover_image_id ?? null);

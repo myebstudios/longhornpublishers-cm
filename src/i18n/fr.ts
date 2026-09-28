@@ -375,6 +375,13 @@ export const fr: Content = {
       body: 'Nos premiers titres sont en cours de préparation. Indiquez-nous le programme, le niveau et les langues dont vous avez besoin et nous vous répondrons directement.',
       cta: 'Demander un titre',
     },
+    // FR labels from the CLIENT-3B plan, pending Marketing (CLIENT-3A) review.
+    groups: {
+      booklist: 'Titres inscrits sur la liste nationale des ouvrages',
+      other: 'Autres titres développés',
+      titleOne: 'titre',
+      titleMany: 'titres',
+    },
     cta: {
       eyebrow: 'Vous ne trouvez pas ?',
       titleLead: 'Besoin d’un titre',

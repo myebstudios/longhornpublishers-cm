@@ -402,6 +402,18 @@ const organizationSchema = {
               }
             });
             if (countEl) countEl.textContent = String(shown);
+            // Optional grouped results (catalogue): recount each section and
+            // drop sections the filters empty, leaving one overall count.
+            scope.querySelectorAll<HTMLElement>('[data-filter-section]').forEach(section => {
+              const visible = section.querySelectorAll('[data-tags]:not([hidden])').length;
+              const sectionCount = section.querySelector('[data-filter-section-count]');
+              if (sectionCount) sectionCount.textContent = String(visible);
+              const noun = section.querySelector('[data-filter-section-noun]');
+              if (noun && sectionCount instanceof HTMLElement) {
+                noun.textContent = (visible === 1 ? sectionCount.dataset.one : sectionCount.dataset.many) ?? noun.textContent;
+              }
+              section.hidden = visible === 0;
+            });
             if (emptyStateEl) {
               const isZero = shown === 0;
               emptyStateEl.classList.toggle('is-hidden', !isZero);

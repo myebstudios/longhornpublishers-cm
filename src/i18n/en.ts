@@ -370,6 +370,12 @@ export const en: Content = {
       body: 'Our first titles are being prepared for publication. Tell us the curriculum, level and languages you need and we will come back to you directly.',
       cta: 'Request a title',
     },
+    groups: {
+      booklist: 'Titles on the National Book List',
+      other: 'Other developed titles',
+      titleOne: 'title',
+      titleMany: 'titles',
+    },
     cta: {
       eyebrow: "Can't find it?",
       titleLead: 'Need a title',

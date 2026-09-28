@@ -45,7 +45,7 @@ async function isPubliclyApproved(key: string): Promise<boolean> {
   const [row] = canRenderLocalDemoContent()
     ? await db.sql`
         SELECT 1 AS ok WHERE EXISTS (
-          SELECT 1 FROM catalogue_titles WHERE published = true AND cover_image_id = ${key}
+          SELECT 1 FROM catalogue_titles WHERE published = true AND classification = 'national_book_list_verified' AND cover_rights_approved = true AND cover_image_id = ${key}
           UNION ALL
           SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
           UNION ALL
@@ -60,7 +60,7 @@ async function isPubliclyApproved(key: string): Promise<boolean> {
       `
     : await db.sql`
         SELECT 1 AS ok WHERE EXISTS (
-          SELECT 1 FROM catalogue_titles WHERE published = true AND is_demo = false AND cover_image_id = ${key}
+          SELECT 1 FROM catalogue_titles WHERE published = true AND is_demo = false AND classification = 'national_book_list_verified' AND cover_rights_approved = true AND cover_image_id = ${key}
           UNION ALL
           SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
           UNION ALL

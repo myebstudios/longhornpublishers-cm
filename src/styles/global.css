@@ -936,6 +936,17 @@ body.nav-open {
 .book-card__body h3 { font-size: var(--step-0); line-height: 1.25; }
 .book-card__body .btn { justify-content: space-between; width: 100%; }
 .book-card.is-hidden { display: none; }
+/* CLIENT-3 C05/C15: grouped results; titles without an eligible cover are text-led. */
+.catalogue-group + .catalogue-group { margin-top: clamp(2.5rem, 5vw, 3.5rem); }
+.catalogue-group__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; margin-bottom: 1.25rem; }
+.catalogue-group__head h2 { font-size: var(--step-2); }
+.catalogue-group__head p { color: var(--ink-soft); }
+.book-card--text { border-top: 4px solid var(--burgundy); }
+.book-card--text .book-card__body { display: flex; flex-direction: column; height: 100%; }
+.book-card--text .book-card__body .btn { margin-top: auto; }
+.book-card--text h3 a { color: var(--burgundy); text-decoration: none; }
+.book-card--text h3 a:hover { text-decoration: underline; }
+.book-card__meta { color: var(--ink-soft); font-size: var(--step--1); }
 .is-hidden, [hidden] { display: none !important; }
 
 /* --- News -------------------------------------------------------------- */
@@ -1157,6 +1168,8 @@ body.nav-open {
 /* Catalogue title details */
 .catalogue-detail__grid { display: grid; grid-template-columns: minmax(220px, .75fr) minmax(0, 1.25fr); gap: clamp(2rem, 6vw, 6rem); align-items: center; }
 .catalogue-detail__cover { min-height: 390px; font-size: var(--step-2); }
+/* No eligible cover (CLIENT-3 C15): single text column, no empty book-shaped region. */
+.catalogue-detail__grid--text { grid-template-columns: minmax(0, 1fr); max-width: 60rem; }
 .catalogue-detail__pills { margin: 1.5rem 0; }
 .catalogue-detail__lede { font-size: var(--step-1); color: var(--ink-soft); max-width: 48rem; }
 .catalogue-detail__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; margin: 2rem 0; }

@@ -100,6 +100,11 @@ export interface Content {
     empty: { message: string; reset: string };
     /** Shown when the CMS has no published titles at all. */
     unpublished: { heading: string; body: string; cta: string };
+    /**
+     * CLIENT-3 C05: the two public groups. The booklist heading is a factual
+     * claim and only ever labels titles verified against the National Book List.
+     */
+    groups: { booklist: string; other: string; titleOne: string; titleMany: string };
     cta: Titled;
   };
 

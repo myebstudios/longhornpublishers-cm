@@ -24,8 +24,11 @@ One manifest row represents one catalogue title and must contain:
 | `level` | Exactly `primary` or `secondary`. |
 | `subject_en`, `subject_fr` | Both required and mapped as one approved bilingual subject pair. No inferred translation. |
 | `languages` | Non-empty set containing only `en` and/or `fr`; records edition availability, not UI-copy completeness. |
-| `cover_filename` | Required; exact case-sensitive filename present once in the cover pack. |
-| `cover_sha256` | Required; lowercase SHA-256 of the approved source file. |
+| `classification` | Exactly `national_book_list_verified`, `other_developed`, or `unclassified`. Blank is `unclassified`, which never appears publicly. Independent of `publication_authorized`. |
+| `booklist_evidence_ref`, `booklist_verified_by`, `booklist_verified_at` | Required only for `national_book_list_verified`, and must be empty otherwise. The evidence must match this exact title, edition and product code/ISBN. A curriculum-alignment claim, the `featured` flag, a cover or a code prefix is not evidence. These fields are private and never rendered. |
+| `cover_rights_approved` | Explicit `true` or `false`. `true` is allowed only for `national_book_list_verified` rows, with the exact cover and its publication rights approved. |
+| `cover_filename` | Required when `classification=national_book_list_verified` **and** `cover_rights_approved=true`; exact case-sensitive filename present once in the cover pack. **Must be empty for every other row**: other developed and unclassified titles are text-led and do not import covers (CLIENT-3 C15). |
+| `cover_sha256` | Required exactly when `cover_filename` is set; lowercase SHA-256 of the approved source file. |
 | `featured` | Explicit `true` or `false`. |
 | `display_order` | Required non-negative integer, unique within the intended display group. Preserve it in the evidence even though the current public query orders featured titles first and then by creation time. Do not simulate ordering by falsifying timestamps. |
 | `publication_authorized` | Explicit `true` or `false`; blank is false. Import remains draft regardless. |
@@ -82,7 +85,8 @@ This gate checks parity and obvious contradictions; it does not invent translati
 - [ ] Cover is RGB/sRGB (not CMYK), portrait, and at least 800 × 1200 px.
 - [ ] Visual review confirms the cover exactly matches the approved title/code and has no substitutions, generated text, watermarks, mockup furniture, or rights uncertainty.
 - [ ] Preview the current 3:4 card crop at 240, 380, and 560 px widths. Reject any crop that removes title, logo, author, edition, or other required cover content; do not alter the approved master without re-approval.
-- [ ] The final blob key returned by upload is recorded against the manifest row; no row proceeds without a one-to-one cover mapping.
+- [ ] The final blob key returned by upload is recorded against the manifest row. Every cover-bearing row (verified National Book List with approved rights) has a one-to-one cover mapping; no other row has a cover.
+- [ ] These cover checks apply only to cover-bearing rows. Text-only rows skip §3.4 and Gate 2 entirely.
 
 Gate 1 passes only when the validator reports zero errors and both Developer and QA sign the evidence record.
 
@@ -109,7 +113,7 @@ Within one transaction:
 4. Lock/check the relevant `subjects` and `catalogue_titles` keys so a concurrent editor cannot introduce a collision between validation and insert.
 5. Insert only approved bilingual subject pairs not already present; resolve every staged title to exactly one `subject_id`.
 6. Insert every title with `published = false` and `is_demo = false`, regardless of `publication_authorized`.
-7. Assert inserted row count equals manifest row count; assert zero inserted rows are published; assert every inserted row has a product code, subject, cover, valid locale metadata, and exact staged slug.
+7. Assert inserted row count equals manifest row count; assert zero inserted rows are published; assert every inserted row has a product code, subject, valid locale metadata, the manifest `classification`, and exact staged slug; assert `cover_image_id` is non-null exactly for rows with `classification='national_book_list_verified' AND cover_rights_approved`, and null for every other row. The `catalogue_titles_booklist_evidence_check` constraint must accept every verified row.
 8. Write the returned title IDs and resolved subject IDs to the evidence record.
 9. Commit only if every assertion succeeds. On any error, roll back the entire database batch.
 

@@ -24,8 +24,14 @@ export interface CatalogueTitle {
   description_fr: string;
   curriculum_alignment_en: string | null;
   curriculum_alignment_fr: string | null;
-  /** Blob key for the cover image; null when none was uploaded. */
+  /**
+   * Blob key for the cover, or null. The query returns it ONLY for a verified
+   * National Book List title with approved cover rights (CLIENT-3 C15), so
+   * every renderer that goes through `coverImage()` inherits the rule.
+   */
   cover_image_id: string | null;
+  /** 'national_book_list_verified' | 'other_developed'; unclassified rows are never returned. */
+  classification: 'national_book_list_verified' | 'other_developed';
   /** Joined from `subjects`; null when the title has no subject assigned. */
   subject_id: string | null;
   subject_en: string | null;
@@ -115,23 +121,29 @@ export async function getPublishedTitles(limit?: number): Promise<CatalogueTitle
     const db = getBuildDatabase();
     const selectPublished = canRenderLocalDemoContent()
       ? db.sql`
-          SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
+          SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.classification,
+                 CASE WHEN c.classification = 'national_book_list_verified' AND c.cover_rights_approved
+                      THEN c.cover_image_id END AS cover_image_id,
                  c.title_en, c.title_fr, c.description_en, c.description_fr,
                  c.curriculum_alignment_en, c.curriculum_alignment_fr,
                  c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr
           FROM catalogue_titles c
           LEFT JOIN subjects s ON s.id = c.subject_id
           WHERE c.published = true
+            AND c.classification IN ('national_book_list_verified', 'other_developed')
           ORDER BY c.featured DESC, c.created_at DESC
         `
       : db.sql`
-          SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.cover_image_id,
+          SELECT c.id, c.product_code, c.slug, c.level, c.languages, c.featured, c.classification,
+                 CASE WHEN c.classification = 'national_book_list_verified' AND c.cover_rights_approved
+                      THEN c.cover_image_id END AS cover_image_id,
                  c.title_en, c.title_fr, c.description_en, c.description_fr,
                  c.curriculum_alignment_en, c.curriculum_alignment_fr,
                  c.subject_id, s.name_en AS subject_en, s.name_fr AS subject_fr
           FROM catalogue_titles c
           LEFT JOIN subjects s ON s.id = c.subject_id
           WHERE c.published = true AND c.is_demo = false
+            AND c.classification IN ('national_book_list_verified', 'other_developed')
           ORDER BY c.featured DESC, c.created_at DESC
         `;
     const rows = await selectPublished;

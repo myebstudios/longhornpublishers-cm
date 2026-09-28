@@ -22,7 +22,7 @@ try {
 
   const schema = JSON.parse(netlify(
     'database', 'connect', '--json', '--query',
-    "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'is_demo') AS demo_ready, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'product_code') AS has_product_code, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'news_articles' AND column_name = 'is_demo') AS has_news_demo, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'homepage_hero_slides' AND column_name = 'is_demo') AS has_hero_demo",
+    "SELECT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'is_demo') AS demo_ready, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'product_code') AS has_product_code, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'news_articles' AND column_name = 'is_demo') AS has_news_demo, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'homepage_hero_slides' AND column_name = 'is_demo') AS has_hero_demo, EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema = 'public' AND table_name = 'catalogue_titles' AND column_name = 'classification') AS has_classification",
   ));
   const state = schema[0] ?? {};
   if (!state.demo_ready) {
@@ -56,7 +56,7 @@ try {
 
   const sql = demoSeedSql(
     Boolean(state.has_product_code), Boolean(state.has_news_demo), coverKeys,
-    Boolean(state.has_hero_demo), heroImageKeys,
+    Boolean(state.has_hero_demo), heroImageKeys, Boolean(state.has_classification),
   );
   netlify('database', 'connect', '--query', sql);
 

@@ -109,6 +109,19 @@ const CATALOGUE_DEMO_ROWS = [
   },
 ];
 
+/**
+ * One demo title per public classification state (CLIENT-3 C05/C15), so the
+ * catalogue groups and the cover gate are all visible locally:
+ * verified + cover rights (cover shown), verified without rights (cover hidden),
+ * other developed (text only), unclassified (not public at all).
+ */
+const DEMO_CLASSIFICATION = {
+  e001: { classification: 'national_book_list_verified', coverRights: true },
+  e002: { classification: 'other_developed' },
+  e003: { classification: 'unclassified' },
+  e004: { classification: 'national_book_list_verified', coverRights: false },
+};
+
 /** Single-quote escaping for the demo fixtures' literal SQL. */
 const q = (value) => `'${String(value).replace(/'/g, "''")}'`;
 
@@ -321,7 +334,19 @@ export function demoSeedSql(
   coverKeys = [],
   hasHeroDemo = false,
   heroImageKeys = [],
+  hasClassification = false,
 ) {
+  const classColumns = hasClassification
+    ? ', classification, booklist_evidence_ref, booklist_verified_by, booklist_verified_at, cover_rights_approved' : '';
+  const classValues = (r) => {
+    if (!hasClassification) return '';
+    const c = DEMO_CLASSIFICATION[r.id];
+    return c.classification === 'national_book_list_verified'
+      ? `, 'national_book_list_verified', '[DEMO] synthetic fixture — not real booklist evidence', '[DEMO] seed', DATE '2026-01-01', ${c.coverRights}`
+      : `, '${c.classification}', NULL, NULL, NULL, false`;
+  };
+  const classUpdate = hasClassification
+    ? `,\n  classification = EXCLUDED.classification,\n  booklist_evidence_ref = EXCLUDED.booklist_evidence_ref,\n  booklist_verified_by = EXCLUDED.booklist_verified_by,\n  booklist_verified_at = EXCLUDED.booklist_verified_at,\n  cover_rights_approved = EXCLUDED.cover_rights_approved` : '';
   const productColumn = hasProductCode ? ', product_code' : '';
   const productValue = (code) => hasProductCode ? `, '${code}'` : '';
   const productUpdate = hasProductCode ? ', product_code = EXCLUDED.product_code' : '';
@@ -342,7 +367,7 @@ WHERE subjects.is_demo = true;
 INSERT INTO catalogue_titles (
   id, title_en, title_fr, cover_image_id, level, subject_id, languages,
   description_en, description_fr, curriculum_alignment_en,
-  curriculum_alignment_fr, slug, featured, published, is_demo${productColumn}
+  curriculum_alignment_fr, slug, featured, published, is_demo${productColumn}${classColumns}
 )
 VALUES
 ${CATALOGUE_DEMO_ROWS.map((r, i) => `  (
@@ -355,7 +380,7 @@ ${CATALOGUE_DEMO_ROWS.map((r, i) => `  (
     ${q(r.descFr)},
     'Synthetic demonstration metadata — not approved curriculum content.',
     'Métadonnées de démonstration fictives — contenu pédagogique non approuvé.',
-    '${r.slug}', ${r.featured}, true, true${productValue(r.code)}
+    '${r.slug}', ${r.featured}, true, true${productValue(r.code)}${classValues(r)}
   )`).join(',\n')}
 ON CONFLICT (id) DO UPDATE SET
   title_en = EXCLUDED.title_en,
@@ -371,7 +396,7 @@ ON CONFLICT (id) DO UPDATE SET
   slug = EXCLUDED.slug,
   featured = EXCLUDED.featured,
   published = EXCLUDED.published,
-  is_demo = true${productUpdate},
+  is_demo = true${productUpdate}${classUpdate},
   updated_at = now()
 WHERE catalogue_titles.is_demo = true;
 ${hasNewsDemo ? NEWS_DEMO_SQL : ''}

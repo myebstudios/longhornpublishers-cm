@@ -5,7 +5,7 @@ import Button from '../Button.astro';
 import CtaBand from '../CtaBand.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
-  coverImage, filterTags, getPublishedTitles, subjectFilters, titleText,
+  coverImage, filterTags, getPublishedTitles, subjectFilters, subjectName, titleText,
 } from '../../lib/catalogue';
 
 interface Props { locale: Locale }
@@ -19,6 +19,12 @@ const cataloguePath = path('catalogue', lang);
  * page shows its "coming soon" state rather than an empty grid under live filters.
  */
 const titles = await getPublishedTitles();
+// CLIENT-3 C05: verified National Book List titles first, then other developed
+// titles. Unclassified titles never reach this page (see getPublishedTitles).
+const groups = [
+  { key: 'booklist', heading: t.catalogue.groups.booklist, titles: titles.filter((title) => title.classification === 'national_book_list_verified') },
+  { key: 'other', heading: t.catalogue.groups.other, titles: titles.filter((title) => title.classification === 'other_developed') },
+].filter((group) => group.titles.length > 0);
 
 const levelFilters = [
   { value: 'all', label: t.common.all },
@@ -110,43 +116,62 @@ const filterGroups = [
             <button class="btn btn--ghost btn--sm" type="button" data-filter-reset>{t.catalogue.empty.reset}</button>
           </div>
 
-          <div class="catalogue-grid reveal">
-          {titles.map((title) => (
-            <article
-              class="book-card"
-              data-cover-tilt
-              data-tags={filterTags(title)}
-              data-search={[titleText(title, lang), title.description_en, title.description_fr, title.product_code, title.subject_en, title.subject_fr].filter(Boolean).join(' ').toLocaleLowerCase()}
-            >
-              <a
-                class="book-card__link"
-                href={`${cataloguePath}${title.slug}/`}
-                aria-label={titleText(title, lang)}
-              >
-                <div class="book-card__cover">
-                {coverImage(title)
-                  ? <img
-                      {...coverImage(title)!}
-                      sizes="(min-width: 1240px) 280px, (min-width: 640px) 30vw, 45vw"
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  : <span aria-hidden="true">{titleText(title, lang)}</span>}
-                </div>
-              </a>
-              <div class="book-card__body">
-                {title.languages && title.languages.includes('en') && title.languages.includes('fr') && (
-                  <span class="cat-badge cat-badge--creative" style="font-size:11px;padding:.2rem .6rem;margin-bottom:.35rem;width:fit-content;">EN &amp; FR Edition</span>
-                )}
-                <h3>{titleText(title, lang)}</h3>
-                <Button href={`${path('contact', lang)}?title=${encodeURIComponent(titleText(title, lang))}`} variant="dark" size="sm">
-                  {t.common.requestTitle}
-                </Button>
+          {groups.map((group) => (
+            <section class="catalogue-group" data-filter-section aria-labelledby={`catalogue-group-${group.key}`}>
+              <div class="catalogue-group__head">
+                <h2 id={`catalogue-group-${group.key}`}>{group.heading}</h2>
+                <p><span data-filter-section-count data-one={t.catalogue.groups.titleOne} data-many={t.catalogue.groups.titleMany}>{group.titles.length}</span> <span data-filter-section-noun>{group.titles.length === 1 ? t.catalogue.groups.titleOne : t.catalogue.groups.titleMany}</span></p>
               </div>
-            </article>
+              <div class="catalogue-grid reveal">
+              {group.titles.map((title) => {
+                const cover = coverImage(title);
+                const detailHref = `${cataloguePath}${title.slug}/`;
+                const tags = filterTags(title);
+                const search = [titleText(title, lang), title.description_en, title.description_fr, title.product_code, title.subject_en, title.subject_fr].filter(Boolean).join(' ').toLocaleLowerCase();
+                const bilingual = title.languages.includes('en') && title.languages.includes('fr');
+                return cover ? (
+                  <article class="book-card" data-cover-tilt data-tags={tags} data-search={search}>
+                    <a class="book-card__link" href={detailHref} aria-label={titleText(title, lang)}>
+                      <div class="book-card__cover">
+                        <img
+                          {...cover}
+                          sizes="(min-width: 1240px) 280px, (min-width: 640px) 30vw, 45vw"
+                          alt=""
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
+                    </a>
+                    <div class="book-card__body">
+                      {bilingual && (
+                        <span class="cat-badge cat-badge--creative" style="font-size:11px;padding:.2rem .6rem;margin-bottom:.35rem;width:fit-content;">EN &amp; FR Edition</span>
+                      )}
+                      <h3>{titleText(title, lang)}</h3>
+                      <Button href={`${path('contact', lang)}?title=${encodeURIComponent(titleText(title, lang))}`} variant="dark" size="sm">
+                        {t.common.requestTitle}
+                      </Button>
+                    </div>
+                  </article>
+                ) : (
+                  <article class="book-card book-card--text" data-tags={tags} data-search={search}>
+                    <div class="book-card__body">
+                      {bilingual && (
+                        <span class="cat-badge cat-badge--creative" style="font-size:11px;padding:.2rem .6rem;margin-bottom:.35rem;width:fit-content;">EN &amp; FR Edition</span>
+                      )}
+                      <h3><a href={detailHref}>{titleText(title, lang)}</a></h3>
+                      <p class="book-card__meta">
+                        {[t.catalogue.levels[title.level], subjectName(title, lang)].filter(Boolean).join(' · ')}
+                      </p>
+                      <Button href={`${path('contact', lang)}?title=${encodeURIComponent(titleText(title, lang))}`} variant="dark" size="sm">
+                        {t.common.requestTitle}
+                      </Button>
+                    </div>
+                  </article>
+                );
+              })}
+              </div>
+            </section>
           ))}
-          </div>
         </div>
       </div>
     )}

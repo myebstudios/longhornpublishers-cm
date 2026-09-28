@@ -60,7 +60,13 @@ const catalogueById = new Map(allCatalogueTitles.map((title) => [title.id, title
 const configuredFeatured = homepage?.featured_catalogue_ids
   .map((id) => catalogueById.get(id))
   .filter((title): title is NonNullable<typeof title> => Boolean(title)) ?? [];
-const catalogueTitles = configuredFeatured.length ? configuredFeatured : allCatalogueTitles.slice(0, 8);
+// CLIENT-3 C15: the showcase is cover-only, so it lists only titles whose cover
+// is public (verified National Book List + approved rights; getPublishedTitles
+// returns no cover otherwise). A featured flag cannot bypass that.
+const candidateTitles = configuredFeatured.length ? configuredFeatured : allCatalogueTitles;
+const catalogueTitles = candidateTitles.filter((title) => coverImage(title)).slice(0, 8);
+// Published titles exist but none may show a cover: offer a text-led link instead.
+const catalogueTextOnly = catalogueTitles.length === 0 && allCatalogueTitles.length > 0;
 
 // Service carousel cards are clamp(290px, 32vw, 390px) wide and below the fold,
 // so they cap out at a 960w source and load lazily.
@@ -130,7 +136,24 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
     </div>
   </section>
 
-  <!-- Catalogue showcase — omitted entirely while nothing is published -->
+  <!-- Catalogue preview without covers (no title is cover-eligible yet) -->
+  {catalogueTextOnly && (
+  <section class="section section--cream">
+    <div class="wrap">
+      <SectionHead
+        eyebrow={t.home.cataloguePreview.eyebrow}
+        titleLead={t.home.cataloguePreview.titleLead}
+        titleAccent={t.home.cataloguePreview.titleAccent}
+        lede={t.home.cataloguePreview.lede}
+      />
+      <div class="mt-lg">
+        <Button href={path('catalogue', lang)} variant="dark">{t.common.browseCatalogue}</Button>
+      </div>
+    </div>
+  </section>
+  )}
+
+  <!-- Catalogue showcase — covers only; omitted when no title is cover-eligible -->
   {catalogueTitles.length > 0 && (
   <section class="section section--cream">
     <div class="wrap">
@@ -151,15 +174,13 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
               aria-label={titleText(title, lang)}
             >
               <div class="book-card__cover">
-                {coverImage(title)
-                  ? <img
-                      {...coverImage(title)!}
-                      sizes="(max-width: 906px) 290px, (min-width: 1220px) 390px, 32vw"
-                      alt=""
-                      loading="lazy"
-                      decoding="async"
-                    />
-                  : <span aria-hidden="true">{titleText(title, lang)}</span>}
+                <img
+                  {...coverImage(title)!}
+                  sizes="(max-width: 906px) 290px, (min-width: 1220px) 390px, 32vw"
+                  alt=""
+                  loading="lazy"
+                  decoding="async"
+                />
               </div>
             </a>
           </article>
