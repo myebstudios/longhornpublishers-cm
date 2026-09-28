@@ -57,3 +57,11 @@ test('every public catalogue read path applies the classification and cover gate
   }
   assert.equal(media.match(/FROM catalogue_titles WHERE published = true[^\n]*classification = 'national_book_list_verified' AND cover_rights_approved = true/g)?.length, 2, 'media.mts cover gate');
 });
+
+test('migration 013 keeps existing published titles public as text-only Other developed titles', () => {
+  const sql = fs.readFileSync(new URL('../netlify/database/migrations/013_catalogue_classification_backfill/migration.sql', import.meta.url), 'utf8')
+    .replace(/--.*$/gm, '').replace(/\s+/g, ' ').trim();
+  assert.match(sql, /^UPDATE catalogue_titles SET classification = 'other_developed', updated_at = now\(\) WHERE published = true AND is_demo = false AND classification = 'unclassified';$/);
+  // It must never grant booklist status or cover rights.
+  assert.doesNotMatch(sql, /national_book_list_verified|cover_rights_approved/);
+});
