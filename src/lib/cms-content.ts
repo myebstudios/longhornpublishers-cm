@@ -159,7 +159,7 @@ const FALLBACK_SITE_SETTINGS: SiteSettings = {
   newsletter_copy_fr: 'Votre courriel pour nos actualités',
   parent_company_url: 'https://longhornpublishers.com',
   seo_default_title: 'Longhorn Publishers Cameroon',
-  seo_default_description: 'Professional bilingual publishing services in Cameroon and the DRC.',
+  seo_default_description: 'Bilingual publishing services in Cameroon and Central Africa.',
   og_image_id: null,
 };
 

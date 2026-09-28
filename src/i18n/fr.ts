@@ -44,7 +44,7 @@ export const fr: Content = {
     catalogue: {
       title: 'Catalogue — Longhorn Publishers Cameroun',
       description:
-        'Manuels du primaire et du secondaire conformes aux programmes nationaux du Cameroun et de la RDC, en anglais et en français.',
+        'Supports pédagogiques en anglais et en français pour le Cameroun et l’Afrique centrale.',
     },
     why: {
       title: 'Pourquoi nous choisir — Longhorn Publishers Cameroun',
@@ -164,18 +164,17 @@ export const fr: Content = {
       eyebrowStatSuffix: 'd’édition à travers l’Afrique',
       badgeNumber: '60',
       tags: ['Éditorial', 'Création', 'Production'],
-      titleLead: 'Services d’édition professionnels,',
-      titleAccent: 'du début à la fin',
-      lede:
-        'Révision, correction d’épreuves, traduction, conception, illustration et impression — livrés en deux langues depuis Yaoundé pour les éditeurs, institutions et organisations du Cameroun et de la RDC.',
+      titleLead: 'Éveiller les esprits',
+      titleAccent: '',
+      lede: 'Enrichir des vies par la connaissance',
       stats: [
-        { num: '2', label: 'Marchés desservis — Cameroun et RDC' },
+        { num: 'CM', label: 'Basés au Cameroun' },
         { num: 'EN / FR', label: 'Chaque titre, dans les deux langues' },
       ],
     },
     trust: [
       '60+ ans d’expérience du groupe PLC en Afrique',
-      'Équipe d’édition basée à Tsinga, Yaoundé',
+      'Créateurs de contenus éducatifs et prestataires de services',
       'Capacité d’édition 100% bilingue EN & FR',
       'Conforme aux programmes nationaux',
     ],
@@ -185,22 +184,22 @@ export const fr: Content = {
       titleAccent: 'forts de six décennies',
       body: [
         'Longhorn Publishers Cameroun Ltd est la filiale pour l’Afrique centrale de Longhorn Publishers PLC — une maison d’édition forte de soixante ans d’expérience dans la création de contenus éducatifs et généralistes sur le continent.',
-        'Depuis notre bureau de Tsinga, à Yaoundé, nous sommes créateurs de contenus et fournisseurs de solutions éditoriales : une équipe éditoriale, créative et de production travaillant dans les deux langues officielles, assez proche du marché pour en saisir les nuances culturelles.',
+        'Depuis notre bureau de Tsinga à Yaoundé, nous intervenons en tant que créateurs de contenus et fournisseurs de solutions de plateforme sur le marché d’Afrique centrale. Nos activités couvrent le développement de matériels d’apprentissage, de contenus éducatifs et de solutions d’édition professionnelle en anglais et en français, reflétant l’environnement éducatif bilingue du pays.',
       ],
       link: 'En savoir plus sur nous',
       imgAlt: 'L’équipe de Longhorn Publishers Cameroun',
     },
     services: {
       eyebrow: 'Nos services',
-      titleLead: 'Tout ce dont un manuscrit a besoin,',
-      titleAccent: 'sous un même toit',
-      lede: 'Plus besoin de jongler entre réviseurs, graphistes et imprimeurs — nous menons le projet de bout en bout.',
+      titleLead: 'Nos services,',
+      titleAccent: 'en un coup d’œil',
+      lede: 'Édition, supports pédagogiques et ouvrages de référence, avec d’autres services à venir.',
     },
     cataloguePreview: {
       eyebrow: 'Catalogue',
       titleLead: 'Des manuels pour le',
       titleAccent: 'primaire et le secondaire',
-      lede: 'Des titres conformes aux programmes nationaux du Cameroun et de la RDC, publiés dans les deux langues.',
+      lede: 'Des supports pédagogiques en anglais et en français.',
     },
     endToEnd: {
       eyebrow: 'Un seul partenaire',
@@ -253,13 +252,13 @@ export const fr: Content = {
     heritage: {
       eyebrow: 'Héritage et présence locale',
       titleLead: 'L’appui d’un groupe continental,',
-      titleAccent: 'le discernement local',
+      titleAccent: '',
       body: [
         'Longhorn Publishers Cameroun Ltd est une filiale de Longhorn Publishers PLC, un groupe fort de près de six décennies d’expérience dans l’édition d’ouvrages éducatifs et généralistes à travers l’Afrique.',
-        'Cet héritage nous apporte des exigences éditoriales, une capacité de production et des relations institutionnelles qu’un nouvel entrant ne peut tout simplement pas réunir. Ce que nous y ajoutons, c’est la proximité : une équipe basée à Tsinga, à Yaoundé, immergée quotidiennement dans le contexte éducatif camerounais et congolais, dans les deux langues officielles.',
+        'Ce que nous apportons en plus, c’est la proximité : une équipe travaillant quotidiennement au service de l’écosystème éditorial camerounais et d’Afrique centrale dans son ensemble, dans les deux langues officielles.',
         'Nous nous définissons comme créateurs de contenus et fournisseurs de solutions éditoriales — nous produisons le contenu et nous pilotons le processus qui le met entre les mains des élèves.',
       ],
-      link: 'Pourquoi nos partenaires nous choisissent',
+      link: 'Pourquoi nous choisir',
       imgAlt: 'Longhorn Publishers Cameroun en consultation client, Yaoundé',
     },
     identity: {
@@ -267,9 +266,9 @@ export const fr: Content = {
       titleLead: 'Ce que nous sommes',
       titleAccent: 'venus accomplir',
       items: [
-        { icon: 'heart', title: 'Raison d’être', body: 'Élargir les esprits — créer des contenus qui rendent l’apprentissage accessible, exact et pertinent en Afrique centrale.' },
-        { icon: 'eye', title: 'Vision', body: 'Devenir le partenaire éditorial de référence au Cameroun et en RDC pour les institutions qui refusent tout compromis sur la qualité.' },
-        { icon: 'target', title: 'Mission', body: 'Assurer une édition de bout en bout — éditoriale, créative et production — en deux langues, dans les délais et à un prix juste.' },
+        { icon: 'heart', title: 'Raison d’être', body: 'Enrichir des vies par la connaissance.' },
+        { icon: 'eye', title: 'Vision', body: 'Être un partenaire éditorial de confiance pour les institutions au Cameroun et en Afrique centrale.' },
+        { icon: 'target', title: 'Mission', body: 'Développer et fournir des matériels d’apprentissage et d’enseignement de haute qualité qui soutiennent les apprenants, les éducateurs et les institutions.' },
         { icon: 'shield', title: 'Valeurs', body: 'Qualité, pertinence culturelle, souplesse et responsabilité — à chaque étape, et pas seulement à la validation finale.' },
       ],
     },
@@ -321,17 +320,17 @@ export const fr: Content = {
 
   services: {
     hero: {
-      eyebrow: 'Services d’édition',
-      titleLead: 'Du manuscrit',
-      titleAccent: 'à l’œuvre achevée',
-      lede: 'Six services répartis sur trois métiers — éditorial, création et production — disponibles séparément ou dans le cadre d’une prestation intégrée.',
+      eyebrow: 'Nos services',
+      titleLead: 'À chaque étape.',
+      titleAccent: 'Chaque solution',
+      lede: 'De la transformation des manuscrits en publications soignées à la fourniture de matériels Cambridge, universitaires et de référence actualisés — nous vous accompagnons à chaque étape de votre parcours.',
       button: 'Demander un devis',
       link: 'Aller au processus',
     },
     overview: {
       eyebrow: 'En bref',
-      titleLead: 'Trois métiers,',
-      titleAccent: 'six services',
+      titleLead: 'Six services',
+      titleAccent: '',
     },
     process: {
       eyebrow: 'Notre processus',
@@ -354,7 +353,7 @@ export const fr: Content = {
       eyebrow: 'Catalogue',
       titleLead: 'Nos supports',
       titleAccent: 'pédagogiques',
-      lede: 'Des titres du primaire et du secondaire conformes aux programmes nationaux du Cameroun et de la RDC — publiés en anglais et en français.',
+      lede: 'Des supports pédagogiques en anglais et en français.',
     },
     filters: {
       title: 'Filtrer les titres', level: 'Niveau', subject: 'Matière', language: 'Langue',
@@ -405,7 +404,7 @@ export const fr: Content = {
         titleAccent: 'pas seulement de la carte',
         body: [
           'Notre équipe est à Tsinga, Yaoundé. Cela signifie des visites sur site, des relectures en personne et un calendrier qui suit les réalités locales plutôt que l’agenda d’un siège lointain.',
-          'Cela signifie aussi une connaissance pratique des programmes nationaux camerounais et congolais — leur structure, leur terminologie et les attentes en matière d’agrément — plutôt qu’un modèle éducatif africain générique.',
+          'Cela signifie aussi une connaissance du contexte éducatif camerounais et des besoins des apprenants et des enseignants.',
         ],
         imgAlt: 'Des lecteurs échangeant autour d’un ouvrage Longhorn',
       },

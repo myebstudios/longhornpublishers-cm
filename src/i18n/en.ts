@@ -39,7 +39,7 @@ export const en: Content = {
     catalogue: {
       title: 'Catalogue — Longhorn Publishers Cameroon',
       description:
-        'Primary and secondary learning materials aligned to the national curricula of Cameroon and the DRC, in English and French.',
+        'Learning materials in English and French for Cameroon and Central Africa.',
     },
     why: {
       title: 'Why Choose Us — Longhorn Publishers Cameroon',
@@ -159,18 +159,17 @@ export const en: Content = {
       eyebrowStatSuffix: 'of publishing across Africa',
       badgeNumber: '60',
       tags: ['Editorial', 'Creative', 'Production'],
-      titleLead: 'Professional publishing services,',
-      titleAccent: 'start to finish',
-      lede:
-        'Editing, proofreading, translation, design, illustration and printing — delivered bilingually from Yaoundé for publishers, institutions and organisations across Cameroon and the DRC.',
+      titleLead: 'Expanding Minds',
+      titleAccent: '',
+      lede: 'Enriching lives through knowledge',
       stats: [
-        { num: '2', label: 'Markets served — Cameroon & DRC' },
+        { num: 'CM', label: 'Based in Cameroon' },
         { num: 'EN / FR', label: 'Every title, both languages' },
       ],
     },
     trust: [
       '60+ years parent PLC experience across Africa',
-      'Local publishing team in Tsinga, Yaoundé',
+      'Educational content creators and service providers',
       '100% Bilingual EN & FR publishing capability',
       'Aligned to national curricula',
     ],
@@ -180,22 +179,22 @@ export const en: Content = {
       titleAccent: 'built on six decades',
       body: [
         'Longhorn Publishers Cameroon Ltd is the Central African arm of Longhorn Publishers PLC — a publishing house with sixty years of experience creating educational and general-interest content across the continent.',
-        'From our office in Tsinga, Yaoundé, we operate as content creators and platform business providers: an editorial, creative and production team working in both official languages, close enough to the market to get the cultural detail right.',
+        "From our office in Tsinga Yaoundé, we operate as content creators and platform business providers across the Central African Market. Our work spans the development of learning materials, educational content and professional publishing solutions in English and French, reflecting the country's bilingual education environment",
       ],
       link: 'More about us',
       imgAlt: 'The Longhorn Publishers Cameroon team',
     },
     services: {
       eyebrow: 'Our services',
-      titleLead: 'Everything a manuscript needs,',
-      titleAccent: 'under one roof',
-      lede: 'No juggling separate editors, designers and printers — we take a project the whole way.',
+      titleLead: 'Our services,',
+      titleAccent: 'at a glance',
+      lede: 'Publishing, learning materials and reference books, with more on the way.',
     },
     cataloguePreview: {
       eyebrow: 'Catalogue',
       titleLead: 'Learning materials for',
       titleAccent: 'primary and secondary',
-      lede: 'Titles aligned to the national curricula of Cameroon and the DRC, published in both languages.',
+      lede: 'Learning materials in English and French.',
     },
     endToEnd: {
       eyebrow: 'One partner',
@@ -248,13 +247,13 @@ export const en: Content = {
     heritage: {
       eyebrow: 'Heritage & local presence',
       titleLead: 'Continental backing,',
-      titleAccent: 'local judgement',
+      titleAccent: '',
       body: [
         'Longhorn Publishers Cameroon Ltd is a subsidiary of Longhorn Publishers PLC, a group with roughly six decades of experience publishing educational and general-interest titles across Africa.',
-        'That heritage gives us editorial standards, production capacity and institutional relationships that a new entrant simply cannot assemble. What we add is proximity: a team based in Tsinga, Yaoundé, working daily in the Cameroonian and Congolese education context, in both official languages.',
+        'What we add is proximity: a team working daily to serve the Cameroonian and Central African publishing ecosystem as a whole in both official languages.',
         'We describe ourselves as content creators and platform business providers — we make the content, and we run the process that gets it into learners’ hands.',
       ],
-      link: 'Why partners choose us',
+      link: 'Why choose us',
       imgAlt: 'Longhorn Publishers Cameroon in client consultation, Yaoundé',
     },
     identity: {
@@ -262,9 +261,9 @@ export const en: Content = {
       titleLead: 'What we are',
       titleAccent: 'here to do',
       items: [
-        { icon: 'heart', title: 'Purpose', body: 'To expand minds — creating content that makes learning accessible, accurate and relevant across Central Africa.' },
-        { icon: 'eye', title: 'Vision', body: 'To be the publishing partner of choice in Cameroon and the DRC for institutions that will not compromise on quality.' },
-        { icon: 'target', title: 'Mission', body: 'To deliver end-to-end publishing — editorial, creative and production — bilingually, on schedule, at a fair price.' },
+        { icon: 'heart', title: 'Purpose', body: 'To enrich lives through knowledge.' },
+        { icon: 'eye', title: 'Vision', body: 'To be a trusted publishing partner for institutions across Cameroon and Central Africa.' },
+        { icon: 'target', title: 'Mission', body: 'To develop and deliver high-quality learning and teaching materials that support learners, educators and institutions.' },
         { icon: 'shield', title: 'Values', body: 'Quality, cultural relevance, flexibility and accountability — held at every stage, not just at sign-off.' },
       ],
     },
@@ -316,17 +315,17 @@ export const en: Content = {
 
   services: {
     hero: {
-      eyebrow: 'Publishing services',
-      titleLead: 'From manuscript',
-      titleAccent: 'to masterpiece',
-      lede: 'Six services across three disciplines — editorial, creative and production — available individually or as a single end-to-end engagement.',
+      eyebrow: 'Our services',
+      titleLead: 'Every Stage.',
+      titleAccent: 'Every Solution',
+      lede: 'From turning manuscripts into refined publications, to providing up-to-date Cambridge, tertiary, and reference materials — we serve every stage of your journey.',
       button: 'Request a Quote',
       link: 'Jump to our process',
     },
     overview: {
       eyebrow: 'At a glance',
-      titleLead: 'Three disciplines,',
-      titleAccent: 'six services',
+      titleLead: 'Six services',
+      titleAccent: '',
     },
     process: {
       eyebrow: 'Our process',
@@ -349,7 +348,7 @@ export const en: Content = {
       eyebrow: 'Catalogue',
       titleLead: 'Our learning',
       titleAccent: 'materials',
-      lede: 'Primary and secondary titles aligned to the national curricula of Cameroon and the DRC — published in English and French.',
+      lede: 'Learning materials in English and French.',
     },
     filters: {
       title: 'Filter titles', level: 'Level', subject: 'Subject', language: 'Language',
@@ -371,7 +370,7 @@ export const en: Content = {
       cta: 'Request a title',
     },
     groups: {
-      booklist: 'Titles on the National Book List',
+      booklist: 'Titles on the national booklist',
       other: 'Other developed titles',
       titleOne: 'title',
       titleMany: 'titles',
@@ -399,7 +398,7 @@ export const en: Content = {
         titleAccent: 'not just the map',
         body: [
           'Our team is in Tsinga, Yaoundé. That means site visits, in-person reviews and a schedule that runs on local realities rather than a distant head office calendar.',
-          'It also means working knowledge of both the Cameroonian and DRC national curricula — the structure, the terminology and the approval expectations — rather than a generic African education template.',
+          'It also means working knowledge of the Cameroonian education context and the needs of local learners and educators.',
         ],
         imgAlt: 'Readers in discussion with a Longhorn title',
       },

@@ -21,18 +21,16 @@ export const SERVICES: Service[] = [
     id: 'editing', icon: 'pen', discipline: 'editorial',
     en: {
       name: 'Editing',
-      short: 'Structure, argument, accuracy and readability.',
+      short: 'Language accuracy, clarity, flow and readability.',
       body: [
-        'We work at two levels. Structural editing addresses whether the material does its job — sequence, coverage, pitch and curriculum fit. Line editing then tightens the prose itself for clarity and register.',
-        'For educational titles this includes checking that the level of language matches the intended year group.',
+        "Our editorial process spans different levels of editing, improving a manuscript's quality and usability without losing the author's intended message.",
       ],
     },
     fr: {
       name: 'Révision',
-      short: 'Structure, argumentation, exactitude et lisibilité.',
+      short: 'Précision linguistique, clarté, fluidité et lisibilité.',
       body: [
-        'Nous intervenons à deux niveaux. La révision structurelle vérifie que le contenu remplit sa fonction : progression, couverture, niveau et conformité au programme. La révision de style resserre ensuite l’écriture pour la clarté et le registre.',
-        'Pour les ouvrages scolaires, cela comprend la vérification que le niveau de langue correspond bien à la classe visée.',
+        'Notre processus éditorial couvre différents niveaux de révision, améliorant la qualité et la lisibilité d’un manuscrit sans perdre le message visé par l’auteur.',
       ],
     },
   },
@@ -59,18 +57,18 @@ export const SERVICES: Service[] = [
     id: 'translation', icon: 'globe', discipline: 'editorial',
     en: {
       name: 'Translation',
-      short: 'English and French, localised not transposed.',
+      short: 'English ↔ French and French ↔ English.',
       body: [
-        'English to French and French to English, by translators working in the Cameroonian education context. We localise: examples, names, places, currency, measurement and classroom register are all adapted so the target edition reads as though it were written in that language.',
-        'Both editions are scheduled together, so neither becomes the version that ships late.',
+        'Our translation service supports organisations and content owners that need materials adapted between English and French, particularly where content must function effectively within bilingual educational and professional environments.',
+        'Our focus is not merely word-for-word conversion. It is about producing content that is clear, appropriate and fit for its intended audience.',
       ],
     },
     fr: {
       name: 'Traduction',
-      short: 'Anglais et français, localisés et non transposés.',
+      short: 'Anglais ↔ Français et Français ↔ Anglais.',
       body: [
-        'De l’anglais vers le français et inversement, par des traducteurs qui travaillent quotidiennement dans le contexte éducatif camerounais. Nous localisons : exemples, noms, lieux, monnaie, unités de mesure et registre de classe sont adaptés afin que l’édition cible se lise comme si elle avait été écrite dans cette langue.',
-        'Les deux éditions sont planifiées ensemble : aucune ne devient la version livrée en retard.',
+        'Notre service de traduction accompagne les organisations et les détenteurs de contenus qui ont besoin d’adapter des documents entre l’anglais et le français, particulièrement lorsque les contenus doivent fonctionner efficacement dans des environnements éducatifs et professionnels bilingues.',
+        'Notre démarche ne se résume pas à une simple conversion mot à mot. Il s’agit de produire un contenu clair, approprié et adapté à son public cible.',
       ],
     },
   },

@@ -9,6 +9,7 @@ import Button from '../Button.astro';
 import { type Locale, useTranslations, path, LOCALES } from '../../i18n';
 import { SERVICE_DETAIL_IMG, disciplineLabel, DISCIPLINE_ACCENT } from '../../data/presentation';
 import { getPublishingContent } from '../../lib/cms-content';
+import { OFFERINGS } from '../../data/offerings';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
@@ -37,19 +38,31 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
         titleAccent={t.services.overview.titleAccent}
       />
       <div class="grid grid--3 reveal">
-        {services.map((service) => (
-          <a class:list={['card', DISCIPLINE_ACCENT[service.discipline]]} href={`#${service.id}`}>
-            <span class="card__icon"><Icon name={service.icon} /></span>
-            <h3>{service[lang].name}</h3>
-            <p>{service[lang].short}</p>
-          </a>
+        {OFFERINGS.map((offering) => (
+          offering.comingSoon ? (
+            <article class="card">
+              <span class="card__icon"><Icon name={offering.icon} /></span>
+              <h3>{offering[lang]}</h3>
+              <p>{lang === 'fr' ? 'Bientôt disponible' : 'Coming soon'}</p>
+            </article>
+          ) : (
+            <a class="card" href={offering.id === 'publishing' ? '#publishing' : contactHref}>
+              <span class="card__icon"><Icon name={offering.icon} /></span>
+              <h3>{offering[lang]}</h3>
+            </a>
+          )
         ))}
       </div>
     </div>
   </section>
 
-  <section class="section section--cream">
+  <section class="section section--cream" id="publishing" style="scroll-margin-top:120px">
     <div class="wrap zigzag">
+      <div>
+        <span class="eyebrow">{lang === 'fr' ? 'Édition' : 'Publishing'}</span>
+        <h2>{lang === 'fr' ? 'Du manuscrit à l’œuvre achevée' : 'From manuscript to masterpiece'}</h2>
+        <p>{lang === 'fr' ? 'Services éditoriaux, créatifs et de production — disponibles individuellement ou dans le cadre d’un accompagnement complet.' : 'Editorial, creative and production services — available individually or as a single end-to-end engagement.'}</p>
+      </div>
       {services.map((service, i) => (
         <Split
           id={service.id}
@@ -59,7 +72,23 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
         >
           <span class="eyebrow">{disciplineLabel(service.discipline, lang)}</span>
           <h2>{service[lang].name}</h2>
-          {service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
+          {service.id === 'editing' ? (
+            <>
+              <p>{service[lang].body[0]}</p>
+              <p>{lang === 'fr' ? 'Nous évaluons :' : 'We assess:'}</p>
+              <ul>
+                {(lang === 'fr'
+                  ? ['Précision linguistique', 'Clarté', 'Fluidité', 'Organisation', 'Structure', 'Cohérence', 'Lisibilité globale']
+                  : ['Language accuracy', 'Clarity', 'Flow', 'Organisation', 'Structure', 'Consistency', 'Overall readability']).map((item) => <li>{item}</li>)}
+              </ul>
+              <p><strong>{lang === 'fr' ? 'Notre rôle :' : 'Our role:'}</strong> {lang === 'fr' ? 'Préserver la voix de l’auteur. Renforcer la publication.' : "Preserve the author's voice. Strengthen the publication."}</p>
+            </>
+          ) : service.id === 'translation' ? (
+            <>
+              <p>English ↔ French · French ↔ English</p>
+              {service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
+            </>
+          ) : service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
           <a class="link-arrow" href={contactHref}>{t.services.discussPrefix} {service[lang].name.toLowerCase()}</a>
         </Split>
       ))}

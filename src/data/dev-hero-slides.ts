@@ -8,11 +8,9 @@ export function getDevHeroSlides(locale: Locale) {
       id: 'dev-services',
       image: '/img/lh-hero.jpg',
       eyebrow: null,
-      headline: fr ? "Services d’édition professionnels," : 'Professional publishing services,',
-      headline_accent: fr ? 'du début à la fin' : 'start to finish',
-      subheadline: fr
-        ? 'Révision, correction, traduction, graphisme, illustration et impression — des services bilingues réunis à Yaoundé.'
-        : 'Editing, proofreading, translation, design, illustration and printing — delivered bilingually from Yaoundé.',
+      headline: fr ? 'Éveiller les esprits' : 'Expanding Minds',
+      headline_accent: '',
+      subheadline: fr ? 'Enrichir des vies par la connaissance' : 'Enriching lives through knowledge',
       primary_cta_label: fr ? 'Travaillons ensemble' : 'Partner With Us',
       primary_cta_href: path('contact', locale),
       secondary_cta_label: fr ? 'Découvrir nos services' : 'Explore our services',

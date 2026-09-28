@@ -3,9 +3,8 @@
  * validation test, and the production swap runbook
  * (Docs/hero_launch_runbook.md).
  *
- * Copy is transcribed verbatim from Docs/hero_slide_copy.md (Pack D), which is
- * still awaiting client sign-off. If the client changes a word, change it here
- * and rerun `npm run test:hero-launch`.
+ * The 2026-09-28 client corrections supersede Pack D's first-slide opening and
+ * its unsupported approval claim. The four-slide launch still needs sign-off.
  *
  * CTA hrefs are locale-neutral English route slugs (`/services`, not
  * `/en/services/`). A slide has one href column shared by both locales, and
@@ -21,12 +20,12 @@ export const LAUNCH_SLIDES = [
     upload: 'slide-1-lh-hero.jpg',
     eyebrow_en: 'Cameroon & Central Africa',
     eyebrow_fr: 'Cameroun & Afrique Centrale',
-    headline_en: 'Professional publishing services,',
-    headline_fr: "Services d'édition professionnels,",
-    headline_accent_en: 'start to finish.',
-    headline_accent_fr: 'du début à la fin.',
-    subheadline_en: 'Editing, proofreading, translation, design, illustration, and printing — delivered under one roof from Yaoundé for authors, institutions, and partners.',
-    subheadline_fr: 'Révision, correction, traduction, graphisme, illustration et impression — pris en charge sous un même toit à Yaoundé pour auteurs, institutions et partenaires.',
+    headline_en: 'Expanding Minds',
+    headline_fr: 'Éveiller les esprits',
+    headline_accent_en: null,
+    headline_accent_fr: null,
+    subheadline_en: 'Enriching lives through knowledge',
+    subheadline_fr: 'Enrichir des vies par la connaissance',
     primary_cta_label_en: 'Explore Our Services',
     primary_cta_label_fr: 'Découvrir nos services',
     primary_cta_href: '/services',
@@ -37,10 +36,10 @@ export const LAUNCH_SLIDES = [
   {
     image: 'lh-catalogue-shelves.jpg',
     upload: 'slide-2-lh-catalogue-shelves.jpg',
-    eyebrow_en: 'National Curriculum Approved',
+    eyebrow_en: 'Learning materials',
     eyebrow_fr: 'Conforme aux Programmes Nationaux',
     headline_en: 'Curriculum-aligned learning materials,',
-    headline_fr: 'Matériels pédagogiques agréés,',
+    headline_fr: 'Matériels pédagogiques,',
     headline_accent_en: 'built for success.',
     headline_accent_fr: 'conçus pour la réussite.',
     subheadline_en: 'Primary and secondary textbooks and teaching resources crafted specifically for the Cameroonian educational framework in both English and French.',

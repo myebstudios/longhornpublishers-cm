@@ -96,7 +96,7 @@ INSERT INTO site_settings (
   ${q('Your email for publishing insights')}, ${q('Votre courriel pour nos actualités')},
   ${q('https://longhornpublishers.com')},
   ${q('Longhorn Publishers Cameroon')},
-  ${q('Professional bilingual publishing services in Cameroon and the DRC.')},
+  ${q('Bilingual publishing services in Cameroon and Central Africa.')},
   NULL
 ) ON CONFLICT (id) DO NOTHING;`);
 
