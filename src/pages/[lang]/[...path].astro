@@ -1,0 +1,7 @@
+---
+// Keep unknown localized URLs on the runtime 404 path so they receive the
+// same no-store response as invalid catalogue and news slugs.
+export const prerender = false;
+
+return Astro.rewrite('/404-runtime');
+---
