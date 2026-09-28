@@ -98,6 +98,9 @@ test('invalid and unpublished on-demand routes show the uncached bilingual 404',
     });
   } finally {
     if (insertedId) await db.sql`DELETE FROM catalogue_titles WHERE id = ${insertedId}`;
+    // Close this test's pool before stopping its temporary Postgres process.
+    // Otherwise idle connections report asynchronous errors after the test ends.
+    await db.pool.end();
     if (testServerAttempted) run(process.execPath, [astroBin, 'dev', 'stop']);
     if (displacedServer) {
       run(process.execPath, [astroBin, 'dev', '--host', displacedServer.hostname, '--port', displacedServer.port]);
