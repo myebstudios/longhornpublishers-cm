@@ -34,12 +34,14 @@ const multiple = slides.length > 1;
 const copy = locale === 'fr'
   ? {
       region: 'En-tête principal', previous: 'Diapositive précédente', next: 'Diapositive suivante',
+      dots: 'Choisir une diapositive',
       play: 'Lire le diaporama', pause: 'Mettre le diaporama en pause',
       reduced: 'Lecture automatique désactivée par les préférences de mouvement réduit',
       dot: 'Afficher la diapositive', announcement: 'Diapositive {current} sur {total}', of: 'sur',
     }
   : {
       region: 'Main hero', previous: 'Previous slide', next: 'Next slide',
+      dots: 'Choose a slide',
       play: 'Play slideshow', pause: 'Pause slideshow',
       reduced: 'Autoplay disabled by reduced motion preference',
       dot: 'Show slide', announcement: 'Slide {current} of {total}', of: 'of',
@@ -104,7 +106,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
       <div class="wrap hero-carousel__toolbar">
         <CarouselNavButton direction="prev" label={copy.previous} data-hero-previous={true} />
         <span class="hero-carousel__counter" data-hero-counter>{`1 / ${slides.length}`}</span>
-        <div class="hero-carousel__dots" role="group" aria-label={copy.region}>
+        <div class="hero-carousel__dots" role="group" aria-label={copy.dots}>
           {slides.map((_, index) => (
             <button
               class:list={['hero-carousel__dot', index === 0 && 'is-active']}
@@ -309,6 +311,18 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
   .hero-carousel[data-autoplay-enabled="false"] .hero-carousel__dot.is-active span,
   .hero-carousel[data-running="false"] .hero-carousel__dot.is-active span { background: var(--green); }
   .hero-carousel :is(button, a):focus-visible { outline: 3px solid var(--green); outline-offset: 3px; }
+  /* The region itself takes focus for arrow-key navigation. Its own outline
+     would paint beneath the z-indexed slides, so the ring is an inset overlay
+     above the slides and controls; --green measures 7.25:1 on the burgundy overlay. */
+  .hero-carousel:focus-visible { outline: none; }
+  .hero-carousel:focus-visible::after {
+    content: "";
+    position: absolute;
+    inset: 6px;
+    z-index: 4;
+    border: 3px solid var(--green);
+    pointer-events: none;
+  }
 
   @keyframes hero-dot-progress { to { transform: scaleX(1); } }
 

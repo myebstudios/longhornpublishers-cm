@@ -43,3 +43,13 @@ test('temporary hover and focus pauses do not mutate the permanent stop state', 
   assert.equal(canHeroAutoplay({ ...temporaryFocus, focusPaused: false }), true);
   assert.equal(canHeroAutoplay({ ...temporaryHover, hoverPaused: false }), true);
 });
+
+test('the focusable carousel region has a visible focus ring and the dot group names its purpose', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile(new URL('../src/components/HeroCarousel.astro', import.meta.url), 'utf8');
+  // An outline on the region paints beneath its z-indexed slides, so the ring must be an overlay.
+  assert.match(source, /\.hero-carousel:focus-visible::after\s*\{[^}]*z-index:\s*4;[^}]*border:\s*3px solid var\(--green\)/);
+  assert.match(source, /class="hero-carousel__dots" role="group" aria-label=\{copy\.dots\}/);
+  assert.match(source, /dots: 'Choose a slide'/);
+  assert.match(source, /dots: 'Choisir une diapositive'/);
+});
