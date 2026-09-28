@@ -31,14 +31,14 @@ The four Pack D slides render locally in EN and FR from the CMS path, with the p
 
 ## Images
 
-The masters come from `node scripts/prepare-hero-launch-images.mjs`: progressive mozjpeg q80, capped at 1920 px, never upscaled. Full numbers are in `Assets/hero-launch/manifest.json`.
+The masters come from `node scripts/prepare-hero-launch-images.mjs`: progressive mozjpeg q80, capped at 1920 px, never upscaled. Full numbers are in `Assets/hero-launch/manifest.json`. ⚠ = below the Pack D minimum of 1920×1080; all four sources fall short (runbook G2).
 
 | Slide | Size | Source | JPEG master | WebP (ref) | AVIF (ref) |
 |---|---|---|---|---|---|
-| 1 `lh-hero.jpg` | 1920×767 | 293 KB | 163 KB | 96 KB | 61 KB |
+| 1 `lh-hero.jpg` | 1920×767 ⚠ | 293 KB | 163 KB | 96 KB | 61 KB |
 | 2 `lh-catalogue-shelves.jpg` | **410×410** ⚠ | 98 KB | 44 KB | 36 KB | 21 KB |
-| 3 `lh-bilingual-editor-wide.jpg` | 1400×933 | 253 KB | 140 KB | 91 KB | 57 KB |
-| 4 `lh-print-inspection-wide.jpg` | 1400×933 | 257 KB | 144 KB | 81 KB | 55 KB |
+| 3 `lh-bilingual-editor-wide.jpg` | 1400×933 ⚠ | 253 KB | 140 KB | 91 KB | 57 KB |
+| 4 `lh-print-inspection-wide.jpg` | 1400×933 ⚠ | 257 KB | 144 KB | 81 KB | 55 KB |
 
 **WebP/AVIF delivery is the CDN's job, not a file we upload.** `responsive()` wraps `/api/media/…` in `/.netlify/images` with a 640–1920 srcset. A live read-only probe of an existing uploaded media key returned `image/webp` (31 KB) for `Accept: image/avif,image/webp` and the original format (589 KB) for `Accept: image/jpeg`. Netlify served WebP even when AVIF was offered, so the AVIF column is reference only.
 
@@ -50,7 +50,8 @@ The masters come from `node scripts/prepare-hero-launch-images.mjs`: progressive
 |---|---|---|---|
 | F1 | P1, **fixed** | Between 761 and ~900 px the CTA row shares a line with the carousel toolbar and nothing reserved its width. With launch copy, "Toutes les actualités" (FR slide 4) ran under the Previous button, overlapping by up to 65 px; FR slides 2–3 and EN slide 4 were also affected. The production placeholders were too short to show it. | `HeroCarousel.astro` now reserves `20rem` at the end of the CTA row whenever the controls are visible, and resets that to 0 at ≤760 px, where the controls drop below. Layout at ≥1024 px is unchanged. |
 | F2 | P1 (content) | Slide 2 "Approved"/"agréés" claim | Runbook gate G1 (already in the client follow-up draft) |
-| F3 | P1 (content) | Slide 2 image is 410×410 | Runbook gate G2 |
+| F3 | P1 (content) | Slide 2 image is 410×410; slides 1, 3 and 4 are also below the 1920×1080 Pack D minimum | Runbook gate G2 |
+| F5 | P2 (content) | Slide 1 EN secondary "Partner With Us" vs FR "Nous contacter"; CTA priority swapped against the live approved hero (live: contact primary) | Runbook gates G1b/G1c, for client ruling |
 | F4 | Info, pre-existing | At 1024/1280, off-screen card carousels below the hero give `scrollWidth` > viewport by 73/18 px. Production shows the same 73 px. `html { overflow-x: clip }` means there is no visible scroll. | None for HERO-7 |
 
 ## Environment left behind

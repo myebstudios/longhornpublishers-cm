@@ -11,7 +11,7 @@
       "webp": 98046,
       "avif": 62824
     },
-    "warning": null
+    "warning": "Source is 1920x767; Pack D requires >= 1920x1080. Replace, or record client acceptance."
   },
   {
     "slide": 2,
@@ -25,7 +25,7 @@
       "webp": 37268,
       "avif": 21849
     },
-    "warning": "Source is 410x410; a full-bleed hero needs >= 1280 px wide. Replace before launch."
+    "warning": "Source is 410x410; Pack D requires >= 1920x1080. Replace, or record client acceptance."
   },
   {
     "slide": 3,
@@ -39,7 +39,7 @@
       "webp": 92756,
       "avif": 57959
     },
-    "warning": null
+    "warning": "Source is 1400x933; Pack D requires >= 1920x1080. Replace, or record client acceptance."
   },
   {
     "slide": 4,
@@ -53,6 +53,6 @@
       "webp": 82774,
       "avif": 56763
     },
-    "warning": null
+    "warning": "Source is 1400x933; Pack D requires >= 1920x1080. Replace, or record client acceptance."
   }
 ]

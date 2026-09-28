@@ -16,7 +16,8 @@ import sharp from 'sharp';
 import { LAUNCH_SLIDES } from './hero-launch-set.mjs';
 
 const MAX_WIDTH = 1920;
-const MIN_HERO_WIDTH = 1280;
+// Pack D / client_approval_packet.md minimum for every hero photograph.
+const MIN_HERO = { width: 1920, height: 1080 };
 const outDir = path.resolve('Assets/hero-launch');
 await fs.mkdir(outDir, { recursive: true });
 
@@ -41,8 +42,8 @@ for (const [index, slide] of LAUNCH_SLIDES.entries()) {
     width: out.width,
     height: out.height,
     bytes: { source: sourceBytes, jpeg: jpeg.length, webp: webp.length, avif: avif.length },
-    warning: width < MIN_HERO_WIDTH
-      ? `Source is ${width}x${height}; a full-bleed hero needs >= ${MIN_HERO_WIDTH} px wide. Replace before launch.`
+    warning: width < MIN_HERO.width || height < MIN_HERO.height
+      ? `Source is ${width}x${height}; Pack D requires >= ${MIN_HERO.width}x${MIN_HERO.height}. Replace, or record client acceptance.`
       : null,
   });
 }
@@ -50,5 +51,5 @@ for (const [index, slide] of LAUNCH_SLIDES.entries()) {
 await fs.writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 console.table(manifest.map(({ slide, width, height, bytes, warning }) => ({
   slide, size: `${width}x${height}`, sourceKB: Math.round(bytes.source / 1024), jpegKB: Math.round(bytes.jpeg / 1024),
-  webpKB: Math.round(bytes.webp / 1024), avifKB: Math.round(bytes.avif / 1024), warning: warning ? 'LOW-RES' : '',
+  webpKB: Math.round(bytes.webp / 1024), avifKB: Math.round(bytes.avif / 1024), warning: warning ? 'BELOW 1920x1080' : '',
 })));

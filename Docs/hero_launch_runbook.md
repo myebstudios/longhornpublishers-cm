@@ -8,8 +8,27 @@
 
 | # | Gate | Owner | State 2026-09-28 |
 |---|---|---|---|
-| G1 | Client signs Pack D (`client_approval_packet.md` §E), including a ruling on slide 2's "National Curriculum **Approved**" / "agréés" claim (QA P1, `qa_log_2026-09-28.md`) | Yv → client | Open. Follow-up drafted in `client_followup_2026-09-28.md`, not sent. |
-| G2 | Slide 2 image: `lh-catalogue-shelves.jpg` is **410×410**. Full-bleed at 1920 px that is a 4.7× upscale. Needs a ≥1600 px-wide replacement (Pack B), or the client accepts it in writing | Yv → client | Open |
+| G1 | Client signs Pack D (`client_approval_packet.md` §E) with an explicit ruling on each item in **G1 items** below. Signing "as written" must not be read as approving these silently. | Yv → client | Open. Follow-up drafted in `client_followup_2026-09-28.md`, not sent; it covers G1a only. |
+| G2 | Every hero image meets the Pack D minimum of **1920×1080** (`hero_slide_copy.md:50,85,120,155`; `client_approval_packet.md:88`), or the client accepts the named shortfall in writing. **None of the four passes today** (see **G2 images**). | Yv → client | Open |
+
+### G1 items: copy decisions the client must rule on
+
+| Id | Slide | Issue | Options to put to the client |
+|---|---|---|---|
+| G1a | 2 | EN eyebrow "National Curriculum **Approved**" and FR headline "Matériels pédagogiques **agréés**" claim a regulatory approval that nothing on file evidences (QA P1). The FR eyebrow says *conforme* (aligned), so EN and FR also disagree. | Provide accreditation evidence, or approve "Curriculum-Aligned Learning Materials" / "Matériels pédagogiques conformes aux programmes nationaux". Both alternatives were verified to fit at every viewport. |
+| G1b | 1 | EN secondary CTA "Partner With Us" vs FR "Nous contacter" ("Contact us"). The two locales carry different messages. The live approved slide uses "Devenir partenaire" for FR. | Keep "Partner With Us" / "Devenir partenaire" (matches live), or "Contact Us" / "Nous contacter". |
+| G1c | 1 | CTA priority is swapped against the live approved hero `5ad099ec`. Live: **primary** "Partner With Us" / "Devenir partenaire" → `/contact`, secondary "Explore our services" / "Découvrir nos services" → `/services`. Pack D: **primary** "Explore Our Services" → `/services`, secondary "Partner With Us" → `/contact`. This moves the main conversion from lead capture to browsing. | Keep the live priority (contact primary), or confirm Pack D's services-first order intentionally. |
+
+### G2 images: shortfall against 1920×1080
+
+| Slide | File | Actual | Shortfall |
+|---|---|---|---|
+| 1 | `lh-hero.jpg` | 1920×767 | Height (−313 px). This is the image live today. |
+| 2 | `lh-catalogue-shelves.jpg` | **410×410** | Both; a 4.7× upscale at 1920 wide. Cannot ship without a replacement. |
+| 3 | `lh-bilingual-editor-wide.jpg` | 1400×933 | Both |
+| 4 | `lh-print-inspection-wide.jpg` | 1400×933 | Both |
+
+Slides 1, 3 and 4 render acceptably in the local run (≤1.4× upscale, under a dark overlay), but they still fall short of the stated requirement. They need Pack B replacements or written acceptance. `node scripts/prepare-hero-launch-images.mjs` flags every source below 1920×1080 in `Assets/hero-launch/manifest.json`.
 | G3 | User approves the swap window after QA-HERO-7 Phase 1 passes | User via Yv | Open |
 
 If the client changes any wording, update `scripts/hero-launch-set.mjs` first, run `npm run test:hero-launch`, and use the updated values below. If the image changes, drop the new file in `public/img/`, point the slide's `image` at it, and rerun `node scripts/prepare-hero-launch-images.mjs`.
@@ -53,17 +72,17 @@ Upload files live in `Assets/hero-launch/`. The source of truth is `scripts/hero
 
 | Field | Slide 1 | Slide 2 | Slide 3 | Slide 4 |
 |---|---|---|---|---|
-| Image file | `slide-1-lh-hero.jpg` | `slide-2-lh-catalogue-shelves.jpg` ⚠ G2 | `slide-3-lh-bilingual-editor-wide.jpg` | `slide-4-lh-print-inspection-wide.jpg` |
-| Eyebrow EN | Cameroon & Central Africa | National Curriculum Approved ⚠ G1 | Yaoundé Editorial Hub | 60 Years of African Publishing Excellence |
+| Image file | `slide-1-lh-hero.jpg` ⚠ G2 | `slide-2-lh-catalogue-shelves.jpg` ⚠ G2 | `slide-3-lh-bilingual-editor-wide.jpg` ⚠ G2 | `slide-4-lh-print-inspection-wide.jpg` ⚠ G2 |
+| Eyebrow EN | Cameroon & Central Africa | National Curriculum Approved ⚠ G1a | Yaoundé Editorial Hub | 60 Years of African Publishing Excellence |
 | Eyebrow FR | Cameroun & Afrique Centrale | Conforme aux Programmes Nationaux | Centre Éditorial de Yaoundé | 60 Ans d'Excellence Éditoriale en Afrique |
 | Headline EN | Professional publishing services, | Curriculum-aligned learning materials, | Native bilingual expertise, | Rooted in Central Africa, |
-| Headline FR | Services d'édition professionnels, | Matériels pédagogiques agréés, ⚠ G1 | Expertise éditoriale bilingue, | Ancré en Afrique centrale, |
+| Headline FR | Services d'édition professionnels, | Matériels pédagogiques agréés, ⚠ G1a | Expertise éditoriale bilingue, | Ancré en Afrique centrale, |
 | Accent EN | start to finish. | built for success. | in English and French. | backed by six decades. |
 | Accent FR | du début à la fin. | conçus pour la réussite. | en français et en anglais. | fort de six décennies. |
-| Primary label EN / FR | Explore Our Services / Découvrir nos services | Browse Full Catalogue / Consulter le catalogue | Learn About Our Team / Découvrir notre équipe | Why Choose Longhorn / Pourquoi choisir Longhorn |
-| Primary destination | `/services` | `/catalogue` | `/about` | `/why-choose-us` |
-| Secondary label EN / FR | Partner With Us / Nous contacter | Why Choose Us / Pourquoi nous choisir | Get in Touch / Prendre contact | View Latest News / Toutes les actualités |
-| Secondary destination | `/contact` | `/why-choose-us` | `/contact` | `/news` |
+| Primary label EN / FR | Explore Our Services / Découvrir nos services ⚠ G1c | Browse Full Catalogue / Consulter le catalogue | Learn About Our Team / Découvrir notre équipe | Why Choose Longhorn / Pourquoi choisir Longhorn |
+| Primary destination | `/services` ⚠ G1c | `/catalogue` | `/about` | `/why-choose-us` |
+| Secondary label EN / FR | Partner With Us / Nous contacter ⚠ G1b, G1c | Why Choose Us / Pourquoi nous choisir | Get in Touch / Prendre contact | View Latest News / Toutes les actualités |
+| Secondary destination | `/contact` ⚠ G1c | `/why-choose-us` | `/contact` | `/news` |
 
 Subheadlines: copy them verbatim from `scripts/hero-launch-set.mjs` (`subheadline_en` / `subheadline_fr`). They are too long for this table, and retyping invites errors.
 
