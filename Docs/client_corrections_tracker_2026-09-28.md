@@ -11,7 +11,7 @@ Source: `CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx`, received after the
 | C05 | Catalogue: separate National Book List titles and other developed titles | Z / SoSo / Dell | Both groups appear with accurate membership and localized headings. No title is represented as officially listed without evidence. |
 | C06 | About: replace the second paragraph with the client’s proximity sentence | Marty / SoSo | EN/FR About content matches the approved meaning and has no Congolese education reference. |
 | C07 | About: change “Why partners choose us” to “Why choose us”; remove “Local Judgement” | Marty / Z / SoSo | Link and heading match the request in both locales. |
-| C08 | Core Identity: use “To enrich lives through knowledge” and the learning-materials statement | Marty / SoSo | Vision and mission fields reflect the agreed order in EN/FR. |
+| C08 | Core Identity: use “To enrich lives through knowledge” and the learning-materials statement | Marty / SoSo | Purpose and Mission carry the two client statements in EN/FR; Vision contains no Congo claim. |
 | C09 | Services at a glance: replace three-discipline framing with six services | Z / SoSo | Six offerings render and the old three-discipline claim is gone. |
 | C10 | Services introduction: “Every Stage. Every Solution” and supplied lede; move the former opening under Publishing | Marty / Z / SoSo | New introduction and Publishing section render in EN/FR. |
 | C11 | Six offerings: Publishing, Tertiary, Cambridge, Reference Books, LoHo coming soon, E-Marketing coming soon | Z / SoSo | All six show correct labels and availability; “coming soon” items do not promise unavailable actions. |
@@ -32,7 +32,7 @@ Source: `CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx`, received after the
 - Which exact titles are on Cameroon’s National Book List? Until verified, the safe rule is to withhold booklist classification and covers for unconfirmed titles.
 - Is LoHo an “E-learning product” or an “Elementary product”? The source uses both.
 - The site has Purpose, Vision, Mission and Values cards. We propose the short statement for Purpose and the learning-materials statement for Mission; the client may correct that placement.
-- The staged four-slide HERO-7 launch set still contains pre-correction copy. Keep that production swap gated and reconcile its slide 1 and geography claims before any later launch, so it cannot undo C01 or C03.
+- The staged four-slide HERO-7 launch set remains gated on its separate client sign-off and image requirements. Its source copy was reconciled in `e60eb35`; no production swap occurred.
 
 ## Book List evidence found
 
@@ -41,3 +41,11 @@ The [Ministry of Basic Education’s official 2025–2026 list](https://www.mine
 ## Live geography baseline
 
 Anonymous HTML reads on 2026-09-28 still contain `DRC`, `RDC`, `Congo`, or `Congolese` on every sampled route. Match counts in page source (including metadata): EN home 3, About 3, Services 1, Catalogue 7, Why 2, Contact 1; FR home 3, About 3, Services 1, Catalogue 7, Why 2, Contact 1. Dell should repeat this read after release and expand it to the remaining routes and catalogue details. Counts alone do not prove copy quality; inspect context for each match.
+
+## Release evidence (2026-09-28 to 2026-09-29)
+
+- `e60eb35` deployed as Netlify production deploy `6abab325def2b000082704d9`. Local migration `015_client_copy_corrections` applied cleanly; production pages show its CMS copy.
+- Local build, typecheck, catalogue classification, CMS parity, hero carousel and hero launch tests passed. Local geography sweep: 0 matches across 18 sitemap URLs. Live geography sweep: 0 matches across 20 sitemap URLs; EN and FR home, About, Services and Catalogue contain the required new copy.
+- All four existing published catalogue titles remain live under **Other developed titles**, text-only. The public catalogue API returns `classification: other_developed` and `cover_image_id: null`. The National Book List group remains empty until title, edition and rights evidence is supplied.
+- Anonymous GETs for each of the four former cover IDs return 404 both directly at `/api/media/uploads/…` and via `/.netlify/images?url=…&w=560`. The blobs remain in private editor storage. A new deploy invalidated the prior responses; the 2026-09-29 recheck occurred well beyond the former 15-minute cache window.
+- Independent Dell QA remains pending. LoHo qualifier and Book List evidence remain client-dependent; the safe public labels are “LoHo — Coming soon” and no unverified covers.
