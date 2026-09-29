@@ -50,7 +50,8 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
             <article class="card">
               <span class="card__icon"><Icon name={offering.icon} /></span>
               <h3>{offering[lang]}</h3>
-              <p>{lang === 'fr' ? 'Bientôt disponible' : 'Coming soon'}</p>
+              {'summary' in offering && <p>{offering.summary[lang]}</p>}
+              <p class="card__status">{lang === 'fr' ? 'Bientôt disponible' : 'Coming soon'}</p>
             </article>
           ) : (
             <a class="card" href={offering.id === 'publishing' ? '#publishing' : contactHref}>

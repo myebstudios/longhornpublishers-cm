@@ -209,7 +209,8 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
             <article class="card">
               <span class="card__icon"><Icon name={offering.icon} /></span>
               <h3>{offering[lang]}</h3>
-              <p>{lang === 'fr' ? 'Bientôt disponible' : 'Coming soon'}</p>
+              {'summary' in offering && <p>{offering.summary[lang]}</p>}
+              <p class="card__status">{lang === 'fr' ? 'Bientôt disponible' : 'Coming soon'}</p>
             </article>
           ) : (
             <a class="card" href={offering.id === 'publishing' ? `${path('services', lang)}#publishing` : path('contact', lang)}>

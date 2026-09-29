@@ -936,6 +936,8 @@ body.nav-open {
 .book-card__body h3 { font-size: var(--step-0); line-height: 1.25; }
 .book-card__body .btn { justify-content: space-between; width: 100%; }
 .book-card.is-hidden { display: none; }
+/* Coming-soon offerings: the status reads as a label, not the end of the summary. */
+.card__status { margin-top: .5rem; font-weight: 600; }
 /* CLIENT-3 C05/C15: grouped results; titles without an eligible cover are text-led. */
 .catalogue-group + .catalogue-group { margin-top: clamp(2.5rem, 5vw, 3.5rem); }
 .catalogue-group__head { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: .25rem 1rem; margin-bottom: 1.25rem; }
