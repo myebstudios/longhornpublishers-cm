@@ -45,3 +45,10 @@ The French values are in `007_cms_baseline_content`. `why_choose_us.local_presen
 - 012/013 need no rollback. Classification is additive, and 013 kept all four published titles public (text-only).
 - To reverse a single title, edit its classification in the admin. An admin save purges `catalogue` and `homepage`.
 - **CDN purge:** none needed now. On 2026-09-29 the three recorded former cover keys returned uncached 404s, both raw and via `/.netlify/images` (w=560/720). The deploy invalidated the earlier cached responses, and the stale window has long passed.
+
+## 4. Follow-up release 2026-09-29 (CLIENT-3D findings)
+
+- **Pushed:** `130547c..b25e888` (`b8a30a2` QA doc, `f6943ec` D1/D3–D6 + migration 017, `645d094` D7, `b25e888` section-heading spacing). The previous release pushed `70a0997`/`15a9b13` (+ migration 016) earlier.
+- **Deploys:** before `6abb7b47ea2b4d0008ce5683`, after `6abb7d8eb3aebe0008bd0206`. Both contain the cover gate, so either is a safe code-rollback target (§1).
+- **016/017 content:** 016 appended a full stop to the English Who We Are ¶2. 017 set Vision to "To be the publishing partner of choice for institutions that will not compromise on quality." / "Devenir le partenaire éditorial de référence pour les institutions qui refusent tout compromis sur la qualité.", replacing 015's text, which is recorded in the 015 migration file. Both are single-field edits that an admin can revert.
+- **Live verification (after deploy):** About/Services headings, Vision, FR CTA elision, Services meta, `areaServed: ["Cameroon"]`; 0 DRC/Congo/three-discipline hits on 16 routes + sitemap + API; 4 titles text-only with no cover; the three recorded cover keys 404 raw and via the CDN; `verify:production` PASS 10/10.
