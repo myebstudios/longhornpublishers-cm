@@ -145,3 +145,25 @@ Reviewed as requested. **None of the items below shipped**, because the live off
 ## 8. Verdict
 
 Local and live QA are complete. **Everything passes except C09 (D1, P2).** D2 is a P2 platform issue outside the code. D3–D6 are P3 copy/SEO items, and D7 is P4. Client-dependent items stay open: Book List evidence (B1), the LoHo qualifier (B2), and approval of the Vision and `areaServed` wording (D4). Recommend moving CLIENT-3D to **review** once D1 is fixed and re-verified live, or once Yv explicitly rules the About section out of scope.
+
+## 9. Recheck after SoSo's fixes `f6943ec`, `645d094`, `b25e888`, 2026-09-29 09:00Z
+
+Live was checked with anonymous GETs after the new deploy started serving ("One team" present at 09:00:02Z). Local: `316ab4a`, 9 suites / **82 tests, 0 failures** (catalogue-classification now 8), production build passes.
+
+| Item | Result | Evidence |
+| --- | --- | --- |
+| C09 / D1 | **PASS** | About H2 now "One team, one workflow" / "Une équipe, un seul flux de travail". No three-discipline wording on any live route. |
+| D3 | **PASS** | Heritage H2 "Continental backing" / "L'appui d'un groupe continental", with no dangling comma. The accent is omitted cleanly (`About.astro` renders `<em>` only when an accent exists). |
+| D4 | **PASS** | Vision reverts to the previously approved wording without geography ("…publishing partner of choice for institutions that will not compromise on quality." / "Devenir le partenaire éditorial de référence…"), in both the fallback and CMS (migration `017`). JSON-LD `areaServed` is `["Cameroon"]` on Home, About and 404. |
+| D5 | **PASS** | FR CTAs: "d'illustration", "d'impression"; "de révision / de traduction / de conception graphique / de correction d'épreuves" unchanged. EN CTAs unaffected. The elision regex treats every initial "h" as mute, which is fine for the current service names; revisit if an aspirated-h name is ever added. |
+| D6 | **PASS** | Services `description` and `og:description` now use the client's services lede, EN/FR. Minor note: the FR text is about 200 characters and will be truncated in search snippets (P4, no action required). |
+| D7 | **PASS (code + tests)** | `parseClassification(..., { requireExplicit: req.method === 'PUT' })`: a PUT without `classification` returns 400. A PUT marking a title verified without an explicit boolean `cover_rights_approved` returns 400. POST may still default to `unclassified` (hides, fails closed). New unit tests cover both. |
+| `b25e888` | PASS | Section heading accents: no heading on 8 checked routes has a missing space before `<em>`. |
+| C01 regression | PASS | Full live sweep again: 31 responses, **0** matches. |
+| R01 regression | PASS | Live EN/FR × 5 pages × 320/375: 20 cases, 0 overflow, 0 clipped (excluding the honeypot). |
+
+D2 (Netlify HUD badge) is out of CLIENT-3 scope; Yv has documented it as a platform setting.
+
+### Final verdict
+
+**CLIENT-3D passes locally and live for every client remark C01–C15**, plus the C03-G, C15-M and R01–R03 checks. No open client-scope defects. Items that stay open depend on the client, not on QA: National Book List evidence (the group stays hidden and covers stay off until it arrives), the LoHo qualifier (interim "LoHo"), and the separately gated HERO-7 swap. Recommend CLIENT-3D → **review**.
