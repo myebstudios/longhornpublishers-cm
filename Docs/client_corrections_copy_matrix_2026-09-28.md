@@ -13,7 +13,7 @@
 
 This document provides a clean, factual, and strictly verified English/French copy matrix derived directly from the client's instructions in `Docs/CORRECTIONS TO BE MADE ON THE COMPANY WEBSITE.docx`.
 
-All unsourced claims, embellished descriptions, speculative legal assertions, and unapproved marketing text have been completely eliminated. The matrix reflects exact client words and approved live French text in production (`src/i18n/en.ts` and `src/i18n/fr.ts`).
+All unsourced claims, embellished descriptions, speculative legal assertions, and unapproved marketing text have been completely eliminated. The matrix reflects exact client words and published French text in production (`src/i18n/en.ts` and `src/i18n/fr.ts`).
 
 ---
 
@@ -21,13 +21,13 @@ All unsourced claims, embellished descriptions, speculative legal assertions, an
 
 Client instruction: *"Remove DRC or any statement related to Congo wherever you spot it."*
 
-| Location | Layer | Current / Former Text | Approved English Replacement | Approved Native French Replacement |
+| Location | Layer | Current / Former Text | English Replacement (Client Mandate) | Published French Replacement |
 |---|---|---|---|---|
 | `src/layouts/Layout.astro` | JSON-LD Structured Data (`areaServed`) | `areaServed: ['Cameroon', 'Democratic Republic of the Congo']` | `areaServed: ['Cameroon']` | `areaServed: ['Cameroon']` |
 | `src/lib/cms-content.ts` | Global SEO Meta Description | `Professional bilingual publishing services in Cameroon and the DRC.` | `Professional bilingual publishing services in Cameroon and Central Africa.` | `Services d'édition bilingues professionnels au Cameroun et en Afrique centrale.` |
 | `src/i18n/en.ts` & `src/i18n/fr.ts` | Catalogue Meta Description | `...aligned to the national curricula of Cameroon and the DRC...` | `...aligned to national curricula...` | `...conformes aux programmes nationaux...` |
 | `src/i18n/en.ts` & `src/i18n/fr.ts` | Homepage Hero Lede | `...across Cameroon and the DRC.` | `...across Cameroon and Central Africa.` | `...au Cameroun et en Afrique centrale.` |
-| `src/i18n/en.ts` & `src/i18n/fr.ts` | Homepage Hero Stat Badge | `{ num: '2', label: 'Markets served — Cameroon & DRC' }` | Stat omitted (no replacement claim) | Statut omis (pas d'allégation de remplacement) |
+| `src/i18n/en.ts` & `src/i18n/fr.ts` | Homepage Hero Stat Badge | `{ num: '2', label: 'Markets served — Cameroon & DRC' }` | **Live Carousel:** Stat badges omitted.<br>**Static Fallback:** `{ num: 'CM', label: 'Based in Cameroon' }` | **Carrousel en direct :** Badges omis.<br>**Repli statique :** `{ num: 'CM', label: 'Basés au Cameroun' }` |
 | `src/i18n/en.ts` & `src/i18n/fr.ts` | Catalogue Preview Lede | `Titles aligned to the national curricula of Cameroon and the DRC...` | `Titles aligned to national curricula, published in both languages.` | `Des titres conformes aux programmes nationaux, publiés dans les deux langues.` |
 | `src/i18n/en.ts` & `src/i18n/fr.ts` | About Us (Heritage Paragraph 2) | `...in the Cameroonian and Congolese education context...` | `...serving the Cameroonian and Central African publishing ecosystem as a whole...` | `...au service de l'écosystème éditorial camerounais et d'Afrique centrale dans son ensemble...` |
 | `src/i18n/en.ts` & `src/i18n/fr.ts` | About Us (Core Vision) | `...publishing partner of choice in Cameroon and the DRC...` | `To be the publishing partner of choice for institutions that will not compromise on quality.` | `Devenir le partenaire éditorial de référence pour les institutions qui refusent tout compromis sur la qualité.` |
@@ -48,7 +48,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
   `‘Enriching lives through knowledge’`  
 - **Structure:** Per CLIENT-3B UX specifications, `Expanding Minds` is the standalone hero heading, and `Enriching lives through knowledge` is the separate supporting line. They are rendered as distinct elements, not joined into a single accent-tail headline.
 
-| Element | Exact Client English Copy | Approved Native French Copy | Target |
+| Element | Exact Client English Copy | Published French Copy | Target |
 |---|---|---|---|
 | **Hero Heading** | `Expanding Minds` | `Éveiller les esprits` | `home.hero.heading` / Slide 1 title |
 | **Supporting Line** | `Enriching lives through knowledge` | `Enrichir des vies par la connaissance` | `home.hero.subheadline` / Slide 1 subtitle |
@@ -57,7 +57,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
 - **Client Instruction:** Replace `‘Local publishing team’` with `‘Educational content creators and service providers’`.  
 - **Application Note:** Uses the client's exact label without any appended location text.
 
-| Element | Exact Client English Copy | Approved Native French Copy | Target |
+| Element | Exact Client English Copy | Published French Copy | Target |
 |---|---|---|---|
 | **Trust Strip Item 2** | `Educational content creators and service providers` | `Créateurs de contenus éducatifs et prestataires de services` | `home.trust[1]` & `trust_stats` |
 
@@ -71,7 +71,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
 | Language | Copy Text |
 |---|---|
 | **English (Exact Client)** | *From our office in Tsinga Yaoundé, we operate as content creators and platform business providers across the Central African Market. Our work spans the development of learning materials, educational content and professional publishing solutions in English and French, reflecting the country's bilingual education environment.* |
-| **French (Approved Native)** | *Depuis notre bureau de Tsinga à Yaoundé, nous intervenons en tant que créateurs de contenus et fournisseurs de solutions de plateforme sur le marché d'Afrique centrale. Nos activités couvrent le développement de matériels d'apprentissage, de contenus éducatifs et de solutions d'édition professionnelle en anglais et en français, reflétant l'environnement éducatif bilingue du pays.* |
+| **French (Published)** | *Depuis notre bureau de Tsinga à Yaoundé, nous intervenons en tant que créateurs de contenus et fournisseurs de solutions de plateforme sur le marché d'Afrique centrale. Nos activités couvrent le développement de matériels d'apprentissage, de contenus éducatifs et de solutions d'édition professionnelle en anglais et en français, reflétant l'environnement éducatif bilingue du pays.* |
 
 ---
 
@@ -84,7 +84,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
 | Language | Copy Text |
 |---|---|
 | **English (Exact Client)** | *What we add is proximity: a team working daily to serve the Cameroonian and Central African publishing ecosystem as a whole in both official languages.* |
-| **French (Approved Native)** | *Ce que nous apportons en plus, c'est la proximité : une équipe travaillant quotidiennement au service de l'écosystème éditorial camerounais et d'Afrique centrale dans son ensemble, dans les deux langues officielles.* |
+| **French (Published)** | *Ce que nous apportons en plus, c'est la proximité : une équipe travaillant quotidiennement au service de l'écosystème éditorial camerounais et d'Afrique centrale dans son ensemble, dans les deux langues officielles.* |
 
 #### B. Heritage Heading & Section Link
 - **Client Instruction:** Change `‘Why partner choose us’` to `“Why choose us’` and take off `‘Local Judgement’`.
@@ -101,7 +101,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
 #### C. Team Heading (Removal of "Three Disciplines")
 - **Client Instruction:** The client asked to eliminate the "three disciplines" framing.
 - **Advice on Team Heading:**  
-  - *Option 1 (Current Live Approved):* `One team,` (Lead) + `one workflow` (Accent) / `Une équipe,` (Lead) + `un seul flux de travail` (Accent). This is plain, professional, and removes the "three disciplines" constraint.  
+  - *Option 1 (Current Live / Published):* `One team,` (Lead) + `one workflow` (Accent) / `Une équipe,` (Lead) + `un seul flux de travail` (Accent). This is plain, professional, and removes the "three disciplines" constraint.  
   - *Option 2:* `Our team,` (Lead) + `one workflow` (Accent) / `Notre équipe,` (Lead) + `un seul flux de travail` (Accent).
 
 #### D. Core Identity (Purpose & Mission Kept Strictly Separate)
@@ -110,7 +110,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
   `To enrich lives through knowledge.`  
   `To develop and deliver high-quality learning and teaching materials that support learners, educators and institutions.`
 
-| Core Pillar | Approved English Copy | Approved Native French Copy |
+| Core Pillar | Exact Client English Copy | Published French Copy |
 |---|---|---|
 | **Purpose** | `To enrich lives through knowledge.` | `Enrichir des vies par la connaissance.` |
 | **Mission** | `To develop and deliver high-quality learning and teaching materials that support learners, educators and institutions.` | `Développer et fournir des matériels d'apprentissage et d'enseignement de haute qualité qui soutiennent les apprenants, les éducateurs et les institutions.` |
@@ -128,7 +128,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
   `From turning manuscripts into refined publications, to providing up-to-date Cambridge, tertiary, and reference materials — we serve every stage of your journey.`  
   *(The former one should be put under Publishing service)*
 
-| Element | English Copy | Approved Native French Copy |
+| Element | English Copy | Published French Copy |
 |---|---|---|
 | **Hero Title Lead** | `Every Stage.` | `À chaque étape.` |
 | **Hero Title Accent** | `Every Solution` | `Chaque solution` |
@@ -138,7 +138,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
 #### B. Overview Header
 - **Client Instruction:** Take off 3 disciplines and only allow `‘’six services’’`.
 
-| Element | English Copy | Approved Native French Copy |
+| Element | English Copy | Published French Copy |
 |---|---|---|
 | **Overview Eyebrow** | `At a glance` | `En un coup d'œil` |
 | **Overview Title** | `Six services` | `Six services` |
@@ -156,7 +156,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
   6. *E-Marketing (coming soon)*  
 - **Governance Rule:** In alignment with the live site and Z plan, offering cards display **labels and status badges only**. No invented marketing summaries, accreditation claims, or audience profiles are added.
 
-| # | Service Slug | English Title (Exact Client) | French Title (Approved Live) | Badge / Status | Destination |
+| # | Service Slug | English Title (Exact Client) | French Title (Published Live) | Badge / Status | Destination |
 |---|---|---|---|---|---|
 | 1 | `publishing` | **Publishing** | **Édition** | Active | `#publishing` / detail section |
 | 2 | `tertiary` | **Tertiary** | **Enseignement supérieur** | Active | `/contact` |
@@ -184,7 +184,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
   `Our role`  
   `Preserve the author's voice. Strengthen the publication.`
 
-| Section | English Copy (Exact Client) | Approved Native French Copy |
+| Section | English Copy (Exact Client) | Published French Copy |
 |---|---|---|
 | **Process Intro** | *Our editorial process spans different levels of editing, improving a manuscript's quality and usability without losing the author's intended message.* | *Notre processus éditorial couvre différents niveaux de révision, améliorant la qualité et la lisibilité d'un manuscrit sans perdre le message visé par l'auteur.* |
 | **Assessment Criteria** | • Language accuracy<br>• Clarity<br>• Flow<br>• Organisation<br>• Structure<br>• Consistency<br>• Overall readability | • Précision linguistique<br>• Clarté<br>• Fluidité<br>• Organisation<br>• Structure<br>• Cohérence<br>• Lisibilité globale |
@@ -199,7 +199,7 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
   `Our focus is not merely word-for-word conversion.`  
   `It is about producing content that is clear, appropriate and fit for its intended audience.`
 
-| Section | English Copy (Exact Client) | Approved Native French Copy |
+| Section | English Copy (Exact Client) | Published French Copy |
 |---|---|---|
 | **Language Pairs** | **English ↔ French · French ↔ English** | **Anglais ↔ Français · Français ↔ Anglais** |
 | **Service Description** | *Our translation service supports organisations and content owners that need materials adapted between English and French, particularly where content must function effectively within bilingual educational and professional environments.* | *Notre service de traduction accompagne les organisations et les détenteurs de contenus qui ont besoin d'adapter des documents entre l'anglais et le français, particulièrement lorsque les contenus doivent fonctionner efficacement dans des environnements éducatifs et professionnels bilingues.* |
@@ -222,9 +222,9 @@ Client instruction: *"Remove DRC or any statement related to Congo wherever you 
 - **Client Instruction 1:** Segment catalogue under `‘Titles on the national booklist’` and `‘Other developed titles’`.
 - **Client Instruction 2:** `Only allow covers of books on the National Book List.`
 
-| Segment Key | English Filter Label (Exact Client) | Approved Native French Label | Cover Display Rule |
+| Segment Key | English Filter Label (Exact Client) | Published French Label | Cover Display Rule |
 |---|---|---|---|
-| `booklist` | **Titles on the national booklist** | **Titres au programme national** | Book covers permitted only when booklist status and rights are verified. |
+| `booklist` | **Titles on the national booklist** | **Titres inscrits sur la liste nationale des ouvrages** | Book covers permitted only when booklist status and rights are verified. |
 | `other` | **Other developed titles** | **Autres titres développés** | No book covers displayed per client directive. |
 
 ---
