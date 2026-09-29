@@ -39,7 +39,7 @@ export const fr: Content = {
     services: {
       title: 'Services d’édition — Longhorn Publishers Cameroun',
       description:
-        'Révision, correction d’épreuves, traduction, conception, illustration et impression, ainsi que notre processus en cinq étapes.',
+        'De la transformation des manuscrits en publications soignées à la fourniture de matériels Cambridge, universitaires et de référence actualisés — nous vous accompagnons à chaque étape de votre parcours.',
     },
     catalogue: {
       title: 'Catalogue — Longhorn Publishers Cameroun',
@@ -251,7 +251,7 @@ export const fr: Content = {
     },
     heritage: {
       eyebrow: 'Héritage et présence locale',
-      titleLead: 'L’appui d’un groupe continental,',
+      titleLead: 'L’appui d’un groupe continental',
       titleAccent: '',
       body: [
         'Longhorn Publishers Cameroun Ltd est une filiale de Longhorn Publishers PLC, un groupe fort de près de six décennies d’expérience dans l’édition d’ouvrages éducatifs et généralistes à travers l’Afrique.',
@@ -267,14 +267,14 @@ export const fr: Content = {
       titleAccent: 'venus accomplir',
       items: [
         { icon: 'heart', title: 'Raison d’être', body: 'Enrichir des vies par la connaissance.' },
-        { icon: 'eye', title: 'Vision', body: 'Être un partenaire éditorial de confiance pour les institutions au Cameroun et en Afrique centrale.' },
+        { icon: 'eye', title: 'Vision', body: 'Devenir le partenaire éditorial de référence pour les institutions qui refusent tout compromis sur la qualité.' },
         { icon: 'target', title: 'Mission', body: 'Développer et fournir des matériels d’apprentissage et d’enseignement de haute qualité qui soutiennent les apprenants, les éducateurs et les institutions.' },
         { icon: 'shield', title: 'Valeurs', body: 'Qualité, pertinence culturelle, souplesse et responsabilité — à chaque étape, et pas seulement à la validation finale.' },
       ],
     },
     team: {
       eyebrow: 'Notre équipe et nos capacités',
-      titleLead: 'Trois métiers,',
+      titleLead: 'Une équipe,',
       titleAccent: 'un seul flux de travail',
       lede: 'Assez souples pour nous adapter à des exigences qui évoluent en cours de projet — ce qui, sur de vrais calendriers d’édition, est la règle plutôt que l’exception.',
       items: [
@@ -345,7 +345,7 @@ export const fr: Content = {
       lede: 'Qu’il s’agisse d’un manuscrit brut ou d’un fichier prêt à imprimer nécessitant un second avis, commencez par une consultation.',
       button: 'Réserver une consultation',
     },
-    discussPrefix: 'Discuter d’un projet de',
+    discussPrefix: 'Discuter d’un projet',
   },
 
   catalogue: {

@@ -34,7 +34,7 @@ export const en: Content = {
     services: {
       title: 'Publishing Services — Longhorn Publishers Cameroon',
       description:
-        'Editing, proofreading, translation, designing, illustration and printing, plus our five-step publishing process.',
+        'From turning manuscripts into refined publications, to providing up-to-date Cambridge, tertiary, and reference materials — we serve every stage of your journey.',
     },
     catalogue: {
       title: 'Catalogue — Longhorn Publishers Cameroon',
@@ -246,7 +246,7 @@ export const en: Content = {
     },
     heritage: {
       eyebrow: 'Heritage & local presence',
-      titleLead: 'Continental backing,',
+      titleLead: 'Continental backing',
       titleAccent: '',
       body: [
         'Longhorn Publishers Cameroon Ltd is a subsidiary of Longhorn Publishers PLC, a group with roughly six decades of experience publishing educational and general-interest titles across Africa.',
@@ -262,14 +262,14 @@ export const en: Content = {
       titleAccent: 'here to do',
       items: [
         { icon: 'heart', title: 'Purpose', body: 'To enrich lives through knowledge.' },
-        { icon: 'eye', title: 'Vision', body: 'To be a trusted publishing partner for institutions across Cameroon and Central Africa.' },
+        { icon: 'eye', title: 'Vision', body: 'To be the publishing partner of choice for institutions that will not compromise on quality.' },
         { icon: 'target', title: 'Mission', body: 'To develop and deliver high-quality learning and teaching materials that support learners, educators and institutions.' },
         { icon: 'shield', title: 'Values', body: 'Quality, cultural relevance, flexibility and accountability — held at every stage, not just at sign-off.' },
       ],
     },
     team: {
       eyebrow: 'Our team & capacity',
-      titleLead: 'Three disciplines,',
+      titleLead: 'One team,',
       titleAccent: 'one workflow',
       lede: 'Flexible enough to adapt to changing requirements mid-project — which, on real publishing schedules, is the norm rather than the exception.',
       items: [

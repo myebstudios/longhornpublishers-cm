@@ -52,7 +52,7 @@ const CAPACITY_SVGS = ['capacity-editorial.svg', 'capacity-design.svg', 'capacit
     <div class="wrap">
       <Split img="lh-client-consultation.jpg" alt={t.about.heritage.imgAlt}>
         <span class="eyebrow">{t.about.heritage.eyebrow}</span>
-        <h2>{t.about.heritage.titleLead} <em class="accent">{t.about.heritage.titleAccent}</em></h2>
+        <h2>{t.about.heritage.titleLead}{t.about.heritage.titleAccent && <> <em class="accent">{t.about.heritage.titleAccent}</em></>}</h2>
         {heritageBody.map((paragraph) => <p>{paragraph}</p>)}
         <a class="link-arrow" href={path('why', lang)}>{t.about.heritage.link}</a>
       </Split>

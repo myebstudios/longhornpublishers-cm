@@ -14,6 +14,13 @@ import { OFFERINGS } from '../../data/offerings';
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+// "Discuss editing" / "Discuter d’un projet de révision", eliding "de" before a
+// vowel or mute h ("d’impression", "d’illustration").
+const discussLabel = (name: string) => {
+  const noun = name.toLowerCase();
+  if (lang !== 'fr') return `${t.services.discussPrefix} ${noun}`;
+  return `${t.services.discussPrefix} ${/^[aeiouyhàâéèêëîïôûù]/.test(noun) ? 'd’' : 'de '}${noun}`;
+};
 const contactHref = path('contact', lang);
 const { services, process } = await getPublishingContent();
 const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.jpg', creative: 'lh-creative-wall.jpg', production: 'lh-print-inspection-wide.jpg' };
@@ -91,7 +98,7 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
               {service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
             </>
           ) : service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
-          <a class="link-arrow" href={contactHref}>{t.services.discussPrefix} {service[lang].name.toLowerCase()}</a>
+          <a class="link-arrow" href={contactHref}>{discussLabel(service[lang].name)}</a>
         </Split>
       ))}
     </div>
