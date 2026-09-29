@@ -83,3 +83,65 @@ Live baseline: all four covers render on the grid, the detail pages and the Home
 - 2026-09-28: Early code read of SoSo's `660bce1` (catalogue split and cover gate). This is a review, not a test pass. `media.mts` now serves a catalogue cover only when the title is `national_book_list_verified` with `cover_rights_approved`, and `/api/catalogue` masks `cover_image_id` the same way. Two points for the live pass:
   1. **Release sequencing:** existing titles default to `unclassified` and leave the public catalogue. Unless production classification writes land in the same release, `/en|fr/catalogue/` goes empty and the 8 indexed detail URLs return 404. The sitemap must drop them at the same moment. This differs from the CLIENT-3B plan's "preserve existing published records" (`6504d63`); Yv's ruling is noted in the commit message.
   2. **Cache window:** live media responses are `public, max-age=300, stale-while-revalidate=600` and are stored by Netlify Edge/Durable. So C15-M is re-tested immediately after the purge **and** again after 15 min, including the `/.netlify/images` variants (w=560/720), which are cached separately.
+
+## 6. Results: independent local and live pass, 2026-09-29
+
+**Builds under test.** Local: `7783ac5` (code identical to `e60eb35`), run from an isolated worktree with its own Postgres on port 54341. All migrations `001`–`015` were applied, plus one catalogue fixture per cover-gate state; the worktree and DB were removed afterwards. The shared DB on 54329 and the other bot's dev server on 4321 were not touched. Live: production as served 08:30–08:50Z, which already includes the copy fixes up to `15a9b13` (Home `<title>` "Expanding Minds —", FR language pair, Who We Are full stop). All live requests were anonymous GETs.
+
+**Suites.** 9 suites, 80 tests, 0 failures (product-code, catalogue-classification, cms, hero, hero-admin, hero-launch, cms-parity, public-cache, demo-seed). Production build passes.
+
+| ID | Local | Live | Evidence / note |
+| --- | --- | --- | --- |
+| C01 | PASS | PASS | Live sweep of 20 sitemap URLs plus contact, privacy, terms, `/`, EN/FR 404, `robots.txt`, `/api/catalogue` (31 responses): **0** DRC/RDC/Congo/Congolese/Kinshasa matches in body, head or JSON-LD. JSON-LD `areaServed` is now `["Cameroon","Central Africa"]` (see D4). |
+| C02 | PASS | PASS | Trust label is exactly "Educational content creators and service providers" / "Créateurs de contenus éducatifs et prestataires de services", with no location suffix. The old label is absent. |
+| C03 | PASS | PASS | H1 "Expanding Minds" / "Éveiller les esprits". The subline is a separate `<p>`, not an accent span. Live shows 1 slide; the demo "Heading test" slides no longer render. First-load CLS on live Home at EN/FR 375/768/1024: max **0.028**. |
+| C03-G | PASS (source) | n/a | `scripts/hero-launch-set.mjs`: slide 1 = C03 copy; slide 2 now "Curriculum-aligned…" (no "Approved"/"agréés"). The staged rows in DB 54329 were not re-scanned (DB stopped). HERO-7 swap remains gated on its own sign-off. |
+| C04 | PASS | PASS | Tsinga paragraph present EN/FR. Paragraph 1 kept. |
+| C05 | PASS | PASS | Local fixtures: "Titles on the national booklist" (2 verified) and "Other developed titles" (1), localized FR headings; the unclassified title is hidden and its detail page returns 404. Live: Book List group hidden (0 verified), 4 titles under Other developed EN/FR. |
+| C06 | PASS | PASS | Proximity sentence present EN/FR; no "Congolese"/"congolais"; paragraphs 1 and 3 kept; no empty `<p>` from the `split_part` migration. |
+| C07 | PASS (with D3) | PASS (with D3) | Link reads "Why choose us" / "Pourquoi nous choisir". "Local Judgement" is gone, but the heading now ends in a bare comma (D3). |
+| C08 | PASS (with D4) | PASS (with D4) | Purpose and Mission match the client statements EN/FR. Vision is new, unapproved wording (D4). |
+| C09 | **FAIL** | **FAIL** | The Services overview is fixed ("Six services"). But About still has H2 "**Three disciplines, one workflow**" / "**Trois métiers, un seul flux de travail**" (D1). |
+| C10 | PASS | PASS | Services H1 "Every Stage. Every Solution" + client lede EN/FR. "From manuscript to masterpiece" moved under Publishing. |
+| C11 | PASS | PASS | Six cards in client order on Home and Services, EN/FR. LoHo and E-Marketing are `<article>` elements with a text badge "Coming soon" / "Bientôt disponible", not focusable, with no CTA. The other four route 200. Card columns at 320/375/768/1440 = 1/1/2/3. Label is plain "LoHo" (interim ruling). None of the copy-matrix card summaries shipped (see §7). |
+| C12 | PASS | PASS | 7-item `<ul>` EN/FR plus the role line. |
+| C13 | PASS | PASS | "English ↔ French · French ↔ English" / "Anglais ↔ Français · Français ↔ Anglais"; both paragraphs present. |
+| C14 | PASS | PASS | "Because production sits…" / "La production étant intégrée…" absent. |
+| C15 | PASS | PASS | Local fixtures: a cover renders only for verified + rights approved (grid, detail, Home). Verified without rights, other_developed and unclassified titles are text-only or hidden. `/api/catalogue` SQL (both branches) masks `cover_image_id` identically. `og:image` is the generic share card on every detail page. Live: 0 references to the 4 former cover IDs in any HTML or `/api/catalogue`. |
+| C15-M | n/a | PASS | 08:35Z and 08:48Z, more than 12 h after the deploy (so well past the 15-min window): each former ID returns **404** direct, via `/.netlify/images` at w=560/720/1120, `fm=webp`, and with a cache-busting query (24/24). |
+| R01 | PASS | PASS | Layout matrix: EN/FR × Home, Services, About, Catalogue, Why × 320/375/768/1440 = 40 cases local + 40 live. **0** horizontal overflow; the only "clipped" element is the visually hidden form honeypot label (intentional). 404 now returns `no-store` (`533e593` is live). |
+| R02 | PASS (code review) | gate only | DB `CHECK` rejects Book List classification without evidence (tested). `parseClassification` validates the enum, requires evidence/reviewer/date, rejects future dates, and clears evidence and rights for non-verified titles. The admin form sends and prefills all five fields. `requireAdmin` runs first. Live `/api/catalogue-admin` returns 401 and `/admin/catalogue/` redirects to login. See D7. |
+| R03 | n/a | PASS | Cached HTML matches cache-busted HTML on 10 changed routes (only Netlify's HUD script differs; D2). Durable TTL ≈300 s, `max-age=0, must-revalidate`. |
+
+### Defects
+
+| # | Sev | Defect | Route | Owner |
+| --- | --- | --- | --- | --- |
+| D1 | **P2** | About H2 "Three disciplines, one workflow" / "Trois métiers, un seul flux de travail" keeps the three-discipline framing the client asked to remove (C09 criterion: no three-discipline string anywhere). | `/en/about/`, `/fr/a-propos/` (`en.ts`/`fr.ts` about team section) | SoSo / Marty |
+| D2 | **P2** | Netlify's platform HUD ("Powered by Netlify" badge, `/.netlify/scripts/hud?variant=public`) is injected into the cached HTML of most live pages (Services, About, Catalogue, Contact; not Home at test time). At 320 px it floats over content, e.g. the FR Services "Aller au processus" link. Not in the repo; it's a Netlify site/team setting. Out of CLIENT-3 scope, but visible to the client. | all | Yv / owner (Netlify settings) |
+| D3 | P3 | After removing "Local Judgement", the About heritage H2 renders as a bare "Continental backing," / "L'appui d'un groupe continental," with nothing after the comma. | `/en/about/`, `/fr/a-propos/` | Marty / SoSo |
+| D4 | P3 | Vision rewritten to wording that isn't in the DOCX ("To be a trusted publishing partner for institutions across Cameroon and Central Africa"), and JSON-LD `areaServed` adds "Central Africa". Both are new geographic claims needing Marty/client approval (B7). | About, all JSON-LD | Marty / Yv |
+| D5 | P3 | FR service CTAs read "Discuter d'un projet **de impression**" and "**de illustration**" (should be "d'impression", "d'illustration"). This predates the release (`discussPrefix` unchanged). | `/fr/services-edition/` | SoSo |
+| D6 | P3 | Services meta description still says "Editing, proofreading… plus our five-step publishing process", which doesn't reflect the six offerings or the new H1. | `/en/services/`, `/fr/services-edition/` | Marty / SoSo |
+| D7 | P4 | `parseClassification` treats a missing `classification` as `unclassified` and clears the evidence, so an API PUT that omits the field silently removes a verified title from public view. The admin form always sends it, so there's no user-facing path today; requiring the field on PUT would fail closed without data loss. | `netlify/functions/_shared/catalogue-classification.ts:33` | SoSo |
+
+Observation (not a defect): live Home LCP unthrottled from this machine was 2.8–5.2 s (IMG). It's network-variable and not a CLIENT-3 criterion.
+
+## 7. Preflight: `Docs/client_corrections_copy_matrix_2026-09-28.md` (Marty, CLIENT-3A) vs DOCX and Z plan
+
+Reviewed as requested. **None of the items below shipped**, because the live offering cards are labels only. But the document must not be reused as an approved source until they're corrected.
+
+- **Cambridge (§3.5):** "Official curriculum resources… authorized Cambridge materials" / "Ressources pédagogiques officielles… manuels agréés Cambridge". Unsupported endorsement claims; the Z plan forbids endorsement or accreditation wording.
+- **Reference books (§3.5):** "authoritative statutory volumes" (EN), "recueils de lois et ouvrages institutionnels" (FR drops the Bibles). These are unsupported legal-product claims and EN/FR don't match.
+- **LoHo (§3.5):** the title picks "E-Learning Product LoHo" while the client ruling is open, and the audience claims differ ("21st-century students" EN vs "élèves du primaire" FR). Interim label must stay "LoHo — Coming soon".
+- **Tertiary / E-Marketing summaries:** add unsupported scope ("research materials", "vocational"; FR "visibilité en ligne des auteurs").
+- **§4.1 legal assertions:** "established exclusively by ministerial decree" and "violates… consumer protection laws" are unsourced legal statements. The Gazette/Arrêté evidence rule also conflicts with the tracker's title/edition/ISBN rule.
+- **§2 stat replacement:** "60+ Years of continental publishing heritage" is a new claim, relabelled from parent-group history.
+- **Trust label / hero:** the current document text is correct (exact label, no location suffix; heading plus separate subline), and so is the live output. The Services hero row still labels "Every Stage. Every Solution" as a single "Lead & Accent" without a defined split. Live renders "À chaque étape. / *Chaque solution*" acceptably.
+- §2 line references are off by a few lines, and the inventory omits CMS rows and seed scripts (covered by migration `015` in practice).
+
+**Sign-off:** C02, C03 and C11 pass on the live output. That doesn't approve the copy-matrix document itself.
+
+## 8. Verdict
+
+Local and live QA are complete. **Everything passes except C09 (D1, P2).** D2 is a P2 platform issue outside the code. D3–D6 are P3 copy/SEO items, and D7 is P4. Client-dependent items stay open: Book List evidence (B1), the LoHo qualifier (B2), and approval of the Vision and `areaServed` wording (D4). Recommend moving CLIENT-3D to **review** once D1 is fixed and re-verified live, or once Yv explicitly rules the About section out of scope.
