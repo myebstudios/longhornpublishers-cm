@@ -22,7 +22,7 @@ export const en: Content = {
 
   meta: {
     home: {
-      title: 'Longhorn Publishers Cameroon — Professional Publishing Services',
+      title: 'Expanding Minds — Longhorn Publishers Cameroon',
       description:
         'End-to-end publishing services in Yaoundé, Cameroon — editing, proofreading, translation, design, illustration and printing, in English and French.',
     },

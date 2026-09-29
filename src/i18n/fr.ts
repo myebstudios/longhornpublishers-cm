@@ -27,7 +27,7 @@ export const fr: Content = {
 
   meta: {
     home: {
-      title: 'Longhorn Publishers Cameroun — Services d’édition professionnels',
+      title: 'Éveiller les esprits — Longhorn Publishers Cameroun',
       description:
         'Services d’édition de bout en bout à Yaoundé : révision, correction, traduction, conception, illustration et impression, en anglais et en français.',
     },
