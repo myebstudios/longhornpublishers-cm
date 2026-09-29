@@ -13,6 +13,8 @@ const Heading = as;
 ---
 <div class:list={['section-head', center && 'section-head--center', cls]}>
   {eyebrow && <span class="eyebrow">{eyebrow}</span>}
-  <Heading>{titleLead} <em class="accent">{titleAccent}</em></Heading>
+  {/* Explicit {' '}: the literal space before <em> was dropped when rendering
+      through the dynamic Heading tag ("Our services,at a glance"). */}
+  <Heading>{titleLead}{titleAccent && <>{' '}<em class="accent">{titleAccent}</em></>}</Heading>
   {lede && <p>{lede}</p>}
 </div>
