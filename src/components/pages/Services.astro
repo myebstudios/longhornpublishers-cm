@@ -49,6 +49,8 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
             <a class="card" href={offering.id === 'publishing' ? '#publishing' : contactHref}>
               <span class="card__icon"><Icon name={offering.icon} /></span>
               <h3>{offering[lang]}</h3>
+              {/* Visible link purpose: three of these cards lead to Contact, not to a service page. */}
+              <span class="link-arrow">{offering.id === 'publishing' ? t.common.learnMore : t.common.startConversation}</span>
             </a>
           )
         ))}
