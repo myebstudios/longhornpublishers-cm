@@ -85,7 +85,7 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
             </>
           ) : service.id === 'translation' ? (
             <>
-              <p>English ↔ French · French ↔ English</p>
+              <p>{lang === 'fr' ? 'Anglais ↔ Français · Français ↔ Anglais' : 'English ↔ French · French ↔ English'}</p>
               {service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
             </>
           ) : service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
