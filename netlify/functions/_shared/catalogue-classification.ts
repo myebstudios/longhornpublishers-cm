@@ -27,8 +27,24 @@ const clean = (value: unknown, max: number): string | null => {
   return trimmed ? trimmed.slice(0, max) : null;
 };
 
-/** Validate the admin payload. `today` is injectable for tests (YYYY-MM-DD). */
-export function parseClassification(body: Record<string, unknown>, today = new Date().toISOString().slice(0, 10)): ClassificationResult {
+/**
+ * Validate the admin payload. `today` is injectable for tests (YYYY-MM-DD).
+ *
+ * `requireExplicit` is for updates: an omitted field must not silently
+ * reclassify a title or drop its cover rights, so it is an error rather than
+ * a default. Creation may default to 'unclassified', which only hides.
+ */
+export function parseClassification(
+  body: Record<string, unknown>,
+  today = new Date().toISOString().slice(0, 10),
+  { requireExplicit = false }: { requireExplicit?: boolean } = {},
+): ClassificationResult {
+  if (requireExplicit && body.classification === undefined) {
+    return { ok: false, error: 'Choose a catalogue classification.' };
+  }
+  if (requireExplicit && body.classification === 'national_book_list_verified' && typeof body.cover_rights_approved !== 'boolean') {
+    return { ok: false, error: 'Confirm whether cover rights are approved.' };
+  }
   const classification = body.classification ?? 'unclassified';
   if (typeof classification !== 'string' || !(CLASSIFICATIONS as readonly string[]).includes(classification)) {
     return { ok: false, error: 'Choose a catalogue classification.' };

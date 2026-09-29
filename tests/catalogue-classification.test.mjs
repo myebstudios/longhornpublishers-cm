@@ -65,3 +65,18 @@ test('migration 013 keeps existing published titles public as text-only Other de
   // It must never grant booklist status or cover rights.
   assert.doesNotMatch(sql, /national_book_list_verified|cover_rights_approved/);
 });
+
+test('updates must state classification (and cover rights for booklist titles) explicitly', () => {
+  const put = (body) => parseClassification(body, TODAY, { requireExplicit: true });
+  assert.equal(put({}).ok, false);
+  assert.equal(put({ classification: 'national_book_list_verified', ...evidence }).ok, false);
+  assert.ok(put({ classification: 'national_book_list_verified', ...evidence, cover_rights_approved: false }).ok);
+  assert.ok(put({ classification: 'other_developed' }).ok);
+  // Creation keeps the fail-closed default.
+  assert.equal(parseClassification({}, TODAY).value.classification, 'unclassified');
+});
+
+test('the admin API requires explicit classification on update only', () => {
+  const source = fs.readFileSync(new URL('../netlify/functions/catalogue.mts', import.meta.url), 'utf8');
+  assert.match(source, /parseClassification\(body, undefined, \{ requireExplicit: req\.method === 'PUT' \}\)/);
+});

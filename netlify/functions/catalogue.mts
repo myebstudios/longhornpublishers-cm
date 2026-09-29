@@ -39,7 +39,7 @@ export default async function handler(req: Request) {
   const coverImageId = body.cover_image_id || null;
   const curriculumEn = body.curriculum_alignment_en || null;
   const curriculumFr = body.curriculum_alignment_fr || null;
-  const classified = parseClassification(body);
+  const classified = parseClassification(body, undefined, { requireExplicit: req.method === 'PUT' });
   if (!classified.ok) return json({ error: classified.error }, { status: 400 });
   const c = classified.value;
   if (req.method === 'PUT') {
