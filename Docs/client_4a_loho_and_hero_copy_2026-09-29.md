@@ -140,9 +140,9 @@ Per client instructions and executive review, LoHo wording is kept strictly fact
 | **Headline Accent** | `coming soon` | `bientôt disponible` |
 | **Subheadline (Lede)** | *An upcoming e-learning platform with interactive educational content — expanding learning horizons across Cameroon.* | *Une future plateforme d’apprentissage numérique avec des contenus pédagogiques interactifs — pour ouvrir de nouveaux horizons d'apprentissage au Cameroun.* |
 | **Primary CTA** | `Explore Services` (`/services`) | `Explorer nos services` (`/services`) |
-| **Secondary CTA** | `Why Choose Us` (`/about#why`) | `Pourquoi nous choisir` (`/about#why`) |
+| **Secondary CTA** | `Why Choose Us` (`/why-choose-us`) | `Pourquoi nous choisir` (`/why-choose-us`) |
 | **Direct Official Source** | Longhorn Publishers PLC Products & Services official wording (*"e-learning platform with interactive educational content"* / [longhornpublishers.com/products-services/](https://www.longhornpublishers.com/products-services/)) and client DOCX: `E-learning product LoHo (coming soon)`. |
-| **Safe Rules** | Prominently marked as **Coming soon** / **Bientôt disponible**. Strips all digital assessments, school deployments, early access, and pre-orders. Directs traffic strictly to public Services/About pages. |
+| **Safe Rules** | Prominently marked as **Coming soon** / **Bientôt disponible**. Strips all digital assessments, school deployments, early access, and pre-orders. Directs traffic strictly to public Services/Why Choose Us pages. |
 
 ---
 
@@ -156,7 +156,7 @@ Per client instructions and executive review, LoHo wording is kept strictly fact
 | **Headline Lead** | `Continental Strength,` | `Une envergure continentale,` |
 | **Headline Accent** | `local commitment` | `un engagement local` |
 | **Subheadline (Lede)** | *Serving Cameroon's bilingual education ecosystem daily from our Yaoundé office, backed by six decades of continental publishing leadership.* | *Au service quotidien de l'écosystème éducatif bilingue du Cameroun depuis notre bureau de Yaoundé, fort de six décennies de leadership éditorial continental.* |
-| **Primary CTA** | `Why Choose Us` (`/about#why`) | `Pourquoi nous choisir` (`/about#why`) |
+| **Primary CTA** | `Why Choose Us` (`/why-choose-us`) | `Pourquoi nous choisir` (`/why-choose-us`) |
 | **Secondary CTA** | `Get in Touch` (`/contact`) | `Entrer en contact` (`/contact`) |
 | **Direct Official Source** | Longhorn Publishers PLC 60-year institutional history (est. 1965 / [longhornpublishers.com/about-us/](https://www.longhornpublishers.com/about-us/)) combined with client DOCX Section 3.2 & 3.3 proximity statements (*"What we add is proximity: a team working daily to serve the Cameroonian and Central African publishing ecosystem as a whole in both official languages."*). |
 | **Safe Rules** | Fully purged of DRC/Congo mentions; highlights Yaoundé office and Central African bilingual scope exclusively. |
