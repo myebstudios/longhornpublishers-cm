@@ -179,7 +179,7 @@ export const en: Content = {
       titleAccent: 'built on six decades',
       body: [
         'Longhorn Publishers Cameroon Ltd is the Central African arm of Longhorn Publishers PLC — a publishing house with sixty years of experience creating educational and general-interest content across the continent.',
-        "From our office in Tsinga Yaoundé, we operate as content creators and platform business providers across the Central African Market. Our work spans the development of learning materials, educational content and professional publishing solutions in English and French, reflecting the country's bilingual education environment",
+        "From our office in Tsinga Yaoundé, we operate as content creators and platform business providers across the Central African Market. Our work spans the development of learning materials, educational content and professional publishing solutions in English and French, reflecting the country's bilingual education environment.",
       ],
       link: 'More about us',
       imgAlt: 'The Longhorn Publishers Cameroon team',
