@@ -47,7 +47,7 @@ test('subheadlines fit the §4 layout budget in both locales', () => {
 
 test('each slide pairs with its CLIENT-5C image and an optimised upload master exists', () => {
   assert.deepEqual(LAUNCH_SLIDES.map((slide) => slide.image), [
-    'lh-hero.jpg', 'client5-catalogue.jpg', 'lh-print-inspection-wide.jpg', 'client5-loho.jpg',
+    'lh-hero.jpg', 'client5-catalogue-v2.jpg', 'lh-print-inspection-wide.jpg', 'client5-loho-v2.jpg',
   ]);
   // Generated images must say so, and name their original.
   for (const slide of LAUNCH_SLIDES.filter((s) => s.image?.startsWith('client5-'))) {
