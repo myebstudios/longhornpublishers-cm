@@ -25,9 +25,15 @@
 - Cosmetic, for Z: at 320 px the FR LoHo headline breaks before "— Bientôt disponible", so the em dash starts a line.
 - `npm run build` passes; all 10 suites pass.
 
+### Follow-ups after Dell's CLIENT-5D Part 2 pass (`dc5e90b`)
+
+- **Manifest native size:** slides 2 and 4 now name their `nativeSource` in `scripts/hero-launch-set.mjs`. `prepare-hero-launch-images.mjs` reads it, and `Assets/hero-launch/manifest.json` warns: "Native source is 1672x941, below the 1920x1080 quality target; the 2048x1152 export and the upload master are enlarged from it, so they add no detail." Upload masters are byte-identical. `test:hero-launch` fails if a generated image loses that warning.
+- **`verify:cms-parity` after the swap (Dell F9):** it now checks the first *enabled* slide, the one visitors see, and accepts exactly the legacy hero (before the swap) or approved launch slide 1 from `hero-launch-set.mjs` (after it). Every copy and CTA field must match; only the upload key may differ, and it must be present. Anything else fails, naming the fields of the closer contract. The slide-1 image preload in `<head>` is now compared with the hero on the two home routes only. End to end on the local DB: post-swap state "Slide 1 matches the approved launch slide 1 … PASS", 19 routes; after `stage:hero-launch --rollback`, "Slide 1 matches the legacy hero … PASS"; then restaged (which also refreshes the old HERO-7 blobs in F8). `test:cms-parity` 8/8, including drift, missing-image and disabled-slide failures.
+- FR 320×568 CTA reachable by scrolling: accepted by Yv for this release.
+
 ### Still to do before production
 
-1. Images: **closed** (Yv PM decision; Z passed v2). Native sizes stay recorded: slide 1 1920×767, slide 3 1400×933, slides 2 and 4 1672×941 upscaled. Still open for Yv/Z: FR 320×568, where the CTA falls 65 px below the fold (accept, or shorten the FR LoHo headline).
-2. Dell's CLIENT-5D Part 2 local QA.
+1. Images: **closed** (Yv PM decision; Z passed v2). Native sizes stay recorded: slide 1 1920×767, slide 3 1400×933, slides 2 and 4 1672×941 upscaled. FR 320×568 CTA below the fold: accepted by Yv (reachable by scrolling).
+2. Dell's CLIENT-5D Part 2 local QA: **passed** (`dc5e90b`).
 3. The admin swap in `Docs/hero_launch_runbook.md`: production holds only the anchor `5ad099ec…` (Yv's read-only check), so no deletion; add the four slides disabled (1 + 4 = cap 5), enable in order, disable the anchor. Rollback: re-enable `5ad099ec…`, disable slides 1–4.
 4. After the swap, recheck the real CMS rendering (production `/api/media` images through the Image CDN) at 320–414 px, including short heights.
