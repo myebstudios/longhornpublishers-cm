@@ -1,5 +1,5 @@
 /**
- * Stage or roll back the HERO-7 launch set on the LOCAL fixed-port database.
+ * Stage or roll back the launch hero set on the LOCAL fixed-port database.
  *
  *   node scripts/local-db.mjs start && node scripts/local-db.mjs migrate
  *   npm run stage:hero-launch             # stage
@@ -38,6 +38,7 @@ async function writeLocalImages() {
   const { siteId } = JSON.parse(await fs.readFile(path.join(projectRoot, '.netlify', 'state.json'), 'utf8'));
   const blobsRoot = path.join(projectRoot, '.netlify', 'blobs-serve');
   for (const [index, slide] of LAUNCH_SLIDES.entries()) {
+    if (!slide.upload) continue;
     const key = LOCAL_IMAGE_KEYS[index];
     const data = await fs.readFile(path.join(projectRoot, 'Assets', 'hero-launch', slide.upload));
     for (const [kind, body] of [
@@ -85,7 +86,7 @@ try {
       await client.query('UPDATE homepage_hero_slides SET enabled = false, sort_order = $2, updated_at = now() WHERE id = $1', [row.id, 100 + index]);
     }
     for (const [index, slide] of LAUNCH_SLIDES.entries()) {
-      const p = slidePayload(slide, LOCAL_IMAGE_KEYS[index]);
+      const p = slidePayload(slide, slide.upload ? LOCAL_IMAGE_KEYS[index] : null);
       await client.query(`
         INSERT INTO homepage_hero_slides (
           id, homepage_id, sort_order, image_id, eyebrow_en, eyebrow_fr, headline_en, headline_fr,

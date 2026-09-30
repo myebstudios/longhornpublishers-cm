@@ -19,7 +19,7 @@ test('the launch set is four slides', () => {
 
 test('every launch slide passes the server-side HERO-2 validator unchanged', () => {
   LAUNCH_SLIDES.forEach((slide, index) => {
-    const payload = slidePayload(slide, LOCAL_IMAGE_KEYS[index]);
+    const payload = slidePayload(slide, slide.upload ? LOCAL_IMAGE_KEYS[index] : null);
     const result = validateHomepageHeroSlide(payload);
     assert.ok(result.ok, `slide ${index + 1}: ${result.ok ? '' : result.error}`);
     for (const [field, value] of Object.entries(payload)) {
@@ -45,11 +45,12 @@ test('subheadlines fit the §4 layout budget in both locales', () => {
   }
 });
 
-test('each slide pairs with its Pack D image and an optimised upload master exists', () => {
+test('each slide pairs with its CLIENT-5C image and an optimised upload master exists', () => {
+  // Slide 3 (LoHo) has no cleared image yet and must not borrow one.
   assert.deepEqual(LAUNCH_SLIDES.map((slide) => slide.image), [
-    'lh-hero.jpg', 'lh-catalogue-shelves.jpg', 'lh-bilingual-editor-wide.jpg', 'lh-print-inspection-wide.jpg',
+    'lh-hero.jpg', 'lh-print-inspection-wide.jpg', null, 'lh-bilingual-editor-wide.jpg',
   ]);
-  for (const slide of LAUNCH_SLIDES) {
+  for (const slide of LAUNCH_SLIDES.filter((s) => s.upload)) {
     assert.ok(fs.existsSync(new URL(`../Assets/hero-launch/${slide.upload}`, import.meta.url)), `${slide.upload} is missing`);
   }
 });
@@ -60,4 +61,12 @@ test('the swap fits the saved-slide cap: one retained rollback slide plus the la
   assert.ok(3 + LAUNCH_SLIDES.length > MAX_HOMEPAGE_HERO_SLIDES);
   const created = LAUNCH_SLIDES.map(() => ({ enabled: false }));
   assert.ok(validateHomepageHeroSlidesState([{ enabled: true }, ...created], true).ok);
+});
+
+test('no slide claims booklist status, approval, or LoHo availability', () => {
+  const text = LAUNCH_SLIDES.flatMap((slide) => Object.values(slide)).filter((v) => typeof v === 'string').join('\n');
+  assert.doesNotMatch(text, /book list|liste officielle|approved|agréé|accredit|accrédit|preorder|précommande|early access|available now/i);
+  const loho = LAUNCH_SLIDES[2];
+  assert.match(`${loho.eyebrow_en} ${loho.headline_accent_en}`, /coming soon/i);
+  assert.match(`${loho.eyebrow_fr} ${loho.headline_accent_fr}`, /bientôt disponible/i);
 });

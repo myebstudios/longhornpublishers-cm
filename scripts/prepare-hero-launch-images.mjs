@@ -23,6 +23,10 @@ await fs.mkdir(outDir, { recursive: true });
 
 const manifest = [];
 for (const [index, slide] of LAUNCH_SLIDES.entries()) {
+  if (!slide.image) {
+    manifest.push({ slide: index + 1, source: null, upload: null, warning: 'No cleared image; the carousel falls back to lh-hero.jpg.' });
+    continue;
+  }
   const source = path.resolve('public/img', slide.image);
   const input = sharp(source).rotate();
   const { width, height } = await input.metadata();
@@ -49,7 +53,7 @@ for (const [index, slide] of LAUNCH_SLIDES.entries()) {
 }
 
 await fs.writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
-console.table(manifest.map(({ slide, width, height, bytes, warning }) => ({
+console.table(manifest.map(({ slide, width, height, bytes, warning }) => (bytes ? {
   slide, size: `${width}x${height}`, sourceKB: Math.round(bytes.source / 1024), jpegKB: Math.round(bytes.jpeg / 1024),
   webpKB: Math.round(bytes.webp / 1024), avifKB: Math.round(bytes.avif / 1024), warning: warning ? 'BELOW 1920x1080' : '',
-})));
+} : { slide, warning: 'NO IMAGE' })));

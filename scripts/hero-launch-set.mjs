@@ -1,91 +1,95 @@
 /**
- * HERO-7 launch hero slide set — the single source for local staging, the
+ * Launch hero slide set — the single source for local staging, the
  * validation test, and the production swap runbook
  * (Docs/hero_launch_runbook.md).
  *
- * The 2026-09-28 client corrections supersede Pack D's first-slide opening and
- * its unsupported approval claim. The four-slide launch still needs sign-off.
+ * CLIENT-5B: the four CLIENT-4A concepts the user approved, with the exact
+ * EN/FR fields from Docs/client_5c_hero_final_review_2026-09-30.md. They
+ * replace the HERO-7 Pack D set.
  *
  * CTA hrefs are locale-neutral English route slugs (`/services`, not
  * `/en/services/`). A slide has one href column shared by both locales, and
  * `localizeCmsHref` only maps a neutral slug to the visitor's locale; a
  * `/en/...` href would send French visitors to English pages.
  *
- * `image` names the Pack D source under public/img. `upload` is the optimised
- * master in Assets/hero-launch that an editor uploads in the admin.
+ * `image` names the source under public/img. `upload` is the optimised master
+ * in Assets/hero-launch that an editor uploads in the admin. Both are null
+ * while a slide has no cleared image.
  */
 export const LAUNCH_SLIDES = [
   {
     image: 'lh-hero.jpg',
     upload: 'slide-1-lh-hero.jpg',
-    eyebrow_en: 'Cameroon & Central Africa',
-    eyebrow_fr: 'Cameroun & Afrique Centrale',
+    eyebrow_en: 'Educational Publishing',
+    eyebrow_fr: 'Édition éducative',
     headline_en: 'Expanding Minds',
     headline_fr: 'Éveiller les esprits',
     headline_accent_en: null,
     headline_accent_fr: null,
     subheadline_en: 'Enriching lives through knowledge',
     subheadline_fr: 'Enrichir des vies par la connaissance',
-    primary_cta_label_en: 'Explore Our Services',
-    primary_cta_label_fr: 'Découvrir nos services',
-    primary_cta_href: '/services',
+    primary_cta_label_en: 'Explore Catalogue',
+    primary_cta_label_fr: 'Consulter le catalogue',
+    primary_cta_href: '/catalogue',
     secondary_cta_label_en: 'Partner With Us',
-    secondary_cta_label_fr: 'Nous contacter',
+    secondary_cta_label_fr: 'Devenir partenaire',
     secondary_cta_href: '/contact',
   },
   {
-    image: 'lh-catalogue-shelves.jpg',
-    upload: 'slide-2-lh-catalogue-shelves.jpg',
-    eyebrow_en: 'Learning materials',
-    eyebrow_fr: 'Conforme aux Programmes Nationaux',
-    headline_en: 'Curriculum-aligned learning materials,',
-    headline_fr: 'Matériels pédagogiques,',
-    headline_accent_en: 'built for success.',
-    headline_accent_fr: 'conçus pour la réussite.',
-    subheadline_en: 'Primary and secondary textbooks and teaching resources crafted specifically for the Cameroonian educational framework in both English and French.',
-    subheadline_fr: 'Manuels scolaires du primaire et du secondaire développés selon le socle éducatif camerounais, disponibles en français et en anglais.',
-    primary_cta_label_en: 'Browse Full Catalogue',
-    primary_cta_label_fr: 'Consulter le catalogue',
-    primary_cta_href: '/catalogue',
+    image: 'lh-print-inspection-wide.jpg',
+    upload: 'slide-2-lh-print-inspection-wide.jpg',
+    eyebrow_en: 'Publishing Services',
+    eyebrow_fr: 'Services d’édition',
+    headline_en: 'Every Stage.',
+    headline_fr: 'À chaque étape.',
+    headline_accent_en: 'Every Solution',
+    headline_accent_fr: 'Chaque solution',
+    subheadline_en: 'From manuscripts to refined publications, our editorial, design, translation and print services support each stage of your project.',
+    subheadline_fr: 'Du manuscrit à la publication soignée, nos services de révision, de conception, de traduction et d’impression accompagnent chaque étape de votre projet.',
+    primary_cta_label_en: 'Our Services',
+    primary_cta_label_fr: 'Nos services',
+    primary_cta_href: '/services',
+    secondary_cta_label_en: 'Contact Our Team',
+    secondary_cta_label_fr: 'Contacter notre équipe',
+    secondary_cta_href: '/contact',
+  },
+  {
+    // No cleared LoHo artwork exists yet (CLIENT-5C). Left empty rather than
+    // borrowing an unrelated photo; the carousel falls back to lh-hero.jpg.
+    image: null,
+    upload: null,
+    eyebrow_en: 'Digital Learning · Coming soon',
+    eyebrow_fr: 'Apprentissage numérique · Bientôt disponible',
+    headline_en: 'LoHo',
+    headline_fr: 'LoHo',
+    headline_accent_en: 'coming soon',
+    headline_accent_fr: 'bientôt disponible',
+    subheadline_en: 'An e-learning platform with interactive educational content is coming soon to Cameroon.',
+    subheadline_fr: 'Une plateforme d’apprentissage numérique avec des contenus pédagogiques interactifs sera bientôt disponible au Cameroun.',
+    primary_cta_label_en: 'Explore Services',
+    primary_cta_label_fr: 'Explorer nos services',
+    primary_cta_href: '/services',
     secondary_cta_label_en: 'Why Choose Us',
     secondary_cta_label_fr: 'Pourquoi nous choisir',
     secondary_cta_href: '/why-choose-us',
   },
   {
     image: 'lh-bilingual-editor-wide.jpg',
-    upload: 'slide-3-lh-bilingual-editor-wide.jpg',
-    eyebrow_en: 'Yaoundé Editorial Hub',
-    eyebrow_fr: 'Centre Éditorial de Yaoundé',
-    headline_en: 'Native bilingual expertise,',
-    headline_fr: 'Expertise éditoriale bilingue,',
-    headline_accent_en: 'in English and French.',
-    headline_accent_fr: 'en français et en anglais.',
-    subheadline_en: 'Our in-house editorial team in Tsinga combines linguistic precision with deep cultural context to elevate every manuscript across both official languages.',
-    subheadline_fr: 'Notre équipe éditoriale à Tsinga allie précision linguistique et ancrage culturel pour enrichir chaque manuscrit dans les deux langues officielles.',
-    primary_cta_label_en: 'Learn About Our Team',
-    primary_cta_label_fr: 'Découvrir notre équipe',
-    primary_cta_href: '/about',
-    secondary_cta_label_en: 'Get in Touch',
-    secondary_cta_label_fr: 'Prendre contact',
-    secondary_cta_href: '/contact',
-  },
-  {
-    image: 'lh-print-inspection-wide.jpg',
-    upload: 'slide-4-lh-print-inspection-wide.jpg',
-    eyebrow_en: '60 Years of African Publishing Excellence',
-    eyebrow_fr: "60 Ans d'Excellence Éditoriale en Afrique",
-    headline_en: 'Rooted in Central Africa,',
-    headline_fr: 'Ancré en Afrique centrale,',
-    headline_accent_en: 'backed by six decades.',
-    headline_accent_fr: 'fort de six décennies.',
-    subheadline_en: 'Leveraging sixty years of continental publishing leadership from Longhorn Publishers PLC to deliver uncompromising quality, accuracy, and trust.',
-    subheadline_fr: 'Forts de soixante ans de leadership éditorial continental au sein de Longhorn Publishers PLC, nous garantissons une qualité et une rigueur irréprochables.',
-    primary_cta_label_en: 'Why Choose Longhorn',
-    primary_cta_label_fr: 'Pourquoi choisir Longhorn',
+    upload: 'slide-4-lh-bilingual-editor-wide.jpg',
+    eyebrow_en: 'Heritage & Proximity',
+    eyebrow_fr: 'Héritage et proximité',
+    headline_en: 'Continental experience,',
+    headline_fr: 'Une expérience continentale,',
+    headline_accent_en: 'close to you',
+    headline_accent_fr: 'à vos côtés',
+    subheadline_en: 'From Yaoundé, our team works in English and French, drawing on Longhorn Publishers PLC’s six decades of publishing experience.',
+    subheadline_fr: 'Depuis Yaoundé, notre équipe travaille en anglais et en français, forte des six décennies d’expérience éditoriale de Longhorn Publishers PLC.',
+    primary_cta_label_en: 'Why Choose Us',
+    primary_cta_label_fr: 'Pourquoi nous choisir',
     primary_cta_href: '/why-choose-us',
-    secondary_cta_label_en: 'View Latest News',
-    secondary_cta_label_fr: 'Toutes les actualités',
-    secondary_cta_href: '/news',
+    secondary_cta_label_en: 'Get in Touch',
+    secondary_cta_label_fr: 'Nous contacter',
+    secondary_cta_href: '/contact',
   },
 ];
 
