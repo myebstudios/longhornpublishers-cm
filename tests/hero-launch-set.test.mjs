@@ -60,8 +60,7 @@ test('each slide pairs with its CLIENT-5C image and an optimised upload master e
 
 test('the swap fits the saved-slide cap: one retained rollback slide plus the launch set', () => {
   assert.ok(1 + LAUNCH_SLIDES.length <= MAX_HOMEPAGE_HERO_SLIDES);
-  // Placeholders must be deleted first: three existing rows plus four new ones exceed the cap.
-  assert.ok(3 + LAUNCH_SLIDES.length > MAX_HOMEPAGE_HERO_SLIDES);
+  // Production holds exactly one saved slide (the anchor), so no deletion is needed.
   const created = LAUNCH_SLIDES.map(() => ({ enabled: false }));
   assert.ok(validateHomepageHeroSlidesState([{ enabled: true }, ...created], true).ok);
 });
