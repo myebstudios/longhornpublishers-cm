@@ -1,3 +1,5 @@
+import { LAUNCH_SLIDES, slidePayload } from './hero-launch-set.mjs';
+
 const HOME_ROUTES = new Set(['en/index.html', 'fr/index.html']);
 
 const nullable = (value) => value === null || value === undefined ? null : String(value);
@@ -22,9 +24,41 @@ export function normalizePublicRoute(route, html) {
     const script = scriptClose < 0 ? '' : afterHero.slice(0, scriptClose + 9);
     if (script.includes('data-hero-carousel')) afterHero = afterHero.slice(scriptClose + 9);
   }
-  const withoutHero = `${html.slice(0, start)}<!-- homepage hero compared separately -->${afterHero}`;
+  // The LCP preload in <head> follows slide 1's image, so it belongs to the hero
+  // too: after the CLIENT-5B swap it points at an upload, not /img/lh-hero.jpg.
+  const head = html.slice(0, start)
+    .replace(/<link rel="preload" as="image" href="[^"]*"(?: imagesrcset="[^"]*")?(?: imagesizes="[^"]*")? fetchpriority="high">/, '<!-- hero preload compared separately -->');
+  const withoutHero = `${head}<!-- homepage hero compared separately -->${afterHero}`;
   return withoutHero.replace(/ data-homepage-content-source="(?:cms|fallback)"/g, '');
 }
+
+/** Normalise a slide row so text fields compare as strings or null. */
+function normalizeSlide(slide) {
+  return {
+    ...slide,
+    sort_order: Number(slide.sort_order),
+    image_id: nullable(slide.image_id),
+    eyebrow_en: nullable(slide.eyebrow_en),
+    eyebrow_fr: nullable(slide.eyebrow_fr),
+    headline_en: nullable(slide.headline_en),
+    headline_fr: nullable(slide.headline_fr),
+    headline_accent_en: nullable(slide.headline_accent_en),
+    headline_accent_fr: nullable(slide.headline_accent_fr),
+    subheadline_en: nullable(slide.subheadline_en),
+    subheadline_fr: nullable(slide.subheadline_fr),
+    primary_cta_label_en: nullable(slide.primary_cta_label_en),
+    primary_cta_label_fr: nullable(slide.primary_cta_label_fr),
+    primary_cta_href: nullable(slide.primary_cta_href),
+    secondary_cta_label_en: nullable(slide.secondary_cta_label_en),
+    secondary_cta_label_fr: nullable(slide.secondary_cta_label_fr),
+    secondary_cta_href: nullable(slide.secondary_cta_href),
+    enabled: slide.enabled === true,
+  };
+}
+
+const diff = (expected, actual) => Object.entries(expected)
+  .filter(([field, value]) => actual[field] !== value)
+  .map(([field, value]) => ({ field, expected: value, actual: actual[field] }));
 
 /** Compare the rollback-critical legacy hero row with migration 010's slide 1. */
 export function backfilledHeroMismatches(homepage, slide) {
@@ -48,29 +82,36 @@ export function backfilledHeroMismatches(homepage, slide) {
     secondary_cta_href: '/services',
     enabled: true,
   };
-  const actual = {
-    ...slide,
-    sort_order: Number(slide.sort_order),
-    image_id: nullable(slide.image_id),
-    eyebrow_en: nullable(slide.eyebrow_en),
-    eyebrow_fr: nullable(slide.eyebrow_fr),
-    headline_en: nullable(slide.headline_en),
-    headline_fr: nullable(slide.headline_fr),
-    headline_accent_en: nullable(slide.headline_accent_en),
-    headline_accent_fr: nullable(slide.headline_accent_fr),
-    subheadline_en: nullable(slide.subheadline_en),
-    subheadline_fr: nullable(slide.subheadline_fr),
-    primary_cta_label_en: nullable(slide.primary_cta_label_en),
-    primary_cta_label_fr: nullable(slide.primary_cta_label_fr),
-    primary_cta_href: nullable(slide.primary_cta_href),
-    secondary_cta_label_en: nullable(slide.secondary_cta_label_en),
-    secondary_cta_label_fr: nullable(slide.secondary_cta_label_fr),
-    secondary_cta_href: nullable(slide.secondary_cta_href),
-    enabled: slide.enabled === true,
-  };
-  return Object.entries(expected)
-    .filter(([field, value]) => actual[field] !== value)
-    .map(([field, value]) => ({ field, expected: value, actual: actual[field] }));
+  return diff(expected, normalizeSlide(slide));
+}
+
+/**
+ * Compare the first rendered slide with approved launch slide 1
+ * (scripts/hero-launch-set.mjs). Every copy and CTA field must match exactly.
+ * The image key is assigned at upload, so it only has to be present.
+ */
+export function launchSlideMismatches(slide, approved = LAUNCH_SLIDES[0]) {
+  const { image_id: _image, ...expected } = slidePayload(approved, null);
+  const actual = normalizeSlide(slide);
+  const mismatches = diff(expected, actual);
+  if (!actual.image_id) mismatches.push({ field: 'image_id', expected: 'an uploaded image', actual: null });
+  return mismatches;
+}
+
+/**
+ * The first enabled slide is what visitors see as slide 1. Before the CLIENT-5B
+ * swap it is the backfilled legacy hero; after it, approved launch slide 1.
+ * It must match one of them exactly. Otherwise the closer contract's
+ * differences are reported, so real copy drift still fails.
+ */
+export function firstSlideContract(homepage, slide) {
+  const legacy = backfilledHeroMismatches(homepage, slide);
+  if (!legacy.length) return { contract: 'legacy hero', mismatches: [] };
+  const launch = launchSlideMismatches(slide);
+  if (!launch.length) return { contract: 'approved launch slide 1', mismatches: [] };
+  return launch.length < legacy.length
+    ? { contract: 'approved launch slide 1', mismatches: launch }
+    : { contract: 'legacy hero', mismatches: legacy };
 }
 
 export function assertCmsHomepageEvidence(route, html, slideId) {

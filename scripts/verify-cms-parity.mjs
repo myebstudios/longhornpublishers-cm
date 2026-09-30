@@ -2,7 +2,7 @@
 import { execFileSync, spawn } from 'node:child_process';
 import { getDatabase } from '@netlify/database';
 import {
-  assertCmsHomepageEvidence, backfilledHeroMismatches, normalizePublicRoute,
+  assertCmsHomepageEvidence, firstSlideContract, normalizePublicRoute,
 } from './cms-parity-lib.mjs';
 import { url } from './local-db.mjs';
 
@@ -25,18 +25,21 @@ async function loadCmsEvidence() {
       FROM homepage_content WHERE id = 'default'
     `;
     if (!homepage || homepage.published !== true) throw new Error('The published default homepage_content row is missing.');
+    // The first enabled slide is the one visitors see as slide 1. After the
+    // CLIENT-5B swap the anchor stays at sort_order 0 but is disabled.
     const [slide] = await db.sql`
       SELECT * FROM homepage_hero_slides
-      WHERE homepage_id = 'default' AND sort_order = 0
-      ORDER BY created_at, id LIMIT 1
+      WHERE homepage_id = 'default' AND enabled = true
+      ORDER BY sort_order, created_at, id LIMIT 1
     `;
-    if (!slide) throw new Error('The backfilled slide 1 row is missing.');
-    const mismatches = backfilledHeroMismatches(homepage, slide);
+    if (!slide) throw new Error('No enabled hero slide is saved.');
+    const { contract, mismatches } = firstSlideContract(homepage, slide);
     if (mismatches.length) {
-      throw new Error('Backfilled slide 1 no longer matches the legacy hero:\n' +
+      throw new Error(`Slide 1 matches neither the legacy hero nor approved launch slide 1. Closest: ${contract}:\n` +
         mismatches.map(({ field, expected, actual }) =>
           `    ${field}: expected ${JSON.stringify(expected)}, got ${JSON.stringify(actual)}`).join('\n'));
     }
+    console.log(`Slide 1 matches the ${contract}.`);
     return String(slide.id);
   } catch (error) {
     console.error('FAILED — could not prove database-backed homepage parity.');
@@ -99,7 +102,7 @@ try {
   });
   console.log(`Compared ${routes.length} public routes.`);
   if (differing.length) throw new Error(`Approved copy differs outside the homepage hero:\n${differing.join('\n')}`);
-  console.log('PASS — database rows rendered, slide 1 matches the legacy hero, and approved copy is unchanged.');
+  console.log('PASS — database rows rendered, slide 1 matches an approved contract, and approved copy is unchanged.');
 } catch (error) {
   console.error(error instanceof Error ? error.message : String(error));
   process.exitCode = 1;
