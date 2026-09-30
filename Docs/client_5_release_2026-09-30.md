@@ -20,11 +20,12 @@
 - Local DB: exactly four enabled non-demo slides at positions 0–3, plus the disabled backfilled anchor. The old HERO-7 rows Dell flagged were overwritten in place (same fixed ids).
 - `/en/`, `/fr/` → 200. Browser run, reduced motion, EN/FR × 320, 375, 414, 768, 820, 1024, 1280 px × 4 slides (56 checks): every field matches the table; CTAs go to `/en/services/`, `/en/catalogue/`, `/fr/services-edition/`, `/fr/catalogue/`; no CTA intersects a carousel control; no hero overflow; worst lede contrast **7.31:1** (EN, 375 px, slide 2, with the generated images), measured against the brightest pixel behind the text. Uploaded images were served by request interception, as in `hero_launch_evidence_2026-09-28.md` (the media function ignores `CMS_DATABASE_URL` under `astro dev`).
 - Crop: on phones the slide 4 tablet is mostly cropped out (books and plant remain); slide 2 keeps hands and open books.
+- **Mobile focal test (Z `d86a410`), CSS injected in the browser only, EN/FR × 320/375/414:** `object-position` 45% (slide 2) and 80% (slide 4) against centred. A phone shows ~28% of the image width, so the shift moves the frame only ~50–140 px. Slide 2 at 45% is almost identical to centred (arm and open book; the stack stays out). Slide 4 at 80% shows only the tablet's edge, mostly behind the copy. Contrast passes at both positions: lede ≥ 7.27:1, control border ≥ 4.82:1 (the 50%-white border alpha-blended over the brightest background pixel). **Conclusion:** focal shifting does not fix either crop; portrait compositions are needed. The carousel has no focal or portrait-source support (`object-fit: cover`, centred; no CMS field), so either needs a code change and a deploy.
 - Cosmetic, for Z: at 320 px the FR LoHo headline breaks before "— Bientôt disponible", so the em dash starts a line.
 - `npm run build` passes; all 10 suites pass.
 
 ### Still to do before production
 
-1. G2: user accepts `lh-hero.jpg` and `lh-print-inspection-wide.jpg` below 1920×1080, and the AI-generated, upscaled images for slides 2 and 4.
+1. G2: user accepts `lh-hero.jpg` and `lh-print-inspection-wide.jpg` below 1920×1080, and the AI-generated, upscaled images for slides 2 and 4 (native 1672×941), or supplies larger originals. Z rates slides 2 and 4 a conditional desktop pass and a **mobile crop fail**; the fix is portrait art plus carousel support for it, or explicit acceptance of the centred phone crop.
 2. Dell's CLIENT-5D Part 2 local QA.
 3. The admin swap in `Docs/hero_launch_runbook.md`: delete placeholders `0fd67f19…` and `78a5d57e…`, add the four slides disabled, enable in order, disable anchor `5ad099ec…`. Rollback: re-enable `5ad099ec…`, disable slides 1–4.
