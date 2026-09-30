@@ -1,45 +1,38 @@
-# Runbook — HERO-7 production hero swap and rollback
+# Runbook — launch hero swap and rollback (CLIENT-5B, supersedes HERO-7 Pack D)
 
-**Task:** HERO-7 (`e5e621ca-e4b3-40db-983f-5b679c82eecb`) · **Author:** SoSo · **Date:** 2026-09-28
-**Status:** Ready, **gated.** Do not start until all three gates below are closed.
+**Tasks:** CLIENT-5B (`e4786854-a4ba-4d25-ac50-265df0147511`), originally HERO-7 · **Author:** SoSo · **Updated:** 2026-09-30
+**Copy source:** the four CLIENT-4A concepts the user approved, with the exact fields in `Docs/client_5c_hero_final_review_2026-09-30.md` (Z).
+**Status:** Copy ready and rehearsed locally. **Image gate open** (below). Do not start the swap until it is closed.
 **Operator:** a Netlify Identity `admin` user in `/admin/homepage/`. No deploy, push, or code change is needed; the swap is content-only.
 
-## Gates (all must be closed)
+## Gates
 
-| # | Gate | Owner | State 2026-09-28 |
+| # | Gate | Owner | State 2026-09-30 |
 |---|---|---|---|
-| G1 | Client signs Pack D (`client_approval_packet.md` §E) with an explicit ruling on each item in **G1 items** below. Signing "as written" must not be read as approving these silently. | Yv → client | Open. Follow-up drafted in `client_followup_2026-09-28.md`, not sent; it covers G1a only. |
-| G2 | Every hero image meets the Pack D minimum of **1920×1080** (`hero_slide_copy.md:50,85,120,155`; `client_approval_packet.md:88`), or the client accepts the named shortfall in writing. **None of the four passes today** (see **G2 images**). | Yv → client | Open |
+| G1 | Copy approval | User | **Closed.** All four CLIENT-4A concepts approved; Z's CLIENT-5C table is the final wording. Slide 1's catalogue-first CTA is an intentional change from the live contact-first order (Z); Yv to record it. |
+| G2 | Every hero image meets **1920×1080**, or the user accepts the named shortfall in writing, and every image is cleared for use. **None passes today; slide 3 has no image.** | Yv → user | **Open** |
+| G3 | Dell's CLIENT-5D local QA passes and the user approves the swap window | Dell, user via Yv | Open |
 
-### G1 items: copy decisions the client must rule on
+### G2 images
 
-| Id | Slide | Issue | Options to put to the client |
+| Slide | File | Actual | Issue |
 |---|---|---|---|
-| G1a | 2 | EN eyebrow "National Curriculum **Approved**" and FR headline "Matériels pédagogiques **agréés**" claim a regulatory approval that nothing on file evidences (QA P1). The FR eyebrow says *conforme* (aligned), so EN and FR also disagree. | Provide accreditation evidence, or approve "Curriculum-Aligned Learning Materials" / "Matériels pédagogiques conformes aux programmes nationaux". Both alternatives were verified to fit at every viewport. |
-| G1b | 1 | EN secondary CTA "Partner With Us" vs FR "Nous contacter" ("Contact us"). The two locales carry different messages. The live approved slide uses "Devenir partenaire" for FR. | Keep "Partner With Us" / "Devenir partenaire" (matches live), or "Contact Us" / "Nous contacter". |
-| G1c | 1 | CTA priority is swapped against the live approved hero `5ad099ec`. Live: **primary** "Partner With Us" / "Devenir partenaire" → `/contact`, secondary "Explore our services" / "Découvrir nos services" → `/services`. Pack D: **primary** "Explore Our Services" → `/services`, secondary "Partner With Us" → `/contact`. This moves the main conversion from lead capture to browsing. | Keep the live priority (contact primary), or confirm Pack D's services-first order intentionally. |
+| 1 | `lh-hero.jpg` | 1920×767 | Height (−313 px). Live today. Wide group loses people in a phone crop. |
+| 2 | `lh-print-inspection-wide.jpg` | 1400×933 | Both. Must not imply an owned local print plant. |
+| 3 | *none* | — | **No cleared LoHo artwork.** Needs approved LoHo brand art or a cleared neutral device/learning image; no Kenya portal screenshot or invented interface. Saved without an image, the slide falls back to `lh-hero.jpg`, which repeats slide 1's photo. |
+| 4 | `lh-bilingual-editor-wide.jpg` | 1400×933 | Both. Do not imply the pictured people are Cameroon staff without confirmation. |
 
-### G2 images: shortfall against 1920×1080
+To swap an image: drop the file in `public/img/`, set the slide's `image`/`upload` in `scripts/hero-launch-set.mjs`, run `node scripts/prepare-hero-launch-images.mjs` and `npm run test:hero-launch`. `Assets/hero-launch/manifest.json` flags every source below 1920×1080.
 
-| Slide | File | Actual | Shortfall |
-|---|---|---|---|
-| 1 | `lh-hero.jpg` | 1920×767 | Height (−313 px). This is the image live today. |
-| 2 | `lh-catalogue-shelves.jpg` | **410×410** | Both; a 4.7× upscale at 1920 wide. Cannot ship without a replacement. |
-| 3 | `lh-bilingual-editor-wide.jpg` | 1400×933 | Both |
-| 4 | `lh-print-inspection-wide.jpg` | 1400×933 | Both |
-
-Slides 1, 3 and 4 render acceptably in the local run (≤1.4× upscale, under a dark overlay), but they still fall short of the stated requirement. They need Pack B replacements or written acceptance. `node scripts/prepare-hero-launch-images.mjs` flags every source below 1920×1080 in `Assets/hero-launch/manifest.json`.
-| G3 | User approves the swap window after QA-HERO-7 Phase 1 passes | User via Yv | Open |
-
-If the client changes any wording, update `scripts/hero-launch-set.mjs` first, run `npm run test:hero-launch`, and use the updated values below. If the image changes, drop the new file in `public/img/`, point the slide's `image` at it, and rerun `node scripts/prepare-hero-launch-images.mjs`.
+If the client changes any wording, update `scripts/hero-launch-set.mjs` first, run `npm run test:hero-launch`, and use the updated values below.
 
 ## What exists in production now
 
-Read from live `/en/` on 2026-09-28. Only **enabled** slides are visible publicly, so step 1 recounts in the admin.
+Read from live `/en/` on 2026-09-28; slide 1 copy updated by migration 015 (2026-09-29). Placeholders are disabled publicly but may still be saved. Only **enabled** slides are visible publicly, so step 1 recounts in the admin.
 
 | Position | Id | Content | Action |
 |---|---|---|---|
-| 1 | `5ad099ec-d5e0-4bea-af7d-83aa829879ca` | "Professional publishing services, start to finish" (backfilled; rollback anchor) | **Keep; disable last** |
+| 1 | `5ad099ec-d5e0-4bea-af7d-83aa829879ca` | "Expanding Minds" since migration 015 (backfilled; rollback anchor) | **Keep; disable last** |
 | 2 | `0fd67f19-7a7d-4701-ad33-ace716af9b79` | "Heading test" placeholder | **Delete** |
 | 3 | `78a5d57e-786d-42b2-bbb4-4f5c5bb72a51` | "Heading test 2" placeholder | **Delete** |
 
@@ -62,29 +55,30 @@ Allow about 20 minutes. Keep a second tab open on `/en/` and `/fr/` in a private
 7. **Verify live** (read-only, any browser):
    - `/en/` and `/fr/` show exactly 4 slides in order 1–4, with FR copy on `/fr/`.
    - View source: exactly one hero `<img>` with `loading="eager"` + `fetchpriority="high"`, and the `<link rel="preload" as="image">` points at slide 1's `/api/media/uploads/…` key.
-   - All 12 CTA links return 200, and each FR CTA lands on a French route (`/fr/services-edition/`, `/fr/a-propos/`, `/fr/pourquoi-nous-choisir/`, `/fr/actualites/`, `/fr/catalogue/`, `/fr/contact/`).
+   - All CTA links return 200, and each FR CTA lands on a French route (`/fr/catalogue/`, `/fr/services-edition/`, `/fr/pourquoi-nous-choisir/`, `/fr/contact/`).
+   - Slide 3 visibly reads **Coming soon / Bientôt disponible**, and no slide mentions the National Book List or an approval.
    - `npm run verify:production` passes.
    - Hand over to Dell for QA-HERO-7 Phase 2.
 
 ## Slide values
 
-Upload files live in `Assets/hero-launch/`. The source of truth is `scripts/hero-launch-set.mjs`; this table must match it.
+Upload files live in `Assets/hero-launch/`. The source of truth is `scripts/hero-launch-set.mjs`; this table must match it. Leave **Accent** empty where shown as —.
 
 | Field | Slide 1 | Slide 2 | Slide 3 | Slide 4 |
 |---|---|---|---|---|
-| Image file | `slide-1-lh-hero.jpg` ⚠ G2 | `slide-2-lh-catalogue-shelves.jpg` ⚠ G2 | `slide-3-lh-bilingual-editor-wide.jpg` ⚠ G2 | `slide-4-lh-print-inspection-wide.jpg` ⚠ G2 |
-| Eyebrow EN | Cameroon & Central Africa | National Curriculum Approved ⚠ G1a | Yaoundé Editorial Hub | 60 Years of African Publishing Excellence |
-| Eyebrow FR | Cameroun & Afrique Centrale | Conforme aux Programmes Nationaux | Centre Éditorial de Yaoundé | 60 Ans d'Excellence Éditoriale en Afrique |
-| Headline EN | Professional publishing services, | Curriculum-aligned learning materials, | Native bilingual expertise, | Rooted in Central Africa, |
-| Headline FR | Services d'édition professionnels, | Matériels pédagogiques agréés, ⚠ G1a | Expertise éditoriale bilingue, | Ancré en Afrique centrale, |
-| Accent EN | start to finish. | built for success. | in English and French. | backed by six decades. |
-| Accent FR | du début à la fin. | conçus pour la réussite. | en français et en anglais. | fort de six décennies. |
-| Primary label EN / FR | Explore Our Services / Découvrir nos services ⚠ G1c | Browse Full Catalogue / Consulter le catalogue | Learn About Our Team / Découvrir notre équipe | Why Choose Longhorn / Pourquoi choisir Longhorn |
-| Primary destination | `/services` ⚠ G1c | `/catalogue` | `/about` | `/why-choose-us` |
-| Secondary label EN / FR | Partner With Us / Nous contacter ⚠ G1b, G1c | Why Choose Us / Pourquoi nous choisir | Get in Touch / Prendre contact | View Latest News / Toutes les actualités |
-| Secondary destination | `/contact` ⚠ G1c | `/why-choose-us` | `/contact` | `/news` |
+| Image file | `slide-1-lh-hero.jpg` ⚠ G2 | `slide-2-lh-print-inspection-wide.jpg` ⚠ G2 | *none* ⚠ G2 | `slide-4-lh-bilingual-editor-wide.jpg` ⚠ G2 |
+| Eyebrow EN | Educational Publishing | Publishing Services | Digital Learning · Coming soon | Heritage & Proximity |
+| Eyebrow FR | Édition éducative | Services d’édition | Apprentissage numérique · Bientôt disponible | Héritage et proximité |
+| Headline EN | Expanding Minds | Every Stage. | LoHo | Continental experience, |
+| Headline FR | Éveiller les esprits | À chaque étape. | LoHo | Une expérience continentale, |
+| Accent EN | — | Every Solution | coming soon | close to you |
+| Accent FR | — | Chaque solution | bientôt disponible | à vos côtés |
+| Primary label EN / FR | Explore Catalogue / Consulter le catalogue | Our Services / Nos services | Explore Services / Explorer nos services | Why Choose Us / Pourquoi nous choisir |
+| Primary destination | `/catalogue` | `/services` | `/services` | `/why-choose-us` |
+| Secondary label EN / FR | Partner With Us / Devenir partenaire | Contact Our Team / Contacter notre équipe | Why Choose Us / Pourquoi nous choisir | Get in Touch / Nous contacter |
+| Secondary destination | `/contact` | `/contact` | `/why-choose-us` | `/contact` |
 
-Subheadlines: copy them verbatim from `scripts/hero-launch-set.mjs` (`subheadline_en` / `subheadline_fr`). They are too long for this table, and retyping invites errors.
+Subheadlines: copy them verbatim from `scripts/hero-launch-set.mjs` (`subheadline_en` / `subheadline_fr`). Slide 2 and 4 use typographic apostrophes (’); retyping invites errors.
 
 ## Rollback
 
@@ -96,7 +90,7 @@ Subheadlines: copy them verbatim from `scripts/hero-launch-set.mjs` (`subheadlin
 
 The disabled launch slides stay saved, so a re-swap is steps 5–6 again. The placeholders are **not** restored; they were test content. If the whole CMS path fails, the documented fallback is still valid: with zero enabled slides on a published homepage, validation refuses the save, so the legacy static `Hero` is only reachable by unpublishing the homepage. Do not do that without the user.
 
-## Local rehearsal (already done — see `hero_launch_evidence_2026-09-28.md`)
+## Local rehearsal (CLIENT-5B set rehearsed 2026-09-30; Pack D in `hero_launch_evidence_2026-09-28.md`)
 
 ```bash
 node scripts/local-db.mjs start && node scripts/local-db.mjs migrate
