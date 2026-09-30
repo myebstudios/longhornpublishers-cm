@@ -46,10 +46,13 @@ test('subheadlines fit the §4 layout budget in both locales', () => {
 });
 
 test('each slide pairs with its CLIENT-5C image and an optimised upload master exists', () => {
-  // Slides 2 (catalogue) and 4 (LoHo) have no usable cleared image yet and must not borrow one.
   assert.deepEqual(LAUNCH_SLIDES.map((slide) => slide.image), [
-    'lh-hero.jpg', null, 'lh-print-inspection-wide.jpg', null,
+    'lh-hero.jpg', 'client5-catalogue.jpg', 'lh-print-inspection-wide.jpg', 'client5-loho.jpg',
   ]);
+  // Generated images must say so, and name their original.
+  for (const slide of LAUNCH_SLIDES.filter((s) => s.image?.startsWith('client5-'))) {
+    assert.match(slide.provenance ?? '', /AI-generated.*Assets\/hero-generated\//);
+  }
   for (const slide of LAUNCH_SLIDES.filter((s) => s.upload)) {
     assert.ok(fs.existsSync(new URL(`../Assets/hero-launch/${slide.upload}`, import.meta.url)), `${slide.upload} is missing`);
   }

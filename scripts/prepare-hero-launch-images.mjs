@@ -46,6 +46,7 @@ for (const [index, slide] of LAUNCH_SLIDES.entries()) {
     width: out.width,
     height: out.height,
     bytes: { source: sourceBytes, jpeg: jpeg.length, webp: webp.length, avif: avif.length },
+    provenance: slide.provenance ?? null,
     warning: width < MIN_HERO.width || height < MIN_HERO.height
       ? `Source is ${width}x${height}; Pack D requires >= ${MIN_HERO.width}x${MIN_HERO.height}. Replace, or record client acceptance.`
       : null,
