@@ -11,19 +11,19 @@
 
 ## CLIENT-5B — four approved hero slides
 
-- `scripts/hero-launch-set.mjs` now holds Z's exact CLIENT-5C fields (`Docs/client_5c_hero_final_review_2026-09-30.md`); the runbook table matches it.
-- Images follow Z's pairing: 1 `lh-hero.jpg`, 2 `lh-print-inspection-wide.jpg`, 4 `lh-bilingual-editor-wide.jpg`. **Slide 3 (LoHo) has no image**; none is cleared, so it falls back to `lh-hero.jpg`. All three images are below 1920×1080. Runbook gate G2 is open.
-- `npm run test:hero-launch` 7/7, including a new sweep: no Book List, approval/accreditation, preorder or availability wording, and slide 3 says Coming soon / Bientôt disponible in both locales.
+- `scripts/hero-launch-set.mjs` holds Z's corrected CLIENT-5C table (`09ef50c`): the user-approved order **1 brand promise → 2 catalogue → 3 publishing services → 4 LoHo**, one CTA per slide, no secondary CTAs. The runbook table matches it. (`9009534` first implemented Z's superseded table; `09ef50c` landed while I worked, and the following commit replaces it.)
+- Images: 1 `lh-hero.jpg` (1920×767), 3 `lh-print-inspection-wide.jpg` (1400×933). **Slides 2 and 4 have no image**: the shelves photo is 410×410, and no LoHo art is cleared. They fall back to `lh-hero.jpg`. Runbook gate G2 is open.
+- `npm run test:hero-launch` 7/7. The claim sweep rejects Book List, approved/accredited, curriculum, assessment, preorder/early access/availability, Kenya, Congo and Central Africa wording, and requires Coming soon / Bientôt disponible on the LoHo slide in both locales.
 
 ### Local render (fixed-port DB via `npm run stage:hero-launch`, `CMS_DATABASE_URL`)
 
-- `/en/`, `/fr/` → 200, slides in order 1–4, FR copy on `/fr/`. CTAs resolve to `/en|fr` routes: catalogue, services / services-edition, why-choose-us / pourquoi-nous-choisir, contact.
-- Browser run, reduced motion, EN/FR × 320, 375, 414, 768, 820, 1024, 1280 px × 4 slides: no CTA intersects a carousel control; worst lede contrast **6.35:1** (FR, 375 px, slide 4) measured against the brightest pixel behind the text. Uploaded images were served by request interception, as in `hero_launch_evidence_2026-09-28.md` (the media function ignores `CMS_DATABASE_URL` under `astro dev`).
-- Cosmetic, for Z: the FR slide 3 eyebrow pill wraps to two lines at 375 px; slide 4's landscape photo crops to mostly background on phones (the portrait art-direction item).
+- Local DB: exactly four enabled non-demo slides at positions 0–3, plus the disabled backfilled anchor. The old HERO-7 rows Dell flagged were overwritten in place (same fixed ids).
+- `/en/`, `/fr/` → 200. Browser run, reduced motion, EN/FR × 320, 375, 414, 768, 820, 1024, 1280 px × 4 slides (56 checks): every field matches the table; CTAs go to `/en/services/`, `/en/catalogue/`, `/fr/services-edition/`, `/fr/catalogue/`; no CTA intersects a carousel control; no hero overflow; worst lede contrast **8.25:1**, measured against the brightest pixel behind the text. Uploaded images were served by request interception, as in `hero_launch_evidence_2026-09-28.md` (the media function ignores `CMS_DATABASE_URL` under `astro dev`).
+- Cosmetic, for Z: at 320 px the FR LoHo headline breaks before "— Bientôt disponible", so the em dash starts a line.
 - `npm run build` passes; all 10 suites pass.
 
 ### Still to do before production
 
-1. G2: user accepts or replaces each image and supplies/approves a slide 3 image.
-2. Dell's CLIENT-5D local QA.
+1. G2: user accepts `lh-hero.jpg` and `lh-print-inspection-wide.jpg` below 1920×1080, and supplies cleared images for slides 2 and 4 (or accepts the `lh-hero.jpg` fallback).
+2. Dell's CLIENT-5D Part 2 local QA.
 3. The admin swap in `Docs/hero_launch_runbook.md`: delete placeholders `0fd67f19…` and `78a5d57e…`, add the four slides disabled, enable in order, disable anchor `5ad099ec…`. Rollback: re-enable `5ad099ec…`, disable slides 1–4.

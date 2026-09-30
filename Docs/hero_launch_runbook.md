@@ -1,7 +1,7 @@
 # Runbook — launch hero swap and rollback (CLIENT-5B, supersedes HERO-7 Pack D)
 
 **Tasks:** CLIENT-5B (`e4786854-a4ba-4d25-ac50-265df0147511`), originally HERO-7 · **Author:** SoSo · **Updated:** 2026-09-30
-**Copy source:** the four CLIENT-4A concepts the user approved, with the exact fields in `Docs/client_5c_hero_final_review_2026-09-30.md` (Z).
+**Copy source:** the four-slide table the user approved via Yv (brand promise → catalogue → publishing services → LoHo), with the exact fields in `Docs/client_5c_hero_final_review_2026-09-30.md` (Z, corrected `09ef50c`).
 **Status:** Copy ready and rehearsed locally. **Image gate open** (below). Do not start the swap until it is closed.
 **Operator:** a Netlify Identity `admin` user in `/admin/homepage/`. No deploy, push, or code change is needed; the swap is content-only.
 
@@ -9,7 +9,7 @@
 
 | # | Gate | Owner | State 2026-09-30 |
 |---|---|---|---|
-| G1 | Copy approval | User | **Closed.** All four CLIENT-4A concepts approved; Z's CLIENT-5C table is the final wording. Slide 1's catalogue-first CTA is an intentional change from the live contact-first order (Z); Yv to record it. |
+| G1 | Copy approval | User | **Closed.** User approved Yv's four-slide table; Z's corrected CLIENT-5C table is the final wording. Each slide has one CTA. Slide 1's services-first CTA intentionally differs from the live contact-first CTA. |
 | G2 | Every hero image meets **1920×1080**, or the user accepts the named shortfall in writing, and every image is cleared for use. **None passes today; slide 3 has no image.** | Yv → user | **Open** |
 | G3 | Dell's CLIENT-5D local QA passes and the user approves the swap window | Dell, user via Yv | Open |
 
@@ -18,9 +18,11 @@
 | Slide | File | Actual | Issue |
 |---|---|---|---|
 | 1 | `lh-hero.jpg` | 1920×767 | Height (−313 px). Live today. Wide group loses people in a phone crop. |
-| 2 | `lh-print-inspection-wide.jpg` | 1400×933 | Both. Must not imply an owned local print plant. |
-| 3 | *none* | — | **No cleared LoHo artwork.** Needs approved LoHo brand art or a cleared neutral device/learning image; no Kenya portal screenshot or invented interface. Saved without an image, the slide falls back to `lh-hero.jpg`, which repeats slide 1's photo. |
-| 4 | `lh-bilingual-editor-wide.jpg` | 1400×933 | Both. Do not imply the pictured people are Cameroon staff without confirmation. |
+| 2 | *none* | — | `lh-catalogue-shelves.jpg` is 410×410 and cannot serve a full-width hero. Needs a cleared books/classroom photo; generic books or exactly approved covers only; no identifiable minors without consent. |
+| 3 | `lh-print-inspection-wide.jpg` | 1400×933 | Both. Must not imply an owned local print plant. |
+| 4 | *none* | — | **No cleared LoHo artwork.** Needs approved LoHo art or a cleared neutral device-learning visual; no Kenya portal screenshot or invented interface. |
+
+Saved without an image, a slide falls back to `lh-hero.jpg`, so slides 2 and 4 would repeat slide 1's photo until images are supplied.
 
 To swap an image: drop the file in `public/img/`, set the slide's `image`/`upload` in `scripts/hero-launch-set.mjs`, run `node scripts/prepare-hero-launch-images.mjs` and `npm run test:hero-launch`. `Assets/hero-launch/manifest.json` flags every source below 1920×1080.
 
@@ -55,30 +57,31 @@ Allow about 20 minutes. Keep a second tab open on `/en/` and `/fr/` in a private
 7. **Verify live** (read-only, any browser):
    - `/en/` and `/fr/` show exactly 4 slides in order 1–4, with FR copy on `/fr/`.
    - View source: exactly one hero `<img>` with `loading="eager"` + `fetchpriority="high"`, and the `<link rel="preload" as="image">` points at slide 1's `/api/media/uploads/…` key.
-   - All CTA links return 200, and each FR CTA lands on a French route (`/fr/catalogue/`, `/fr/services-edition/`, `/fr/pourquoi-nous-choisir/`, `/fr/contact/`).
-   - Slide 3 visibly reads **Coming soon / Bientôt disponible**, and no slide mentions the National Book List or an approval.
+   - All CTA links return 200, and each FR CTA lands on a French route (`/fr/services-edition/`, `/fr/catalogue/`).
+   - Slide 4 visibly reads **Coming soon / Bientôt disponible**, and no slide mentions the National Book List or an approval.
    - `npm run verify:production` passes.
    - Hand over to Dell for QA-HERO-7 Phase 2.
 
 ## Slide values
 
-Upload files live in `Assets/hero-launch/`. The source of truth is `scripts/hero-launch-set.mjs`; this table must match it. Leave **Accent** empty where shown as —.
+Upload files live in `Assets/hero-launch/`. The source of truth is `scripts/hero-launch-set.mjs`; this table must match it. 
 
 | Field | Slide 1 | Slide 2 | Slide 3 | Slide 4 |
 |---|---|---|---|---|
-| Image file | `slide-1-lh-hero.jpg` ⚠ G2 | `slide-2-lh-print-inspection-wide.jpg` ⚠ G2 | *none* ⚠ G2 | `slide-4-lh-bilingual-editor-wide.jpg` ⚠ G2 |
-| Eyebrow EN | Educational Publishing | Publishing Services | Digital Learning · Coming soon | Heritage & Proximity |
-| Eyebrow FR | Édition éducative | Services d’édition | Apprentissage numérique · Bientôt disponible | Héritage et proximité |
-| Headline EN | Expanding Minds | Every Stage. | LoHo | Continental experience, |
-| Headline FR | Éveiller les esprits | À chaque étape. | LoHo | Une expérience continentale, |
-| Accent EN | — | Every Solution | coming soon | close to you |
-| Accent FR | — | Chaque solution | bientôt disponible | à vos côtés |
-| Primary label EN / FR | Explore Catalogue / Consulter le catalogue | Our Services / Nos services | Explore Services / Explorer nos services | Why Choose Us / Pourquoi nous choisir |
-| Primary destination | `/catalogue` | `/services` | `/services` | `/why-choose-us` |
-| Secondary label EN / FR | Partner With Us / Devenir partenaire | Contact Our Team / Contacter notre équipe | Why Choose Us / Pourquoi nous choisir | Get in Touch / Nous contacter |
-| Secondary destination | `/contact` | `/contact` | `/why-choose-us` | `/contact` |
+| Image file | `slide-1-lh-hero.jpg` ⚠ G2 | *none* ⚠ G2 | `slide-3-lh-print-inspection-wide.jpg` ⚠ G2 | *none* ⚠ G2 |
+| Eyebrow EN | — | Catalogue | Publishing services | Digital learning |
+| Eyebrow FR | — | Catalogue | Services d’édition | Apprentissage numérique |
+| Headline EN | Expanding Minds | Books for Cameroonian classrooms | Every Stage. | LoHo e-learning — |
+| Headline FR | Éveiller les esprits | Des livres pour les classes camerounaises | À chaque étape. | LoHo, apprentissage en ligne — |
+| Accent EN | — | — | Every Solution. | Coming soon |
+| Accent FR | — | — | Chaque solution. | Bientôt disponible |
+| Subheadline EN | Enriching lives through knowledge | Explore learning and teaching materials | Editing, translation and print services for your publishing project | Interactive educational content |
+| Subheadline FR | Enrichir des vies par la connaissance | Découvrez nos matériels d’apprentissage et d’enseignement | Révision, traduction et impression pour votre projet éditorial | Des contenus pédagogiques interactifs |
+| Primary label EN / FR | Explore our services / Découvrir nos services | Browse catalogue / Consulter le catalogue | Explore services / Découvrir nos services | Explore services / Découvrir nos services |
+| Primary destination | `/services` | `/catalogue` | `/services` | `/services` |
+| Secondary CTA | — | — | — | — |
 
-Subheadlines: copy them verbatim from `scripts/hero-launch-set.mjs` (`subheadline_en` / `subheadline_fr`). Slide 2 and 4 use typographic apostrophes (’); retyping invites errors.
+Leave every field shown as — empty. The FR copy uses typographic apostrophes (’); copy from `scripts/hero-launch-set.mjs` rather than retyping.
 
 ## Rollback
 
