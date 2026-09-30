@@ -41,3 +41,14 @@ The live EN/FR homepages still show one enabled “Expanding Minds / Éveiller l
 Every current candidate needs replacement or documented acceptance of its shortfall against the 1920×1080 image rule; new media also needs usage rights. Art-direct phone imagery rather than enlarging desktop landscape files. At 320, 375 and 414 px, keep faces and focal objects above the lower headline/CTA area; inspect both languages after actual images load. Maintain a dark lower overlay and strengthen it beneath text over bright areas. Verify at least **4.5:1** for normal text and **3:1** for large text and visible control boundaries. Recheck 320–820 px CTA clearance against the carousel controls, French wrapping, keyboard focus, reduced motion and rotation CLS.
 
 **Release gate:** build and inspect these four slides locally first. Dell should confirm EN/FR copy and destinations, image rights and mobile crops, contrast, rotation/CLS, and zero unsupported National Book List or LoHo claims before any production change.
+
+## Generated-image review — 2026-09-30
+
+The new `public/img/client5-catalogue.jpg` and `client5-loho.jpg` are 2048×1152 JPEGs, but both were enlarged from 1672×941 PNG originals in `Assets/hero-generated/`. The native image detail therefore remains below the 1920×1080 source rule; obtain acceptance of this shortfall or larger originals.
+
+| Slide | Decision | Mobile and claim adjustment |
+| --- | --- | --- |
+| 2 catalogue | **Conditional desktop pass; mobile crop fails as centred.** Plain, unlabelled books avoid a National Book List or approved-cover visual claim. The dark left wall supports desktop copy. | A tall centre crop loses most of the book stack and right-hand writing action. Supply a separately composed portrait image; if using this JPEG temporarily, begin focal testing near 45% horizontal and verify 320/375/414 px with the real EN/FR text. Do not label the pictured books as approved titles. |
+| 4 LoHo | **Conditional desktop pass as illustration; mobile crop fails as centred.** The abstract tablet screen is not evidence of a working LoHo interface. | A tall centre crop cuts away most of the tablet. Supply a portrait composition; if using this JPEG temporarily, begin focal testing near 80% horizontal. Keep “Coming soon / Bientôt disponible” in text and identify the image as illustrative if context could imply a product screenshot. |
+
+Retain the dark text overlay, then measure normal-text contrast at 4.5:1 and visible controls at 3:1 on the actual mobile renders. These are visual checks, not production approval or image-rights clearance.
