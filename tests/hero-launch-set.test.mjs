@@ -52,7 +52,14 @@ test('each slide pairs with its CLIENT-5C image and an optimised upload master e
   // Generated images must say so, and name their original.
   for (const slide of LAUNCH_SLIDES.filter((s) => s.image?.startsWith('client5-'))) {
     assert.match(slide.provenance ?? '', /AI-generated.*Assets\/hero-generated\//);
+    assert.ok(fs.existsSync(new URL(`../${slide.nativeSource}`, import.meta.url)), `${slide.nativeSource} is missing`);
   }
+  // The manifest must not let an enlarged export hide a small original.
+  const manifest = JSON.parse(fs.readFileSync(new URL('../Assets/hero-launch/manifest.json', import.meta.url), 'utf8'));
+  for (const entry of manifest.filter((e) => e.nativeSource)) {
+    assert.match(entry.warning ?? '', new RegExp(`Native source is ${entry.nativeSource.width}x${entry.nativeSource.height}`));
+  }
+  assert.equal(manifest.filter((e) => e.nativeSource).length, 2);
   for (const slide of LAUNCH_SLIDES.filter((s) => s.upload)) {
     assert.ok(fs.existsSync(new URL(`../Assets/hero-launch/${slide.upload}`, import.meta.url)), `${slide.upload} is missing`);
   }

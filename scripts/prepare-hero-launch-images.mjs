@@ -16,9 +16,19 @@ import sharp from 'sharp';
 import { LAUNCH_SLIDES } from './hero-launch-set.mjs';
 
 const MAX_WIDTH = 1920;
-// Pack D / client_approval_packet.md minimum for every hero photograph.
+// Pack D / client_approval_packet.md size for every hero photograph.
 const MIN_HERO = { width: 1920, height: 1080 };
 const outDir = path.resolve('Assets/hero-launch');
+
+/** 1920×1080 is a quality target (Yv, 2026-09-30), not an approval gate. */
+function warning(width, height, native) {
+  const below = (w, h) => w < MIN_HERO.width || h < MIN_HERO.height;
+  if (native && below(native.width, native.height)) {
+    return `Native source is ${native.width}x${native.height}, below the ${MIN_HERO.width}x${MIN_HERO.height} quality target; `
+      + `the ${width}x${height} export and the upload master are enlarged from it, so they add no detail.`;
+  }
+  return below(width, height) ? `Source is ${width}x${height}, below the ${MIN_HERO.width}x${MIN_HERO.height} quality target.` : null;
+}
 await fs.mkdir(outDir, { recursive: true });
 
 const manifest = [];
@@ -28,6 +38,8 @@ for (const [index, slide] of LAUNCH_SLIDES.entries()) {
     continue;
   }
   const source = path.resolve('public/img', slide.image);
+  // An enlarged export can pass the size check while its original does not.
+  const native = slide.nativeSource ? await sharp(path.resolve(slide.nativeSource)).metadata() : null;
   const input = sharp(source).rotate();
   const { width, height } = await input.metadata();
   const resized = input.clone().resize({ width: Math.min(width, MAX_WIDTH), withoutEnlargement: true });
@@ -47,14 +59,13 @@ for (const [index, slide] of LAUNCH_SLIDES.entries()) {
     height: out.height,
     bytes: { source: sourceBytes, jpeg: jpeg.length, webp: webp.length, avif: avif.length },
     provenance: slide.provenance ?? null,
-    warning: width < MIN_HERO.width || height < MIN_HERO.height
-      ? `Source is ${width}x${height}; Pack D requires >= ${MIN_HERO.width}x${MIN_HERO.height}. Replace, or record client acceptance.`
-      : null,
+    nativeSource: native ? { path: slide.nativeSource, width: native.width, height: native.height } : null,
+    warning: warning(width, height, native),
   });
 }
 
 await fs.writeFile(path.join(outDir, 'manifest.json'), `${JSON.stringify(manifest, null, 2)}\n`);
 console.table(manifest.map(({ slide, width, height, bytes, warning }) => (bytes ? {
   slide, size: `${width}x${height}`, sourceKB: Math.round(bytes.source / 1024), jpegKB: Math.round(bytes.jpeg / 1024),
-  webpKB: Math.round(bytes.webp / 1024), avifKB: Math.round(bytes.avif / 1024), warning: warning ? 'BELOW 1920x1080' : '',
+  webpKB: Math.round(bytes.webp / 1024), avifKB: Math.round(bytes.avif / 1024), warning: warning ? (warning.startsWith('Native') ? 'NATIVE BELOW 1920x1080' : 'BELOW 1920x1080') : '',
 } : { slide, warning: 'NO IMAGE' })));
