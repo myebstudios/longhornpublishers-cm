@@ -15,8 +15,14 @@
   },
   {
     "slide": 2,
+    "source": null,
+    "upload": null,
+    "warning": "No cleared image; the carousel falls back to lh-hero.jpg."
+  },
+  {
+    "slide": 3,
     "source": "public/img/lh-print-inspection-wide.jpg",
-    "upload": "Assets/hero-launch/slide-2-lh-print-inspection-wide.jpg",
+    "upload": "Assets/hero-launch/slide-3-lh-print-inspection-wide.jpg",
     "width": 1400,
     "height": 933,
     "bytes": {
@@ -28,23 +34,9 @@
     "warning": "Source is 1400x933; Pack D requires >= 1920x1080. Replace, or record client acceptance."
   },
   {
-    "slide": 3,
+    "slide": 4,
     "source": null,
     "upload": null,
     "warning": "No cleared image; the carousel falls back to lh-hero.jpg."
-  },
-  {
-    "slide": 4,
-    "source": "public/img/lh-bilingual-editor-wide.jpg",
-    "upload": "Assets/hero-launch/slide-4-lh-bilingual-editor-wide.jpg",
-    "width": 1400,
-    "height": 933,
-    "bytes": {
-      "source": 259394,
-      "jpeg": 143852,
-      "webp": 92756,
-      "avif": 57959
-    },
-    "warning": "Source is 1400x933; Pack D requires >= 1920x1080. Replace, or record client acceptance."
   }
 ]

@@ -30,7 +30,7 @@ test('every launch slide passes the server-side HERO-2 validator unchanged', () 
 
 test('CTA hrefs are locale-neutral slugs that resolve to a real route in both locales', () => {
   for (const [index, slide] of LAUNCH_SLIDES.entries()) {
-    for (const href of [slide.primary_cta_href, slide.secondary_cta_href]) {
+    for (const href of [slide.primary_cta_href, slide.secondary_cta_href].filter(Boolean)) {
       assert.match(href, /^\/[a-z-]+$/, `slide ${index + 1} href ${href} must be a neutral slug`);
       assert.ok(enSlugs.has(href.slice(1)), `slide ${index + 1} href ${href} is not a known route`);
       assert.notEqual(localizeCmsHref(href, 'fr'), href, `slide ${index + 1} href ${href} would not localise`);
@@ -46,9 +46,9 @@ test('subheadlines fit the §4 layout budget in both locales', () => {
 });
 
 test('each slide pairs with its CLIENT-5C image and an optimised upload master exists', () => {
-  // Slide 3 (LoHo) has no cleared image yet and must not borrow one.
+  // Slides 2 (catalogue) and 4 (LoHo) have no usable cleared image yet and must not borrow one.
   assert.deepEqual(LAUNCH_SLIDES.map((slide) => slide.image), [
-    'lh-hero.jpg', 'lh-print-inspection-wide.jpg', null, 'lh-bilingual-editor-wide.jpg',
+    'lh-hero.jpg', null, 'lh-print-inspection-wide.jpg', null,
   ]);
   for (const slide of LAUNCH_SLIDES.filter((s) => s.upload)) {
     assert.ok(fs.existsSync(new URL(`../Assets/hero-launch/${slide.upload}`, import.meta.url)), `${slide.upload} is missing`);
@@ -65,8 +65,8 @@ test('the swap fits the saved-slide cap: one retained rollback slide plus the la
 
 test('no slide claims booklist status, approval, or LoHo availability', () => {
   const text = LAUNCH_SLIDES.flatMap((slide) => Object.values(slide)).filter((v) => typeof v === 'string').join('\n');
-  assert.doesNotMatch(text, /book list|liste officielle|approved|agréé|accredit|accrédit|preorder|précommande|early access|available now/i);
-  const loho = LAUNCH_SLIDES[2];
+  assert.doesNotMatch(text, /book list|liste officielle|approved|agréé|accredit|accrédit|curriculum|programmes nationaux|preorder|précommande|early access|available now|assessment|kenya|congo|central africa|afrique centrale/i);
+  const loho = LAUNCH_SLIDES[3];
   assert.match(`${loho.eyebrow_en} ${loho.headline_accent_en}`, /coming soon/i);
   assert.match(`${loho.eyebrow_fr} ${loho.headline_accent_fr}`, /bientôt disponible/i);
 });
