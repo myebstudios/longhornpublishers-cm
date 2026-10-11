@@ -47,6 +47,12 @@ const copy = locale === 'fr'
       dot: 'Show slide', announcement: 'Slide {current} of {total}', of: 'of',
     };
 const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(slide.image) }));
+// Art direction for the approved print-inspection image, not the third slot:
+// local staging and the saved production slide have different stable IDs.
+const printInspectionIds = new Set([
+  'd20b1780-ab3b-4e15-80b0-e60a30b1d8be',
+  '00000000-0000-4000-8000-0000000007a3',
+]);
 ---
 
 <section
@@ -65,6 +71,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
         class:list={['hero-carousel__slide', index === 0 && 'is-active']}
         data-hero-slide
         data-hero-slide-id={slide.id}
+        data-mobile-print-inspection={printInspectionIds.has(slide.id) || slide.image.endsWith('/lh-print-inspection-wide.jpg') || slide.image === 'lh-print-inspection-wide.jpg' ? true : undefined}
         role={multiple ? 'group' : undefined}
         aria-roledescription={multiple ? 'slide' : undefined}
         aria-label={multiple ? `${index + 1} ${copy.of} ${slides.length}` : undefined}
@@ -157,6 +164,7 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
   .hero-carousel__stack {
     display: grid;
     grid-template-areas: "hero-stack";
+    touch-action: pan-y;
   }
   .hero-carousel__slide {
     position: relative;
@@ -338,6 +346,35 @@ const renderedSlides = slides.map((slide) => ({ ...slide, imageData: responsive(
     .hero-carousel[data-enhanced="true"] .hero-carousel__chrome { bottom: 2rem; }
     .hero-carousel__toolbar { gap: .25rem; }
     .hero-carousel__dot { width: 1.8rem; }
+  }
+
+  /* Fit the approved bilingual copy and the separate 44px control row on short
+     phones. This is a minimum, not a fixed height: enlarged/user-edited text
+     can still grow the stack naturally without clipping. */
+  @media (max-width: 760px) and (max-height: 640px) {
+    .hero-carousel { --hero-action-inset: 4.5rem; }
+    .hero-carousel__slide {
+      min-height: 100svh;
+      padding-top: calc(var(--header-h) + .5rem);
+    }
+    .hero-carousel__content > .eyebrow {
+      margin-bottom: 0;
+      padding: .5rem .75rem;
+      font-size: .75rem;
+      letter-spacing: .1em;
+    }
+    .hero-carousel h1 {
+      font-size: clamp(1.75rem, 5.5vw, 2rem);
+      margin-block: .5rem .75rem;
+    }
+    .hero-carousel__lede { font-size: .9375rem; line-height: 1.4; }
+    .hero-carousel__cta { margin-top: 1rem; gap: .5rem; }
+    .hero-carousel[data-enhanced="true"] .hero-carousel__chrome { bottom: 1rem; }
+  }
+
+  /* Z's 11 October crop recommendation. Desktop and other slides stay centred. */
+  @media (max-width: 414px) {
+    [data-mobile-print-inspection] .hero-carousel__background img { object-position: 75% 50%; }
   }
 
   @media (prefers-reduced-motion: reduce) {
