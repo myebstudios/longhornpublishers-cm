@@ -1,0 +1,5 @@
+---
+interface Props { heading: string; subtitle?: string; }
+const { heading, subtitle } = Astro.props;
+---
+<div class="admin-page-head"><div><h1>{heading}</h1>{subtitle && <p>{subtitle}</p>}</div><slot /></div>

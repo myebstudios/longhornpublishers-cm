@@ -1,0 +1,5 @@
+---
+interface Props { state: string; }
+const { state } = Astro.props;
+---
+<span class:list={['admin-badge', {'admin-badge--published': ['Published','Enabled','Configured'].includes(state), 'admin-badge--draft': ['Draft','Disabled'].includes(state)}]}>{state}</span>

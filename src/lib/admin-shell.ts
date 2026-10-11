@@ -22,7 +22,7 @@ function unlock() { if (!drawer.open && !search.open) document.body.style.overfl
 function closeDrawer(restore = true) {
  if (!drawer.open) return;
  drawer.close();
- sidebar.parentElement!.insertBefore(sidebar, document.querySelector('.app-main'));
+ document.body.insertBefore(sidebar, document.querySelector('.app-main'));
  sidebar.classList.remove('in-drawer');
  applyLayout(); unlock();
  if (restore) (drawerTrigger ?? menu).focus();
@@ -58,7 +58,7 @@ function renderSearch() {
   const heading = document.createElement('h3'); heading.textContent = group; results.append(heading);
   for (const page of pages) { const a = document.createElement('a'); a.href = page.href; a.innerHTML = adminIcon(page.icon); a.append(document.createTextNode(page.label)); results.append(a); }
  }
- if (!matches.length) { const empty = document.createElement('p'); empty.textContent = 'No matching pages.'; results.append(empty); }
+ if (!matches.length) { const empty = document.createElement('p'); empty.textContent = 'No matching admin pages found.'; results.append(empty); }
 }
 function openSearch(trigger: HTMLElement | null) {
  if (document.querySelector('dialog[open]') && !drawer.open) return;

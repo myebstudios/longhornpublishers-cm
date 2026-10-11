@@ -1,3 +1,4 @@
+import { adminIcon } from './admin-icons';
 /**
  * Shared fetch helpers for the admin editors — see Docs/ui_ux_audit.md §11.
  *
@@ -90,27 +91,37 @@ let confirmDialog: HTMLDialogElement | null = null;
 export function confirmAction(message: string): Promise<boolean> {
   if (!confirmDialog) {
     confirmDialog = document.createElement('dialog');
-    confirmDialog.style.cssText = 'border:0;border-radius:.6rem;padding:1.25rem 1.5rem;max-width:24rem;box-shadow:0 1rem 2rem rgba(0,0,0,.2)';
+    confirmDialog.className = 'admin-confirm-dialog';
+    confirmDialog.setAttribute('aria-labelledby', 'adminConfirmTitle');
+    confirmDialog.setAttribute('aria-describedby', 'adminConfirmMessage');
     confirmDialog.innerHTML = `
-      <form method="dialog" style="display:grid;gap:1rem">
-        <p data-message style="margin:0"></p>
-        <div style="display:flex;justify-content:flex-end;gap:.6rem">
-          <button type="submit" value="cancel" style="border:0;border-radius:.4rem;padding:.5rem .9rem;cursor:pointer;background:#eee">Cancel</button>
-          <button type="submit" value="confirm" style="border:0;border-radius:.4rem;padding:.5rem .9rem;cursor:pointer;color:#8b1e31;background:#fbe8eb">Confirm</button>
+      <form method="dialog">
+        <h2 id="adminConfirmTitle">Confirm action</h2>
+        <p data-message id="adminConfirmMessage"></p>
+        <div class="admin-confirm-actions">
+          <button class="button secondary" type="submit" value="cancel" autofocus>Cancel</button>
+          <button class="button danger" type="submit" value="confirm">Confirm</button>
         </div>
       </form>
     `;
     document.body.append(confirmDialog);
   }
   const dialog = confirmDialog;
+  const trigger = document.activeElement as HTMLElement | null;
+  const previousOverflow = document.body.style.overflow;
+  dialog.returnValue = 'cancel';
   dialog.querySelector('[data-message]')!.textContent = message;
   return new Promise(resolve => {
     const onClose = () => {
       dialog.removeEventListener('close', onClose);
+      document.body.style.overflow = previousOverflow;
+      if (trigger?.isConnected) trigger.focus();
       resolve(dialog.returnValue === 'confirm');
     };
     dialog.addEventListener('close', onClose);
     dialog.showModal();
+    document.body.style.overflow = 'hidden';
+    dialog.querySelector<HTMLButtonElement>('[value=cancel]')?.focus();
   });
 }
 
@@ -318,7 +329,8 @@ export function errorCard(heading: string, message: string): HTMLElement {
 
   const icon = document.createElement('div');
   icon.className = 'admin-empty-icon';
-  icon.textContent = '⚠️';
+  icon.innerHTML = adminIcon('alert');
+  card.setAttribute('role', 'alert');
 
   const title = document.createElement('h3');
   title.className = 'admin-empty-title';
