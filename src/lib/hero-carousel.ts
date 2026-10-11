@@ -17,6 +17,11 @@ export function canHeroAutoplay(state: HeroAutoplayState): boolean {
     && !state.documentHidden;
 }
 
+/** Play/Pause must work while its button retains focus or the pointer. */
+export function heroInteractionPauses(withinCarousel: boolean, onToggle: boolean): boolean {
+  return withinCarousel && !onToggle;
+}
+
 const focusable = 'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])';
 
 export function initHeroCarousels(root: ParentNode = document): void {
@@ -59,6 +64,7 @@ export function initHeroCarousels(root: ParentNode = document): void {
     let remaining = interval;
     let startedAt = 0;
     let pointerStartX: number | null = null;
+    let pointerStartY: number | null = null;
 
     const autoplayModeEnabled = () => !state.reducedMotion && !state.manuallyStopped;
 
@@ -171,10 +177,17 @@ export function initHeroCarousels(root: ParentNode = document): void {
 
     carousel.addEventListener('mouseenter', () => { state.hoverPaused = true; schedule(); });
     carousel.addEventListener('mouseleave', () => { state.hoverPaused = false; schedule(); });
-    carousel.addEventListener('focusin', () => { state.focusPaused = true; schedule(); });
+    toggle.addEventListener('mouseenter', () => { state.hoverPaused = false; schedule(); });
+    toggle.addEventListener('mouseleave', () => { state.hoverPaused = carousel.matches(':hover'); schedule(); });
+    carousel.addEventListener('focusin', (event) => {
+      state.focusPaused = heroInteractionPauses(true, event.target === toggle);
+      schedule();
+    });
     carousel.addEventListener('focusout', (event) => {
-      if (event.relatedTarget instanceof Node && carousel.contains(event.relatedTarget)) return;
-      state.focusPaused = false;
+      state.focusPaused = heroInteractionPauses(
+        event.relatedTarget instanceof Node && carousel.contains(event.relatedTarget),
+        event.relatedTarget === toggle,
+      );
       schedule();
     });
     carousel.addEventListener('keydown', (event) => {
@@ -183,15 +196,21 @@ export function initHeroCarousels(root: ParentNode = document): void {
       takeManualControl(current + (event.key === 'ArrowRight' ? 1 : -1));
     });
     stack.addEventListener('pointerdown', (event) => {
-      if (event.pointerType !== 'mouse') pointerStartX = event.clientX;
+      if (event.pointerType !== 'mouse' && event.isPrimary) {
+        pointerStartX = event.clientX;
+        pointerStartY = event.clientY;
+      }
     });
     stack.addEventListener('pointerup', (event) => {
-      if (pointerStartX === null) return;
+      if (pointerStartX === null || pointerStartY === null || !event.isPrimary) return;
       const distance = event.clientX - pointerStartX;
+      const verticalDistance = event.clientY - pointerStartY;
       pointerStartX = null;
-      if (Math.abs(distance) < 50) return;
+      pointerStartY = null;
+      if (Math.abs(distance) < 50 || Math.abs(distance) <= Math.abs(verticalDistance)) return;
       takeManualControl(current + (distance < 0 ? 1 : -1));
     });
+    stack.addEventListener('pointercancel', () => { pointerStartX = null; pointerStartY = null; });
     document.addEventListener('visibilitychange', () => {
       state.documentHidden = document.hidden;
       schedule();

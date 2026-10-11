@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
 import { localizeCmsHref } from '../src/i18n/routes.ts';
-import { canHeroAutoplay } from '../src/lib/hero-carousel.ts';
+import { canHeroAutoplay, heroInteractionPauses } from '../src/lib/hero-carousel.ts';
 
 test('locale-neutral CMS paths resolve through the canonical bilingual route map', () => {
   assert.equal(localizeCmsHref('/contact', 'en'), '/en/contact/');
@@ -42,6 +42,29 @@ test('temporary hover and focus pauses do not mutate the permanent stop state', 
   assert.equal(temporaryHover.manuallyStopped, false);
   assert.equal(canHeroAutoplay({ ...temporaryFocus, focusPaused: false }), true);
   assert.equal(canHeroAutoplay({ ...temporaryHover, hoverPaused: false }), true);
+});
+
+test('Play resumes with toggle focus while content focus still pauses and permanent gates still win', () => {
+  const toggleFocused = { ...playable, focusPaused: heroInteractionPauses(true, true) };
+  assert.equal(canHeroAutoplay(toggleFocused), true);
+  assert.equal(canHeroAutoplay({ ...toggleFocused, reducedMotion: true }), false);
+  assert.equal(canHeroAutoplay({ ...toggleFocused, manuallyStopped: true }), false);
+  assert.equal(canHeroAutoplay({ ...toggleFocused, documentHidden: true }), false);
+  assert.equal(canHeroAutoplay({ ...playable, focusPaused: heroInteractionPauses(true, false) }), false);
+  assert.equal(heroInteractionPauses(false, false), false);
+});
+
+test('global orange eyebrow colors meet AA, including hero and dark-section overrides', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const css = await readFile(new URL('../src/styles/global.css', import.meta.url), 'utf8');
+  const color = name => css.match(new RegExp(`--color-${name}:\\s*(#[0-9a-f]{6})`, 'i'))[1];
+  const luminance = hex => hex.slice(1).match(/../g).map(v => parseInt(v,16)/255)
+    .map(v => v <= .04045 ? v/12.92 : ((v+.055)/1.055)**2.4)
+    .reduce((sum,v,i) => sum+v*[.2126,.7152,.0722][i],0);
+  const a=luminance(color('orange')), b=luminance(color('burgundy-deep'));
+  assert.ok((Math.max(a,b)+.05)/(Math.min(a,b)+.05)>=4.5);
+  assert.match(css,/\.eyebrow\s*\{[^}]*background: var\(--orange\); color: var\(--burgundy-deep\)/);
+  assert.match(css,/\.section--dark \.eyebrow, \.hero \.eyebrow\s*\{ color: var\(--burgundy-deep\)/);
 });
 
 test('the focusable carousel region has a visible focus ring and the dot group names its purpose', async () => {
