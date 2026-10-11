@@ -25,11 +25,13 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
  </div><div id="dashboardErrors"></div>
 </AdminLayout>
 <script>
+ import { dashboardFeedback } from '../../lib/admin-dashboard-feedback';
  import { request } from '../../lib/admin-client';
  import { adminIcon } from '../../lib/admin-icons';
  import { adaptDashboard, dashboardSources, websiteCounts, publicationCounts, catalogueCounts, recentEdits, sourceLabels, type DashboardData } from '../../lib/admin-dashboard';
  const data: DashboardData = {}; const errors = new Map<string,string>(); const pending = new Set<string>(); const loaded = new Map<string,Date>();
  const refresh = document.querySelector<HTMLButtonElement>('#refreshDashboard')!;
+ const feedback = dashboardFeedback(document.getElementById('dashboardErrors')!, refresh, source => void loadSources([source]));
  const el = (id: string) => document.getElementById(id)!;
  function text(tag: string, value: string, className = '') { const node = document.createElement(tag); node.textContent = value; node.className = className; return node; }
  function marker(source: string) { return pending.has(source) ? ' · Updating' : errors.has(source) && data[source] ? ' · Last loaded' : ''; }
@@ -89,12 +91,13 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
    item.append(copy,time,text('span',state,`admin-badge ${['Published','Enabled','Configured'].includes(state) ? 'admin-badge--published' : 'admin-badge--draft'}`)); recent.append(item);
   }
   if (!edits.length) recent.append(text('p',pending.size ? 'Loading…' : errors.size ? 'Recent edits unavailable for failed sections.' : 'No recent edits available'));
-  const errorBox = el('dashboardErrors'); errorBox.replaceChildren();
-  for (const [source,message] of errors) { const card = text('section','', 'card'); card.setAttribute('role','alert'); card.append(text('h2',`${sourceLabels[source]?.label ?? source} · Could not load`),text('p',message)); const retry = text('button','Retry','button secondary') as HTMLButtonElement; retry.type='button'; retry.disabled=pending.has(source); retry.addEventListener('click',() => void loadSources([source])); card.append(retry); errorBox.append(card); }
-  const busy = pending.size > 0; el('dashboardGrid').setAttribute('aria-busy',String(busy)); refresh.disabled = busy; refresh.textContent = busy ? 'Updating…' : 'Refresh data';
+  feedback(errors, pending, source => sourceLabels[source]?.label ?? source);
+  const busy = pending.size > 0; el('dashboardGrid').setAttribute('aria-busy',String(busy)); refresh.textContent = busy ? 'Updating…' : 'Refresh data';
   el('dashboardLoading').textContent = busy ? 'Loading content overview…' : errors.size ? 'Some sections could not be loaded.' : 'Content overview loaded.';
  }
  async function loadSources(sources: string[]) {
+  sources = sources.filter(source => !pending.has(source));
+  if (!sources.length) return;
   sources.forEach(s => pending.add(s)); render();
   await Promise.all(sources.map(async source => {
    const entry = dashboardSources.find(([key]) => key === source)!;
@@ -106,10 +109,12 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   const latest = [...loaded.values()].sort((a,b) => b.getTime()-a.getTime())[0];
   if (latest) el('dashboardFetchTime').textContent = `Last successful read: ${latest.toLocaleString('en-GB')} (browser local time).`;
  }
- refresh.addEventListener('click',() => void loadSources(dashboardSources.map(([key]) => key)));
+ refresh.addEventListener('click',() => { if (!pending.size) void loadSources(dashboardSources.map(([key]) => key)); });
  void loadSources(dashboardSources.map(([key]) => key));
 </script>
 <style>
+.toolbar>a{display:inline-flex;align-items:center;min-height:2.75rem}
+:global(.admin-app .section-status-row>a){display:inline-flex;align-items:center;min-height:2.75rem}
 .dashboard-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(17.5rem,1fr);gap:1.5rem;grid-template-areas:'overview hero' 'sections catalogue' 'recent actions';align-items:start}.dashboard-grid>.card{margin:0}.dashboard-overview{grid-area:overview}.dashboard-hero{grid-area:hero}.dashboard-sections{grid-area:sections}.dashboard-catalogue{grid-area:catalogue}.dashboard-actions{grid-area:actions}.dashboard-recent{grid-area:recent}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:1rem}.metric-card{min-height:8.25rem;padding:1rem;border:1px solid var(--admin-border);display:flex;flex-direction:column;gap:.375rem}.metric-card p{margin:0}.metric-value{font-size:2rem;line-height:2.5rem;font-weight:600;font-variant-numeric:tabular-nums}.dashboard-caption{color:var(--admin-muted);font-size:.75rem}.dashboard-content{min-height:8rem;margin-top:1rem}.summary-row{display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;border-bottom:1px solid var(--admin-border)}.section-status-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;min-height:3.75rem;border-bottom:1px solid var(--admin-border);padding:.75rem 0}.section-status-row small{flex-basis:100%}.quick-actions{display:grid;gap:.5rem;margin-top:1rem}.quick-actions a{display:flex;align-items:center;gap:.75rem;min-height:2.75rem;color:var(--admin-ink);text-decoration:none}.quick-actions a svg:last-child{margin-left:auto}.recent-edit{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;min-height:3.75rem;padding:.75rem 0;color:var(--admin-ink);text-decoration:none;border-bottom:1px solid var(--admin-border)}.recent-edit div{flex:1}.recent-edit strong,.recent-edit small{display:block}.recent-edit time{font-size:.75rem;color:var(--admin-muted)}
 @media(max-width:1199px){.dashboard-grid{grid-template-columns:1fr;grid-template-areas:'overview' 'hero' 'sections' 'catalogue' 'actions' 'recent'}}@media(max-width:479px){.metrics{grid-template-columns:1fr}.recent-edit{display:grid;grid-template-columns:1fr}}
 </style>
