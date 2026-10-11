@@ -1,26 +1,49 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Catalogue" section="catalogue">
-  <div class="admin-page-head">
-    <div>
-      <h1>Catalogue Management</h1>
-      <p>Manage bilingual publication titles, curriculum alignments, and 3:4 portrait book cover assets.</p>
-    </div>
-    <button class="button" type="button" id="openEditorBtn">+ Create New Title</button>
-  </div>
+  <AdminPageHeader heading="Educational Catalogue" subtitle="Manage publication titles, curriculum level assignments, ministerial classification status, and book cover artwork."><button class="button" type="button" id="openEditorBtn">+ Create title</button></AdminPageHeader>
 
   <!-- Collapsible Editor Form Card -->
-  <section class="card editor-card" id="editorCard" hidden>
+
+
+  <!-- Primary Publication List & Filter View -->
+  <section class="card list-card">
+    <div class="list-toolbar">
+      <div class="search-box">
+        <AdminIcon name="search" />
+        <input type="search" id="searchFilter" placeholder="Search titles by name or slug..." aria-label="Search catalogue titles" />
+      </div>
+      <div class="filter-controls">
+        <select id="filterLevel" aria-label="Filter by education level">
+          <option value="all">All education levels</option>
+          <option value="primary">Primary</option>
+          <option value="secondary">Secondary</option>
+        </select>
+        <select id="filterStatus" aria-label="Filter by publication status">
+          <option value="all">All publication states</option>
+          <option value="published">Published</option>
+          <option value="draft">Drafts</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="empty" class="empty-container"></div>
+    <div class="record-head catalogue-columns" aria-hidden="true"><span>Title &amp; product code</span><span>Level &amp; subject</span><span>Classification</span><span>Status</span><span>Actions</span></div><div id="items" class="catalogue-list"></div>
+  </section>
+  <section class="card editor-card" id="editorCard">
     <div class="toolbar">
-      <h2 id="editorTitle">New Title</h2>
-      <button class="button secondary" type="button" id="closeEditorBtn">Close Editor ✕</button>
+      <h2 id="editorTitle">New publication title</h2>
+      <button class="button secondary" type="button" id="closeEditorBtn">Close editor</button>
     </div>
     <form id="editor">
       <input type="hidden" name="id" />
-      <div class="two">
-        <label>English title<input name="title_en" required placeholder="e.g. Primary Mathematics Book 4" /></label>
-        <label>French title<input name="title_fr" required placeholder="e.g. Mathématiques Élémentaires 4" /></label>
+      <fieldset class="two"><legend>Publication details</legend>
+        <label>English title<input name="title_en" required placeholder="e.g. Primary Mathematics Book 4" lang="en" /></label>
+        <label>French title<input name="title_fr" required placeholder="e.g. Mathématiques Élémentaires 4" lang="fr" /></label>
         <label>Slug<input name="slug" required pattern="[a-z0-9-]+" placeholder="primary-mathematics-book-4" /></label>
         <label>ISBN / Product code<input name="product_code" required maxlength="64" autocomplete="off" placeholder="e.g. 978-1-4028-9462-6" /></label>
         <label>Level
@@ -34,11 +57,11 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             <option value="">— No subject —</option>
           </select>
         </label>
-        <label>English description<textarea name="description_en" required placeholder="Comprehensive curriculum coverage..."></textarea></label>
-        <label>French description<textarea name="description_fr" required placeholder="Couverture complète du programme..."></textarea></label>
-        <label>English curriculum alignment<textarea name="curriculum_alignment_en" placeholder="MINEDUB official syllabus compliant..."></textarea></label>
-        <label>French curriculum alignment<textarea name="curriculum_alignment_fr" placeholder="Conforme au programme officiel du MINEDUB..."></textarea></label>
-      </div>
+        <label>English description<textarea name="description_en" required placeholder="Comprehensive curriculum coverage..." lang="en"></textarea></label>
+        <label>French description<textarea name="description_fr" required placeholder="Couverture complète du programme..." lang="fr"></textarea></label>
+        <label>English curriculum alignment<textarea name="curriculum_alignment_en" placeholder="MINEDUB official syllabus compliant..." lang="en"></textarea></label>
+        <label>French curriculum alignment<textarea name="curriculum_alignment_fr" placeholder="Conforme au programme officiel du MINEDUB..." lang="fr"></textarea></label>
+      </fieldset>
 
       <fieldset class="classification">
         <legend>Catalogue classification</legend>
@@ -61,12 +84,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <input type="hidden" name="cover_image_id" />
         <div class="cover__row">
           <div class="cover__preview">
-            <img id="coverPreview" alt="" hidden />
+            <img id="coverPreview" alt="Book cover preview" hidden />
             <p id="coverEmpty" class="cover__empty">No cover image</p>
           </div>
           <div class="cover__controls">
-            <label for="coverFile" id="coverFileLabel" class="button secondary">Choose cover image</label>
-            <input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="coverHint coverStatus" style="display:none" />
+            <label for="coverFile" id="coverFileLabel" class="button secondary" tabindex="0" role="button">Choose cover image</label>
+            <input id="coverFile" type="file" accept="image/jpeg,image/png,image/webp" aria-describedby="coverHint coverStatus" class="accessible-file" />
             <p id="coverHint" class="cover__hint">JPEG, PNG or WebP, up to 8&nbsp;MB. Portrait (3:4) reproduces best.</p>
             <button class="button danger" type="button" id="coverClear" hidden>Remove cover image</button>
             <p id="coverStatus" class="cover__status" role="status" aria-live="polite"></p>
@@ -78,47 +101,23 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <!-- Unchecked by default: an edition is a publishing claim, so it must be
              asserted deliberately rather than inherited from a form default. The
              public card badges these, so a stray default is a visible false claim. -->
-        <label><input name="language_en" type="checkbox" /> English edition</label>
-        <label><input name="language_fr" type="checkbox" /> French edition</label>
+        <label><input name="language_en" type="checkbox" lang="en" /> English edition</label>
+        <label><input name="language_fr" type="checkbox" lang="fr" /> French edition</label>
         <label><input name="featured" type="checkbox" /> Featured title</label>
-        <label><input name="published" type="checkbox" /> Publish now</label>
+        <label><input name="published" type="checkbox" /> Published</label>
       </div>
 
-      <div class="form-actions">
-        <button class="button" type="submit">Save Title</button>
+      <AdminSaveBar>
+        <button class="button" type="submit">Save title</button>
         <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
-      </div>
+      </AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
-  </section>
-
-  <!-- Primary Publication List & Filter View -->
-  <section class="card list-card">
-    <div class="list-toolbar">
-      <div class="search-box">
-        <span class="search-icon" aria-hidden="true">🔍</span>
-        <input type="search" id="searchFilter" placeholder="Search titles by name or slug..." aria-label="Search catalogue titles" />
-      </div>
-      <div class="filter-controls">
-        <select id="filterLevel" aria-label="Filter by education level">
-          <option value="all">All Levels</option>
-          <option value="primary">Primary</option>
-          <option value="secondary">Secondary</option>
-        </select>
-        <select id="filterStatus" aria-label="Filter by publication status">
-          <option value="all">All Statuses</option>
-          <option value="published">Published</option>
-          <option value="draft">Drafts</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="empty" class="empty-container"></div>
-    <div id="items" class="catalogue-list"></div>
   </section>
 </AdminLayout>
 
 <script>
+  import { adminIcon } from '../../lib/admin-icons';
   import {
     confirmAction, coverFileError, coverViewState, emptyToNull, errorCard, registerDirtyCheck, request, sendJson,
   } from '../../lib/admin-client';
@@ -152,7 +151,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     coverField.value = '';
     renderCover(null);
     setCoverStatus('');
-    title.textContent = 'New title';
+    title.textContent = 'New publication title';
     setStatus('');
     pristine = snapshot();
     return true;
@@ -294,8 +293,8 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
   const showEditor = (isNew = false) => {
     editorCard.removeAttribute('hidden');
-    if (isNew) title.textContent = 'New Title';
-    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (isNew) title.textContent = 'New publication title';
+    editorCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     const firstInput = form.querySelector('input[name="title_en"]') as HTMLInputElement | null;
     if (firstInput) firstInput.focus();
   };
@@ -358,7 +357,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       const icon = document.createElement('div');
       icon.className = 'admin-empty-icon';
-      icon.textContent = '📚';
+      icon.innerHTML = adminIcon('book-open');
 
       const titleEl = document.createElement('h3');
       titleEl.className = 'admin-empty-title';
@@ -423,10 +422,19 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const statusSpan = document.createElement('span');
       statusSpan.className = entry.published ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
       statusSpan.textContent = entry.published ? 'Published' : 'Draft';
-      meta.append(codeSpan, levelSpan, statusSpan);
+      heading.dataset.label = 'Title & product code'; heading.append(codeSpan);
+      meta.dataset.label = 'Level & subject';
+      const subject = document.createElement('small');
+      subject.textContent = entry.subject_id ? subjectSelect.querySelector<HTMLOptionElement>(`option[value="${CSS.escape(entry.subject_id)}"]`)?.textContent ?? 'Assigned subject' : 'No subject';
+      meta.append(levelSpan, subject);
+      const classification = document.createElement('div'); classification.dataset.label='Classification';
+      const classNames: Record<string,string> = {unclassified:'Pending classification',other_developed:'Other developed title',national_book_list_verified:'National Book List — verified'};
+      classification.textContent = classNames[entry.classification] ?? 'Unknown classification';
+      const publication = document.createElement('div'); publication.dataset.label='Status'; publication.append(statusSpan);
+      const eligibility = document.createElement('small'); eligibility.textContent = entry.published && ['national_book_list_verified','other_developed'].includes(entry.classification) ? 'Publicly eligible' : 'Not publicly eligible'; publication.append(eligibility);
 
       const actions = document.createElement('div');
-      actions.className = 'item-actions';
+      actions.className = 'item-actions'; actions.dataset.label='Actions';
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -458,7 +466,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       };
 
       actions.append(editButton, deleteButton);
-      article.append(heading, meta, actions);
+      article.append(heading, meta, classification, publication, actions);
       items.append(article);
     });
   }
@@ -521,19 +529,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   loadSubjects().then(() => { pristine = snapshot(); return load(); });
 </script>
 
-<style>
-.editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
-.editor-card[hidden] { display: none; }
-.catalogue-list { display: grid; gap: 1rem; }
-.catalogue-item-card { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
-.catalogue-item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
-.title-info strong { display: block; font-family: var(--font-display); font-size: 16px; color: var(--ink); font-weight: 700; }
-.title-info .alt { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 400; }
-.item-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
-.item-actions { display: flex; gap: .6rem; align-items: center; }
 
-@media (max-width: 760px) {
-  .catalogue-item-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .item-actions { width: 100%; justify-content: flex-end; }
-}
-</style>
