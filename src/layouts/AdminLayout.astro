@@ -16,12 +16,12 @@ const groups = ['Workspace', 'Website', 'Content', 'Settings'];
 </head>
 <body class="admin-app">
  <a class="admin-skip" href="#admin-main">Skip to content</a>
- <aside class="sidebar" id="adminSidebar">
+ <aside class="sidebar" id="adminSidebar" aria-label="Content workspace">
   <div class="sidebar-brand"><a class="brand" href="/admin/" aria-label="Longhorn Admin Home"><img src="/img/longhorn-logo.png" alt="Longhorn Publishers Cameroon" width="136" height="36" /></a><button class="icon-button" id="sidebarToggle" aria-label="Collapse navigation" type="button"><AdminIcon name="collapse" /></button></div>
   <p class="workspace-label nav-label">Content Administration</p>
-  <button class="search-pages" type="button" data-open-search aria-label="Search admin pages"><AdminIcon name="search" /><span class="nav-label">Search pages…</span><kbd class="nav-label" aria-hidden="true">⌘ K</kbd></button>
+  <button class="search-pages" type="button" data-open-search aria-label="Search pages…"><AdminIcon name="search" /><span class="nav-label">Search pages…</span><kbd class="nav-label" aria-hidden="true">⌘ K</kbd></button>
   <nav aria-label="Admin navigation">
-   {groups.map(group => <section class="nav-group"><h2 class="nav-label">{group}</h2><ul>{adminPages.filter(p => p.group === group).map(p => <li><a href={p.href} class:list={{active: p.section === section}} aria-current={p.section === section ? 'page' : undefined} title={p.label}><AdminIcon name={p.icon} /><span class="nav-label">{p.label}</span></a></li>)}</ul></section>)}
+   {groups.map(group => <section class="nav-group"><p class="nav-label nav-group-label">{group}</p><ul>{adminPages.filter(p => p.group === group).map(p => <li><a href={p.href} class:list={{active: p.section === section}} aria-current={p.section === section ? 'page' : undefined} title={p.label}><AdminIcon name={p.icon} /><span class="nav-label">{p.label}</span></a></li>)}</ul></section>)}
   </nav>
   <div class="sidebar-foot">
    <div class="account"><span class="avatar" aria-hidden="true">AD</span><span class="nav-label" id="adminUser">Checking session…</span></div>
@@ -31,13 +31,13 @@ const groups = ['Workspace', 'Website', 'Content', 'Settings'];
   </div>
  </aside>
  <div class="app-main">
-  <header class="topbar"><button type="button" class="icon-button mobile-menu" id="menuButton" aria-label="Open menu"><AdminIcon name="menu" /></button><p class="crumb">Content management / {title}</p><a href="/en/" target="_blank" rel="noopener noreferrer" class="view-site-link" aria-label="Open public website in a new tab"><AdminIcon name="globe" /><span>Open Site</span><AdminIcon name="external-link" /></a></header>
+  <header class="topbar"><button type="button" class="icon-button mobile-menu" id="menuButton" aria-label="Open menu"><AdminIcon name="menu" /></button><p class="crumb">Content management / {title}</p><a href="/en/" target="_blank" rel="noopener noreferrer" class="view-site-link" aria-label="Open Site (opens in a new tab)"><AdminIcon name="globe" /><span>Open Site</span><AdminIcon name="external-link" /></a></header>
   <main id="admin-main" class="page-content" tabindex="-1">
    <slot />
    <div id="localAdminNotice" class="local-admin-notice" role="status" hidden><AdminIcon name="info" /><div><strong>Local development mode.</strong> Netlify Identity does not run locally; test admin sign-in and protected writes on a Netlify deploy preview. The local database and public CMS APIs remain active.</div><button type="button" class="icon-button" id="dismissDevNotice" aria-label="Dismiss local development notice"><AdminIcon name="close" /></button></div>
   </main>
  </div>
- <dialog id="adminNavDrawer" class="admin-drawer" aria-label="Admin navigation"><button class="icon-button" id="closeDrawer" type="button" aria-label="Close menu"><AdminIcon name="close" /></button><div id="drawerContent"></div></dialog>
+ <dialog id="adminNavDrawer" class="admin-drawer" aria-label="Admin menu"><button class="icon-button" id="closeDrawer" type="button" aria-label="Close menu"><AdminIcon name="close" /></button><div id="drawerContent"></div></dialog>
  <dialog id="adminSearchDialog" class="admin-search-dialog" aria-labelledby="adminSearchTitle"><div class="toolbar"><h2 id="adminSearchTitle">Search admin pages</h2><button class="icon-button" type="button" id="closeSearch" aria-label="Close search"><AdminIcon name="close" /></button></div><label for="adminPageQuery">Search pages</label><input id="adminPageQuery" type="search" autocomplete="off" placeholder="Type a page name or section…" /><div id="adminSearchResults" aria-live="polite"></div></dialog>
   <script>
     import { getUser, logout } from '@netlify/identity';
