@@ -135,10 +135,10 @@ em.accent, .accent {
   font-family: var(--font-display); font-size: var(--step--1);
   font-weight: 600; letter-spacing: .14em; text-transform: uppercase;
   padding: .7rem 1rem; border-radius: 999px;
-  background: var(--orange); color: var(--white); margin-bottom: 1.15rem;
+  background: var(--orange); color: var(--burgundy-deep); margin-bottom: 1.15rem;
 }
 .eyebrow::before { display: none; }
-.section--dark .eyebrow, .hero .eyebrow { color: var(--white); }
+.section--dark .eyebrow, .hero .eyebrow { color: var(--burgundy-deep); }
 .section-head--center .eyebrow { justify-content: center; }
 
 /* --- Buttons ----------------------------------------------------------- */
