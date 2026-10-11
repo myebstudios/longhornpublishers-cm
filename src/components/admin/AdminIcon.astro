@@ -1,0 +1,5 @@
+---
+import { adminIcon } from '../../lib/admin-icons';
+interface Props { name: string; }
+---
+<Fragment set:html={adminIcon(Astro.props.name)} />
