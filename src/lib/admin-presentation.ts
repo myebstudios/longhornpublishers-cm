@@ -2,6 +2,7 @@
 import { adminIcon } from './admin-icons';
 let fieldIndex = 0;
 function enhance(root: ParentNode) {
+ root.querySelectorAll<HTMLFormElement>('form').forEach(form => { if (form.querySelector('[required]') && !form.querySelector('.required-hint')) { const hint=document.createElement('p'); hint.className='required-hint'; hint.textContent='Fields marked Required must be completed before saving.'; form.prepend(hint); } });
  root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input,textarea,select').forEach(field => {
   const key = field.name || [...field.attributes].find(a => a.name.startsWith('data-') && /-(en|fr)$/.test(a.name))?.name || '';
   if (key.endsWith('_en') || key.endsWith('-en')) field.lang = 'en';

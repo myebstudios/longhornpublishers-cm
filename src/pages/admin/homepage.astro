@@ -2,7 +2,6 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
 import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
-import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Homepage" section="homepage">
   <AdminPageHeader heading="Homepage & Hero Slides" subtitle="Manage homepage hero carousel slides, brand overview copy, trust metrics, partner highlights, and featured catalogue titles."></AdminPageHeader>
@@ -458,5 +457,3 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   });
   Promise.all([load(), loadSlides()]);
 </script>
-
-

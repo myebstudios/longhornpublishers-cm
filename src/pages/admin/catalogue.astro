@@ -474,7 +474,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   async function load() {
     items.replaceChildren();
     empty.replaceChildren();
-    
+
     // Render skeleton loading cards
     for (let i = 0; i < 3; i++) {
       const skel = document.createElement('div');
@@ -528,5 +528,3 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   pristine = snapshot();
   loadSubjects().then(() => { pristine = snapshot(); return load(); });
 </script>
-
-

@@ -27,7 +27,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
 <script>
  import { request } from '../../lib/admin-client';
  import { adminIcon } from '../../lib/admin-icons';
- import { adaptDashboard, dashboardSources, websiteCounts, websiteSources, publicationCounts, catalogueCounts, recentEdits, sourceLabels, type DashboardData } from '../../lib/admin-dashboard';
+ import { adaptDashboard, dashboardSources, websiteCounts, publicationCounts, catalogueCounts, recentEdits, sourceLabels, type DashboardData } from '../../lib/admin-dashboard';
  const data: DashboardData = {}; const errors = new Map<string,string>(); const pending = new Set<string>(); const loaded = new Map<string,Date>();
  const refresh = document.querySelector<HTMLButtonElement>('#refreshDashboard')!;
  const el = (id: string) => document.getElementById(id)!;
@@ -58,7 +58,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   } else hero.append(text('p',pending.has('hero') ? 'Loading…' : 'Unknown · Could not load'));
   if (data.homepage) {
    const home = data.homepage[0]; pair(hero,'Homepage',home ? (home.published ? 'Published' : 'Draft') + marker('homepage') : 'Not set up');
-   if (home) pair(hero,'Autoplay',`${home.hero_autoplay_enabled ? 'On' : 'Off'} · ${Number(home.hero_autoplay_interval)/1000} seconds`);
+   if (home) pair(hero,'Autoplay',typeof home.hero_autoplay_enabled === 'boolean' && Number.isFinite(Number(home.hero_autoplay_interval)) ? `${home.hero_autoplay_enabled ? 'On' : 'Off'} · ${Number(home.hero_autoplay_interval)/1000} seconds` : 'Unknown');
   } else pair(hero,'Homepage','Unknown');
   const sections = el('sectionStatus'); sections.classList.remove('admin-skeleton'); sections.replaceChildren();
   for (const [source,label] of [['homepage','Homepage'],['about','About us'],['services','Services'],['process','Process steps'],['why','Why choose us'],['contact','Contact'],['legal','Legal pages'],['settings','Site settings']]) {
@@ -68,7 +68,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
    if (!data[source]) row.append(text('span',pending.has(sourceKey) ? 'Loading…' : 'Could not load'));
    else if (source === 'settings') row.append(text('span',data.settings.length ? 'Configured' + marker(sourceKey) : 'Not set up'),text('small','Published / Draft: Not applicable'));
    else if (!data[source].length) row.append(text('span',['services','process'].includes(source) ? 'No items' : source === 'legal' ? 'Not set up' : 'Not set up'));
-   else row.append(text('span',publishHelper(data[source]) + marker(sourceKey)));
+   else { const counts=publicationCounts(data[source]); const values=document.createElement('div');values.className='section-counts';values.append(text('span',`${counts.published} Published`),text('span',`${counts.drafts} Drafts`));row.append(values);if(marker(sourceKey))row.append(text('small',marker(sourceKey).slice(3))); }
    if (source === 'legal' && data.legal) {
     for (const [key,name] of [['privacy_policy','Privacy Policy'],['terms_of_use','Terms of Use']]) if (!data.legal.some(r => r.page === key)) row.append(text('small',`${name}: Not set up`));
    }

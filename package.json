@@ -30,7 +30,8 @@
     "seed:demo": "node scripts/seed-demo.mjs",
     "stage:hero-launch": "node scripts/stage-hero-launch.mjs",
     "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs",
-    "test:on-demand-routing": "node --test scripts/on-demand-routing.test.mjs"
+    "test:on-demand-routing": "node --test scripts/on-demand-routing.test.mjs",
+    "test:admin-dashboard": "node --experimental-strip-types --test tests/admin-dashboard.test.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.5",

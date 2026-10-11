@@ -83,3 +83,13 @@ desktop.addEventListener('change', resize); mobile.addEventListener('change', re
 const notice = document.querySelector<HTMLElement>('#localAdminNotice')!;
 const head = document.querySelector('.admin-page-head'); if (head) head.after(notice);
 document.querySelector('#dismissDevNotice')!.addEventListener('click', () => { notice.hidden = true; try { sessionStorage.setItem('lh-admin-dev-notice-dismissed', 'true'); } catch { /* unavailable storage */ } });
+
+// A single floating tooltip avoids clipping labels inside the scrolling rail.
+const tooltip = document.createElement('div'); tooltip.className='admin-nav-tooltip'; tooltip.id='adminNavTooltip'; tooltip.setAttribute('role','tooltip'); tooltip.hidden=true;document.body.append(tooltip);
+function hideTooltip(){ tooltip.hidden=true; }
+sidebar.querySelectorAll<HTMLElement>('a[title],button[title]').forEach(control=>{
+ const show=()=>{ if (drawer.open || (desktop.matches && !collapsed) || mobile.matches) return; const rect=control.getBoundingClientRect(); tooltip.textContent=control.title; tooltip.hidden=false;tooltip.style.left=`${rect.right+8}px`;tooltip.style.top=`${Math.min(rect.top,innerHeight-tooltip.offsetHeight-8)}px`;control.setAttribute('aria-describedby',tooltip.id); };
+ control.addEventListener('mouseenter',show);control.addEventListener('focus',show);control.addEventListener('mouseleave',hideTooltip);control.addEventListener('blur',()=>{hideTooltip();control.removeAttribute('aria-describedby');});
+});
+window.addEventListener('resize',hideTooltip);document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTooltip();});
+const hint=document.querySelector('kbd');if(hint)hint.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘ K':'Ctrl K';

@@ -109,12 +109,20 @@ export function confirmAction(message: string): Promise<boolean> {
   const dialog = confirmDialog;
   const trigger = document.activeElement as HTMLElement | null;
   const previousOverflow = document.body.style.overflow;
+  const previousModal = document.querySelector<HTMLDialogElement>('dialog[open]');
+  if (previousModal && previousModal !== dialog) previousModal.close();
   dialog.returnValue = 'cancel';
   dialog.querySelector('[data-message]')!.textContent = message;
+  const deleting = /^Delete /.test(message);
+  const unsaved = /unsaved/i.test(message);
+  dialog.querySelector('#adminConfirmTitle')!.textContent = deleting ? 'Delete item?' : unsaved ? 'Unsaved changes' : 'Confirm action';
+  dialog.querySelector('[value=cancel]')!.textContent = unsaved ? 'Keep editing' : 'Cancel';
+  dialog.querySelector('[value=confirm]')!.textContent = deleting ? 'Delete' : /Leave without saving/.test(message) ? 'Leave page' : unsaved ? 'Discard changes' : 'Confirm';
   return new Promise(resolve => {
     const onClose = () => {
       dialog.removeEventListener('close', onClose);
       document.body.style.overflow = previousOverflow;
+      if (dialog.returnValue !== 'confirm' && previousModal?.isConnected) previousModal.showModal();
       if (trigger?.isConnected) trigger.focus();
       resolve(dialog.returnValue === 'confirm');
     };
