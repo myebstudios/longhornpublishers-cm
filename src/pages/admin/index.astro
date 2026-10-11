@@ -1,207 +1,115 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Overview">
-  <div class="admin-page-head">
-    <div>
-      <h1>Content Management Desk</h1>
-      <p>Manage bilingual publication titles, curriculum subjects, and company news with guaranteed EN/FR parity.</p>
-    </div>
-  </div>
-
-  <section class="metrics" aria-label="Dashboard Statistics">
-    <article class="metric-card">
-      <div class="metric-head">
-        <span class="metric-icon" aria-hidden="true">▤</span>
-        <span class="admin-badge admin-badge--published" id="catalogueBadge">Live</span>
-      </div>
-      <p>Catalogue Titles</p>
-      <strong id="metricCatalogue" class="metric-value admin-skeleton"></strong>
-      <small id="metricCatalogueSub" class="metric-sub">Fetching publication titles…</small>
-    </article>
-
-    <article class="metric-card">
-      <div class="metric-head">
-        <span class="metric-icon gold" aria-hidden="true">✦</span>
-        <span class="admin-badge admin-badge--draft" id="newsBadge">Editorial</span>
-      </div>
-      <p>News Articles</p>
-      <strong id="metricNews" class="metric-value admin-skeleton"></strong>
-      <small id="metricNewsSub" class="metric-sub">Fetching editorial drafts…</small>
-    </article>
-
-    <article class="metric-card">
-      <div class="metric-head">
-        <span class="metric-icon purple" aria-hidden="true">❖</span>
-        <span class="admin-badge admin-badge--purple">Taxonomy</span>
-      </div>
-      <p>Curriculum Subjects</p>
-      <strong id="metricSubjects" class="metric-value admin-skeleton"></strong>
-      <small id="metricSubjectsSub" class="metric-sub">Fetching subjects…</small>
-    </article>
-
-    <article class="metric-card">
-      <div class="metric-head">
-        <span class="metric-icon green" aria-hidden="true">✓</span>
-        <span class="admin-badge admin-badge--published">Active</span>
-      </div>
-      <p>Bilingual Parity</p>
-      <strong class="metric-value">100%</strong>
-      <small class="metric-sub">EN & FR required per record.</small>
-    </article>
-  </section>
-
-  <section class="quick-grid" aria-label="Workspace Shortcuts">
-    <div class="card quick-action">
-      <span class="action-icon" aria-hidden="true">📚</span>
-      <div>
-        <p class="section-kicker">Catalogue Workspace</p>
-        <h2>Educational Titles</h2>
-        <p>Create bilingual title entries, assign subjects, and attach 3:4 portrait book cover art.</p>
-      </div>
-      <a class="button" href="/admin/catalogue/">Manage Catalogue <span>→</span></a>
-    </div>
-
-    <div class="card quick-action">
-      <span class="action-icon" aria-hidden="true">📰</span>
-      <div>
-        <p class="section-kicker">Editorial Desk</p>
-        <h2>News & Partnerships</h2>
-        <p>Draft company news, new title announcements, and partnership press releases.</p>
-      </div>
-      <a class="button secondary" href="/admin/news/">Manage News <span>→</span></a>
-    </div>
-  </section>
-
-  <section class="card workflow" aria-label="Publishing Process">
-    <div class="workflow-header">
-      <h2>Publishing Process & Quality Checklist</h2>
-      <p>Content published from this workspace appears on the public site.</p>
-    </div>
-    <ol class="workflow-steps">
-      <li>
-        <span class="step-num">01</span>
-        <div>
-          <strong>Bilingual Draft</strong>
-          <small>Provide both English and French titles, descriptions, and curriculum alignments.</small>
-        </div>
-      </li>
-      <li>
-        <span class="step-num">02</span>
-        <div>
-          <strong>Asset Review</strong>
-          <small>Ensure cover image is 3:4 portrait (JPEG/PNG/WebP, up to 8 MB).</small>
-        </div>
-      </li>
-      <li>
-        <span class="step-num">03</span>
-        <div>
-          <strong>Instant Publish</strong>
-          <small>Check "Publish Now" to make approved content immediately visible.</small>
-        </div>
-      </li>
-    </ol>
-  </section>
+ <div class="admin-page-head"><div><h1>Hello, Administrator</h1><p>Review your content and continue editing.</p></div><button class="button secondary" id="refreshDashboard" type="button">Refresh</button></div>
+ <p id="dashboardLoading" role="status" aria-live="polite">Loading content overview…</p><p id="dashboardFetchTime" class="dashboard-caption"></p>
+ <div class="dashboard-grid" id="dashboardGrid" aria-busy="true">
+  <section class="card dashboard-overview"><h2>Content overview</h2><div class="metrics">
+   <article class="metric-card"><p>Catalogue titles</p><strong id="metricCatalogue" class="metric-value admin-skeleton">—</strong><small id="metricCatalogueSub">Loading…</small><span id="catalogueBadge" hidden></span></article>
+   <article class="metric-card"><p>News articles</p><strong id="metricNews" class="metric-value admin-skeleton">—</strong><small id="metricNewsSub">Loading…</small><span id="newsBadge" hidden></span></article>
+   <article class="metric-card"><p>Subjects</p><strong id="metricSubjects" class="metric-value admin-skeleton">—</strong><small id="metricSubjectsSub">Loading…</small></article>
+   <article class="metric-card"><p>Website content published</p><strong id="metricWebsite" class="metric-value admin-skeleton">—</strong><small id="metricWebsiteSub">Loading…</small><small>Includes pages, services and process steps</small></article>
+  </div></section>
+  <section class="card dashboard-hero"><div class="toolbar"><h2>Hero carousel</h2><a href="/admin/homepage/#hero-slides">Manage slides</a></div><div id="heroSummary" class="dashboard-content admin-skeleton"></div></section>
+  <section class="card dashboard-sections"><h2>Section status</h2><div id="sectionStatus" class="dashboard-content admin-skeleton"></div></section>
+  <section class="card dashboard-catalogue"><div class="toolbar"><h2>Catalogue summary</h2><a href="/admin/catalogue/">See all</a></div><div id="catalogueSummary" class="dashboard-content admin-skeleton"></div><small>Eligibility is based on saved classification, not a live visibility check.</small></section>
+  <section class="card dashboard-actions"><h2>Quick actions</h2><div class="quick-actions">
+   <a href="/admin/catalogue/#editor"><AdminIcon name="book-open" />Edit catalogue<AdminIcon name="arrow" /></a>
+   <a href="/admin/news/#editor"><AdminIcon name="newspaper" />Edit news<AdminIcon name="arrow" /></a>
+   <a href="/admin/homepage/#hero-slides"><AdminIcon name="house" />Manage slides<AdminIcon name="arrow" /></a>
+   <a href="/admin/site-settings/"><AdminIcon name="settings" />Site settings<AdminIcon name="arrow" /></a>
+  </div></section>
+  <section class="card dashboard-recent"><h2>Recent edits</h2><p class="dashboard-caption">Latest saved records; not an activity history.</p><div id="recentEdits" class="dashboard-content admin-skeleton"></div></section>
+ </div><div id="dashboardErrors"></div>
 </AdminLayout>
-
 <script>
-  import { request } from '../../lib/admin-client';
-
-  async function loadDashboardMetrics() {
-    const catalogueEl = document.querySelector('#metricCatalogue');
-    const catalogueSub = document.querySelector('#metricCatalogueSub');
-    const newsEl = document.querySelector('#metricNews');
-    const newsSub = document.querySelector('#metricNewsSub');
-    const subjectsEl = document.querySelector('#metricSubjects');
-    const subjectsSub = document.querySelector('#metricSubjectsSub');
-
-    try {
-      const [catRes, newsRes, subjRes] = await Promise.all([
-        request<any[]>('/api/catalogue-admin', {}, 'Unable to fetch catalogue.'),
-        request<any[]>('/api/news-admin', {}, 'Unable to fetch news.'),
-        request<any[]>('/api/subjects-admin', {}, 'Unable to fetch subjects.'),
-      ]);
-
-      if (catalogueEl) catalogueEl.classList.remove('admin-skeleton');
-      if (newsEl) newsEl.classList.remove('admin-skeleton');
-      if (subjectsEl) subjectsEl.classList.remove('admin-skeleton');
-
-      if (catRes.ok && catRes.data) {
-        const published = catRes.data.filter(t => t.published).length;
-        if (catalogueEl) catalogueEl.textContent = String(catRes.data.length);
-        if (catalogueSub) catalogueSub.textContent = `${published} published · ${catRes.data.length - published} drafts`;
-      } else {
-        if (catalogueEl) catalogueEl.textContent = '0';
-        if (catalogueSub) catalogueSub.textContent = 'Ready for initial titles.';
-      }
-
-      if (newsRes.ok && newsRes.data) {
-        const published = newsRes.data.filter(a => a.published).length;
-        if (newsEl) newsEl.textContent = String(newsRes.data.length);
-        if (newsSub) newsSub.textContent = `${published} published articles`;
-      } else {
-        if (newsEl) newsEl.textContent = '0';
-        if (newsSub) newsSub.textContent = 'Ready for editorial news.';
-      }
-
-      if (subjRes.ok && subjRes.data) {
-        if (subjectsEl) subjectsEl.textContent = String(subjRes.data.length);
-        if (subjectsSub) subjectsSub.textContent = 'Curriculum taxonomy active.';
-      } else {
-        if (subjectsEl) subjectsEl.textContent = '0';
-        if (subjectsSub) subjectsSub.textContent = 'Define subjects to categorize titles.';
-      }
-    } catch {
-      if (catalogueEl) { catalogueEl.classList.remove('admin-skeleton'); catalogueEl.textContent = '—'; }
-      if (newsEl) { newsEl.classList.remove('admin-skeleton'); newsEl.textContent = '—'; }
-      if (subjectsEl) { subjectsEl.classList.remove('admin-skeleton'); subjectsEl.textContent = '—'; }
-    }
+ import { request } from '../../lib/admin-client';
+ import { adminIcon } from '../../lib/admin-icons';
+ import { adaptDashboard, dashboardSources, websiteCounts, websiteSources, publicationCounts, catalogueCounts, recentEdits, sourceLabels, type DashboardData } from '../../lib/admin-dashboard';
+ const data: DashboardData = {}; const errors = new Map<string,string>(); const pending = new Set<string>(); const loaded = new Map<string,Date>();
+ const refresh = document.querySelector<HTMLButtonElement>('#refreshDashboard')!;
+ const el = (id: string) => document.getElementById(id)!;
+ function text(tag: string, value: string, className = '') { const node = document.createElement(tag); node.textContent = value; node.className = className; return node; }
+ function marker(source: string) { return pending.has(source) ? ' · Updating' : errors.has(source) && data[source] ? ' · Last loaded' : ''; }
+ function metric(name: string, source: string, helper: (rows: any[]) => string) {
+  const node = el(`metric${name}`); node.classList.toggle('admin-skeleton', pending.has(source) && !data[source]);
+  node.textContent = data[source] ? String(data[source].length) : '—';
+  el(`metric${name}Sub`).textContent = data[source] ? helper(data[source]) + marker(source) : pending.has(source) ? 'Loading…' : 'Could not load';
+ }
+ const publishHelper = (rows: any[]) => { const c = publicationCounts(rows); return `${c.published} published · ${c.drafts} drafts`; };
+ function pair(container: HTMLElement, label: string, value: string) { const row = document.createElement('div'); row.className = 'summary-row'; row.append(text('span',label),text('strong',value)); container.append(row); }
+ function render() {
+  metric('Catalogue','catalogue',publishHelper); metric('News','news',publishHelper); metric('Subjects','subjects',r => `${r.filter(x => x.title_count === 0).length} with no assigned titles`);
+  // Retained values may be useful, but never present failed sources as fresh totals.
+  const aggregate = websiteCounts(data); const contributing = ['homepage','about','why','contact','services','legal'];
+  const stale = contributing.some(s => errors.has(s));
+  el('metricWebsite').textContent = aggregate && !stale ? String(aggregate.published) : '—';
+  el('metricWebsite').classList.toggle('admin-skeleton', !aggregate && contributing.some(s => pending.has(s)));
+  el('metricWebsiteSub').textContent = aggregate && !stale ? `${aggregate.published} published · ${aggregate.drafts} drafts · ${aggregate.missing} pages not set up${contributing.some(s => pending.has(s)) ? ' · Updating' : ''}` : contributing.some(s => pending.has(s)) ? 'Loading…' : 'Could not load';
+  const hero = el('heroSummary'); hero.classList.remove('admin-skeleton'); hero.replaceChildren();
+  if (data.hero) {
+   const n = data.hero.length, e = data.hero.filter(s => s.enabled === true).length;
+   pair(hero,'Saved',`${n} / 5${marker('hero')}`); pair(hero,'Enabled',String(e)); pair(hero,'Disabled',String(n-e));
+   if (!n) hero.append(text('p','Legacy hero fallback'));
+   else if (!e) hero.append(text('p','No enabled slides','status status--err'));
+   else hero.append(text('small','Enabled is a configuration state; it does not verify CDN visibility.'));
+  } else hero.append(text('p',pending.has('hero') ? 'Loading…' : 'Unknown · Could not load'));
+  if (data.homepage) {
+   const home = data.homepage[0]; pair(hero,'Homepage',home ? (home.published ? 'Published' : 'Draft') + marker('homepage') : 'Not set up');
+   if (home) pair(hero,'Autoplay',`${home.hero_autoplay_enabled ? 'On' : 'Off'} · ${Number(home.hero_autoplay_interval)/1000} seconds`);
+  } else pair(hero,'Homepage','Unknown');
+  const sections = el('sectionStatus'); sections.classList.remove('admin-skeleton'); sections.replaceChildren();
+  for (const [source,label] of [['homepage','Homepage'],['about','About us'],['services','Services'],['process','Process steps'],['why','Why choose us'],['contact','Contact'],['legal','Legal pages'],['settings','Site settings']]) {
+   const row = document.createElement('div'); row.className = 'section-status-row';
+   const link = document.createElement('a'); link.href = sourceLabels[source].href; link.textContent = label; row.append(link);
+   const sourceKey = source === 'process' ? 'services' : source;
+   if (!data[source]) row.append(text('span',pending.has(sourceKey) ? 'Loading…' : 'Could not load'));
+   else if (source === 'settings') row.append(text('span',data.settings.length ? 'Configured' + marker(sourceKey) : 'Not set up'),text('small','Published / Draft: Not applicable'));
+   else if (!data[source].length) row.append(text('span',['services','process'].includes(source) ? 'No items' : source === 'legal' ? 'Not set up' : 'Not set up'));
+   else row.append(text('span',publishHelper(data[source]) + marker(sourceKey)));
+   if (source === 'legal' && data.legal) {
+    for (const [key,name] of [['privacy_policy','Privacy Policy'],['terms_of_use','Terms of Use']]) if (!data.legal.some(r => r.page === key)) row.append(text('small',`${name}: Not set up`));
+   }
+   sections.append(row);
   }
-
-  document.addEventListener('DOMContentLoaded', loadDashboardMetrics);
+  const cat = el('catalogueSummary'); cat.classList.remove('admin-skeleton'); cat.replaceChildren();
+  if (data.catalogue) { const c = catalogueCounts(data.catalogue); for (const [label,key] of [['Total','total'],['Primary','primary'],['Secondary','secondary'],['Published','published'],['Drafts','drafts'],['Unclassified','unclassified'],['Publicly eligible','eligible']] as const) pair(cat,label,String(c[key])); if (marker('catalogue')) cat.append(text('small',marker('catalogue').slice(3))); }
+  else cat.append(text('p',pending.has('catalogue') ? 'Loading…' : 'Could not load'));
+  const recent = el('recentEdits'); recent.classList.remove('admin-skeleton'); recent.replaceChildren();
+  if (errors.size) recent.append(text('p','Some sections could not be loaded.','status status--err'));
+  const edits = recentEdits(data);
+  for (const { source, row, timestamp } of edits) {
+   const meta = sourceLabels[source]; const item = document.createElement('a'); item.className = 'recent-edit'; item.href = meta.href; item.innerHTML = adminIcon(meta.icon);
+   const copy = document.createElement('div'); const name = String(row.title_en ?? row.headline_en ?? row.name_en ?? (source === 'legal' ? row.page === 'privacy_policy' ? 'Privacy Policy' : 'Terms of Use' : meta.label));
+   copy.append(text('strong',name),text('small',meta.label + marker(source === 'process' ? 'services' : source)));
+   const time = document.createElement('time'); time.dateTime = new Date(timestamp).toISOString(); time.textContent = new Intl.DateTimeFormat('en-GB',{dateStyle:'medium',timeStyle:'short'}).format(timestamp) + ' ' + new Intl.DateTimeFormat('en-GB',{timeZoneName:'short'}).formatToParts(timestamp).find(p => p.type === 'timeZoneName')?.value;
+   const state = source === 'hero' ? row.enabled ? 'Enabled' : 'Disabled' : source === 'settings' ? 'Configured' : row.published ? 'Published' : 'Draft';
+   item.append(copy,time,text('span',state,`admin-badge ${['Published','Enabled','Configured'].includes(state) ? 'admin-badge--published' : 'admin-badge--draft'}`)); recent.append(item);
+  }
+  if (!edits.length) recent.append(text('p',pending.size ? 'Loading…' : errors.size ? 'Recent edits unavailable for failed sections.' : 'No recent edits available'));
+  const errorBox = el('dashboardErrors'); errorBox.replaceChildren();
+  for (const [source,message] of errors) { const card = text('section','', 'card'); card.setAttribute('role','alert'); card.append(text('h2',`${sourceLabels[source]?.label ?? source} · Could not load`),text('p',message)); const retry = text('button','Retry','button secondary') as HTMLButtonElement; retry.type='button'; retry.disabled=pending.has(source); retry.addEventListener('click',() => void loadSources([source])); card.append(retry); errorBox.append(card); }
+  const busy = pending.size > 0; el('dashboardGrid').setAttribute('aria-busy',String(busy)); refresh.disabled = busy; refresh.textContent = busy ? 'Updating…' : 'Refresh';
+  el('dashboardLoading').textContent = busy ? 'Loading content overview…' : errors.size ? 'Some sections could not be loaded.' : 'Content overview loaded.';
+ }
+ async function loadSources(sources: string[]) {
+  sources.forEach(s => pending.add(s)); render();
+  await Promise.all(sources.map(async source => {
+   const entry = dashboardSources.find(([key]) => key === source)!;
+   const response = await request(entry[1],{},`Unable to load ${sourceLabels[source]?.label ?? source}.`);
+   try { if (!response.ok) throw new Error(response.error ?? 'Could not load'); Object.assign(data,adaptDashboard(source,response.data)); errors.delete(source); loaded.set(source,new Date()); }
+   catch (error) { errors.set(source,error instanceof Error ? error.message : 'Could not load'); }
+   finally { pending.delete(source); render(); }
+  }));
+  const latest = [...loaded.values()].sort((a,b) => b.getTime()-a.getTime())[0];
+  if (latest) el('dashboardFetchTime').textContent = `Last successful read: ${latest.toLocaleString('en-GB')} (browser local time).`;
+ }
+ refresh.addEventListener('click',() => void loadSources(dashboardSources.map(([key]) => key)));
+ void loadSources(dashboardSources.map(([key]) => key));
 </script>
-
 <style>
-.metrics { display: grid; grid-template-columns: repeat(4, 1fr); gap: 20px; }
-.metric-card {
-  min-height: 180px; background: #fff; border: 1px solid var(--line);
-  border-radius: 20px; padding: 22px; box-shadow: 0 8px 24px rgba(59, 15, 27, 0.04);
-  display: flex; flex-direction: column; justify-content: space-between;
-  transition: transform .25s ease, box-shadow .25s ease;
-}
-.metric-card:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(59, 15, 27, 0.08); }
-.metric-head { display: flex; align-items: center; justify-content: space-between; }
-.metric-card p { margin: 14px 0 2px; color: var(--muted); font-size: 13px; font-weight: 600; font-family: var(--font-display); }
-.metric-value { display: block; font: 700 36px/1 var(--font-display); color: var(--ink); letter-spacing: -.04em; min-height: 36px; }
-.metric-sub { display: block; margin-top: 8px; color: var(--muted); font-size: 12px; }
-
-.metric-icon { display: grid; place-items: center; width: 38px; height: 38px; border-radius: 12px; background: var(--green-pale); color: var(--green-deep); font-weight: 900; font-size: 16px; }
-.metric-icon.gold { background: rgba(233,166,59,.18); color: #9A6608; }
-.metric-icon.purple { background: rgba(110,75,158,.14); color: var(--purple); }
-.metric-icon.green { background: var(--green-pale); color: var(--green-deep); }
-
-.quick-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-top: 4px; }
-.quick-action {
-  display: flex; flex-direction: column; justify-content: space-between; gap: 20px;
-  background: linear-gradient(135deg, #ffffff, #fdfaf5); border: 1px solid var(--line);
-}
-.action-icon { font-size: 32px; }
-.quick-action p { color: var(--muted); margin-top: 6px; }
-.quick-action .button { align-self: flex-start; margin-top: 12px; }
-.section-kicker { margin: 0 !important; color: var(--burgundy) !important; font-size: 11px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; font-family: var(--font-display); }
-
-.workflow-header { margin-bottom: 24px; }
-.workflow-steps { display: grid; grid-template-columns: repeat(3, 1fr); list-style: none; margin: 0; padding: 0; gap: 20px; }
-.workflow-steps li { display: flex; gap: 14px; align-items: flex-start; padding: 18px; border-radius: 14px; background: var(--cream); border: 1px solid var(--line); }
-.step-num { font: 800 18px var(--font-display); color: var(--green-deep); background: var(--green-pale); padding: 4px 10px; border-radius: 8px; }
-.workflow-steps strong { display: block; font-family: var(--font-display); color: var(--ink); font-size: 15px; }
-.workflow-steps small { display: block; margin-top: 4px; color: var(--muted); font-size: 13px; line-height: 1.4; }
-
-@media (max-width: 1100px) {
-  .metrics { grid-template-columns: repeat(2, 1fr); }
-  .quick-grid { grid-template-columns: 1fr; }
-}
-@media (max-width: 700px) {
-  .metrics, .workflow-steps { grid-template-columns: 1fr; }
-}
+.dashboard-grid{display:grid;grid-template-columns:minmax(0,2fr) minmax(17.5rem,1fr);gap:1.5rem;grid-template-areas:'overview hero' 'sections catalogue' 'recent actions';align-items:start}.dashboard-grid>.card{margin:0}.dashboard-overview{grid-area:overview}.dashboard-hero{grid-area:hero}.dashboard-sections{grid-area:sections}.dashboard-catalogue{grid-area:catalogue}.dashboard-actions{grid-area:actions}.dashboard-recent{grid-area:recent}.metrics{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));margin-top:1rem}.metric-card{min-height:8.25rem;padding:1rem;border:1px solid var(--admin-border);display:flex;flex-direction:column;gap:.375rem}.metric-card p{margin:0}.metric-value{font-size:2rem;line-height:2.5rem;font-weight:600;font-variant-numeric:tabular-nums}.dashboard-caption{color:var(--admin-muted);font-size:.75rem}.dashboard-content{min-height:8rem;margin-top:1rem}.summary-row{display:flex;justify-content:space-between;gap:1rem;padding:.5rem 0;border-bottom:1px solid var(--admin-border)}.section-status-row{display:flex;align-items:center;justify-content:space-between;gap:.75rem;flex-wrap:wrap;min-height:3.75rem;border-bottom:1px solid var(--admin-border);padding:.75rem 0}.section-status-row small{flex-basis:100%}.quick-actions{display:grid;gap:.5rem;margin-top:1rem}.quick-actions a{display:flex;align-items:center;gap:.75rem;min-height:2.75rem;color:var(--admin-ink);text-decoration:none}.quick-actions a svg:last-child{margin-left:auto}.recent-edit{display:flex;align-items:center;gap:1rem;flex-wrap:wrap;min-height:3.75rem;padding:.75rem 0;color:var(--admin-ink);text-decoration:none;border-bottom:1px solid var(--admin-border)}.recent-edit div{flex:1}.recent-edit strong,.recent-edit small{display:block}.recent-edit time{font-size:.75rem;color:var(--admin-muted)}
+@media(max-width:1199px){.dashboard-grid{grid-template-columns:1fr;grid-template-areas:'overview' 'hero' 'sections' 'catalogue' 'actions' 'recent'}}@media(max-width:479px){.metrics{grid-template-columns:1fr}.recent-edit{display:grid;grid-template-columns:1fr}}
 </style>
