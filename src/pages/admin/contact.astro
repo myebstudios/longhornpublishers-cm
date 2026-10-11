@@ -1,20 +1,23 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Contact" section="contact">
-  <div class="admin-page-head"><div><h1>Contact</h1><p>Manage bilingual hero copy, project types, and the map pin.</p></div></div>
+  <AdminPageHeader heading="Contact Page" subtitle="Manage contact hero introduction, inquiry project types, and map coordinates."></AdminPageHeader>
   <section class="card editor-card">
-    <form id="contactForm">
+    <form id="contactForm"><p>Address, phone numbers, and public email are managed centrally in <a href="/admin/site-settings/">Site settings</a>.</p><h2>Introduction and coordinates</h2>
       <div class="two">
-        <label>Hero copy — English<textarea name="hero_copy_en" required></textarea></label>
-        <label>Hero copy — French<textarea name="hero_copy_fr" required></textarea></label>
+        <label>Hero copy — English<textarea name="hero_copy_en" required lang="en"></textarea></label>
+        <label>Hero copy — French<textarea name="hero_copy_fr" required lang="fr"></textarea></label>
         <label>Map latitude<input name="map_lat" type="number" min="-90" max="90" step="any"></label>
         <label>Map longitude<input name="map_lng" type="number" min="-180" max="180" step="any"></label>
       </div>
       <div class="toolbar"><h2>Project type options</h2><button class="button secondary" type="button" id="addOption">+ Add option</button></div>
       <div id="options" class="repeat-list"></div>
       <label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label>
-      <div class="form-actions"><button class="button" type="submit">Save Contact page</button></div>
+      <AdminSaveBar><button class="button" type="submit">Save Contact page</button></AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
   </section>
@@ -52,8 +55,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>
-  .repeat-list { display:grid; gap:12px; }
-  .repeat-row { display:grid; grid-template-columns:1fr 1fr auto; gap:12px; align-items:end; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
-  @media (max-width: 760px) { .repeat-row { grid-template-columns:1fr; } }
-</style>
+

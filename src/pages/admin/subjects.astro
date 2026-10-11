@@ -1,51 +1,50 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Subjects" section="subjects">
-  <div class="admin-page-head">
-    <div>
-      <h1>Subject Taxonomy</h1>
-      <p>Manage bilingual subject classifications for catalogue titles across English and French curricula.</p>
-    </div>
-    <button class="button" type="button" id="openEditorBtn">+ Create New Subject</button>
-  </div>
+  <AdminPageHeader heading="Curriculum Subjects" subtitle="Manage the academic subject taxonomy for Cameroon primary and secondary curricula."><button class="button" type="button" id="openEditorBtn">+ Create subject</button></AdminPageHeader>
 
   <!-- Collapsible Subject Editor Card -->
-  <section class="card editor-card" id="editorCard" hidden>
-    <div class="toolbar">
-      <h2 id="editorTitle">New Subject</h2>
-      <button class="button secondary" type="button" id="closeEditorBtn">Close Editor ✕</button>
-    </div>
-    <form id="editor">
-      <input type="hidden" name="id" />
-      <div class="two">
-        <label>English subject name<input name="name_en" required placeholder="e.g. Mathematics" /></label>
-        <label>French subject name<input name="name_fr" required placeholder="e.g. Mathématiques" /></label>
-      </div>
-      <div class="form-actions">
-        <button class="button" type="submit">Save Subject</button>
-        <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
-      </div>
-      <p id="status" role="status" aria-live="polite"></p>
-    </form>
-  </section>
+
 
   <!-- Primary Subject Taxonomy List -->
   <section class="card list-card">
     <div class="list-toolbar">
       <div class="search-box">
-        <span class="search-icon" aria-hidden="true">🔍</span>
+        <AdminIcon name="search" />
         <input type="search" id="searchFilter" placeholder="Search subjects by English or French name..." aria-label="Search subjects" />
       </div>
       <div class="subject-count-chip" id="countChip">0 subjects</div>
     </div>
 
     <div id="empty" class="empty-container"></div>
-    <div id="items" class="subjects-list"></div>
+    <div class="record-head subject-columns" aria-hidden="true"><span>Bilingual subject name</span><span>Assigned titles</span><span>Actions</span></div><div id="items" class="subjects-list"></div>
+  </section>
+  <section class="card editor-card" id="editorCard">
+    <div class="toolbar">
+      <h2 id="editorTitle">New curriculum subject</h2>
+      <button class="button secondary" type="button" id="closeEditorBtn">Close editor</button>
+    </div>
+    <form id="editor">
+      <input type="hidden" name="id" />
+      <fieldset class="two"><legend>Subject names</legend>
+        <label>English subject name<input name="name_en" required placeholder="e.g. Mathematics" lang="en" /></label>
+        <label>French subject name<input name="name_fr" required placeholder="e.g. Mathématiques" lang="fr" /></label>
+      </fieldset>
+      <AdminSaveBar>
+        <button class="button" type="submit">Save subject</button>
+        <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
+      </AdminSaveBar>
+      <p id="status" role="status" aria-live="polite"></p>
+    </form>
   </section>
 </AdminLayout>
 
 <script>
+  import { adminIcon } from '../../lib/admin-icons';
   import { confirmAction, errorCard, registerDirtyCheck, request, sendJson } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
@@ -100,7 +99,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     if (ok) {
       showEditor();
       (form.elements.namedItem('name_en') as HTMLInputElement).focus();
-      editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      editorCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     }
   };
 
@@ -114,7 +113,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
     pristine = snapshot();
     showEditor();
     (form.elements.namedItem('name_en') as HTMLInputElement).focus();
-    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    editorCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
   };
 
   function renderList() {
@@ -137,7 +136,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       const icon = document.createElement('div');
       icon.className = 'admin-empty-icon';
-      icon.textContent = '❖';
+      icon.innerHTML = adminIcon('tags');
 
       const titleEl = document.createElement('h3');
       titleEl.className = 'admin-empty-title';
@@ -180,10 +179,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       const iconBox = document.createElement('div');
       iconBox.className = 'subject-icon';
-      iconBox.textContent = (entry.name_en || 'S').charAt(0).toUpperCase();
+      iconBox.innerHTML = adminIcon('tags');
 
       const details = document.createElement('div');
-      details.className = 'subject-details';
+      details.className = 'subject-details'; details.dataset.label='Subject name';
 
       const heading = document.createElement('h3');
       heading.className = 'subject-title';
@@ -199,10 +198,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const count = Number(entry.title_count ?? 0);
       const meta = document.createElement('span');
       meta.className = 'admin-badge admin-badge--purple';
-      meta.textContent = count === 1 ? '1 Title' : `${count} Titles`;
+      meta.textContent = count === 1 ? '1 title' : `${count} titles`; meta.dataset.label='Assigned titles';
 
       const actions = document.createElement('div');
-      actions.className = 'subject-actions';
+      actions.className = 'subject-actions'; actions.dataset.label='Actions';
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -236,7 +235,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       };
 
       actions.append(editButton, deleteButton);
-      article.append(iconBox, details, meta, actions);
+      details.prepend(iconBox); article.append(details, meta, actions);
       itemsContainer.append(article);
     });
   }
@@ -308,22 +307,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>
-.editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
-.editor-card[hidden] { display: none; }
-.subject-count-chip { font-size: 13px; font-weight: 600; color: var(--muted); font-family: var(--font-display); }
 
-.subjects-list { display: grid; gap: 1rem; }
-.subject-item { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
-.subject-item:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
-.subject-icon { display: grid; place-items: center; width: 42px; height: 42px; border-radius: 12px; background: var(--green-pale); color: var(--green-deep); font: 800 18px var(--font-display); flex-shrink: 0; }
-.subject-details { flex: 1; }
-.subject-title { margin: 0; font: 700 16px var(--font-display); color: var(--ink); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
-.subject-alt { font-size: 13px; font-weight: 400; color: var(--muted); font-family: var(--font-body); }
-.subject-actions { display: flex; gap: .6rem; align-items: center; }
-
-@media (max-width: 760px) {
-  .subject-item { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .subject-actions { width: 100%; justify-content: flex-end; }
-}
-</style>

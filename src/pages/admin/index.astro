@@ -3,7 +3,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Overview">
- <div class="admin-page-head"><div><h1>Hello, Administrator</h1><p>Review your content and continue editing.</p></div><button class="button secondary" id="refreshDashboard" type="button">Refresh</button></div>
+ <div class="admin-page-head"><div><h1>Hello, Administrator</h1><p>Review your publication status, hero features, and recent editorial edits.</p></div><button class="button secondary" id="refreshDashboard" type="button">Refresh data</button></div>
  <p id="dashboardLoading" role="status" aria-live="polite">Loading content overview…</p><p id="dashboardFetchTime" class="dashboard-caption"></p>
  <div class="dashboard-grid" id="dashboardGrid" aria-busy="true">
   <section class="card dashboard-overview"><h2>Content overview</h2><div class="metrics">
@@ -14,7 +14,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   </div></section>
   <section class="card dashboard-hero"><div class="toolbar"><h2>Hero carousel</h2><a href="/admin/homepage/#hero-slides">Manage slides</a></div><div id="heroSummary" class="dashboard-content admin-skeleton"></div></section>
   <section class="card dashboard-sections"><h2>Section status</h2><div id="sectionStatus" class="dashboard-content admin-skeleton"></div></section>
-  <section class="card dashboard-catalogue"><div class="toolbar"><h2>Catalogue summary</h2><a href="/admin/catalogue/">See all</a></div><div id="catalogueSummary" class="dashboard-content admin-skeleton"></div><small>Eligibility is based on saved classification, not a live visibility check.</small></section>
+  <section class="card dashboard-catalogue"><div class="toolbar"><h2>Catalogue summary</h2><a href="/admin/catalogue/">View catalogue</a></div><div id="catalogueSummary" class="dashboard-content admin-skeleton"></div><small>Eligibility is based on saved classification, not a live visibility check.</small></section>
   <section class="card dashboard-actions"><h2>Quick actions</h2><div class="quick-actions">
    <a href="/admin/catalogue/#editor"><AdminIcon name="book-open" />Edit catalogue<AdminIcon name="arrow" /></a>
    <a href="/admin/news/#editor"><AdminIcon name="newspaper" />Edit news<AdminIcon name="arrow" /></a>
@@ -91,7 +91,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   if (!edits.length) recent.append(text('p',pending.size ? 'Loading…' : errors.size ? 'Recent edits unavailable for failed sections.' : 'No recent edits available'));
   const errorBox = el('dashboardErrors'); errorBox.replaceChildren();
   for (const [source,message] of errors) { const card = text('section','', 'card'); card.setAttribute('role','alert'); card.append(text('h2',`${sourceLabels[source]?.label ?? source} · Could not load`),text('p',message)); const retry = text('button','Retry','button secondary') as HTMLButtonElement; retry.type='button'; retry.disabled=pending.has(source); retry.addEventListener('click',() => void loadSources([source])); card.append(retry); errorBox.append(card); }
-  const busy = pending.size > 0; el('dashboardGrid').setAttribute('aria-busy',String(busy)); refresh.disabled = busy; refresh.textContent = busy ? 'Updating…' : 'Refresh';
+  const busy = pending.size > 0; el('dashboardGrid').setAttribute('aria-busy',String(busy)); refresh.disabled = busy; refresh.textContent = busy ? 'Updating…' : 'Refresh data';
   el('dashboardLoading').textContent = busy ? 'Loading content overview…' : errors.size ? 'Some sections could not be loaded.' : 'Content overview loaded.';
  }
  async function loadSources(sources: string[]) {

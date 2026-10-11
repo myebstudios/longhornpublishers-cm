@@ -1,11 +1,14 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Legal pages" section="legal">
-  <div class="admin-page-head"><div><h1>Legal Pages</h1><p>Manage complete bilingual bodies for the Privacy Policy and Terms of Use. Start a line with <code>##</code> to make a section heading.</p></div></div>
-  <div class="two legal-editors">
-    <section class="card editor-card"><form data-page="privacy_policy"><h2>Privacy Policy</h2><label>Body — English<textarea name="body_en" required></textarea></label><label>Body — French<textarea name="body_fr" required></textarea></label><label>Last updated — stated date<input name="content_updated_at" type="date" /><small>Shown on the page as month and year. Set this only when the substance changes; leave it blank to keep the approved wording.</small></label><label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label><div class="form-actions"><button class="button" type="submit">Save Privacy Policy</button></div><p data-status role="status" aria-live="polite"></p></form></section>
-    <section class="card editor-card"><form data-page="terms_of_use"><h2>Terms of Use</h2><label>Body — English<textarea name="body_en" required></textarea></label><label>Body — French<textarea name="body_fr" required></textarea></label><label>Last updated — stated date<input name="content_updated_at" type="date" /><small>Shown on the page as month and year. Set this only when the substance changes; leave it blank to keep the approved wording.</small></label><label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label><div class="form-actions"><button class="button" type="submit">Save Terms of Use</button></div><p data-status role="status" aria-live="polite"></p></form></section>
+  <AdminPageHeader heading="Legal Pages" subtitle="Manage complete bilingual legal texts for Privacy Policy and Terms of Use. Start a line with ## to make a section heading."></AdminPageHeader>
+  <div class="legal-editors">
+    <section class="card editor-card"><form data-page="privacy_policy"><h2>Privacy Policy</h2><label>Body — English<textarea name="body_en" required lang="en"></textarea></label><label>Body — French<textarea name="body_fr" required lang="fr"></textarea></label><label>Last updated — stated date<input name="content_updated_at" type="date" /><small>Shown on the page as month and year. Set this only when the substance changes; leave it blank to keep the approved wording.</small></label><label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label><AdminSaveBar><button class="button" type="submit">Save Privacy Policy</button></AdminSaveBar><p data-status role="status" aria-live="polite"></p></form></section>
+    <section class="card editor-card"><form data-page="terms_of_use"><h2>Terms of Use</h2><label>Body — English<textarea name="body_en" required lang="en"></textarea></label><label>Body — French<textarea name="body_fr" required lang="fr"></textarea></label><label>Last updated — stated date<input name="content_updated_at" type="date" /><small>Shown on the page as month and year. Set this only when the substance changes; leave it blank to keep the approved wording.</small></label><label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label><AdminSaveBar><button class="button" type="submit">Save Terms of Use</button></AdminSaveBar><p data-status role="status" aria-live="polite"></p></form></section>
   </div>
 </AdminLayout>
 
@@ -29,7 +32,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>
-  .legal-editors textarea { min-height:26rem; }
-  @media (max-width: 980px) { .legal-editors { grid-template-columns:1fr; } }
-</style>
+

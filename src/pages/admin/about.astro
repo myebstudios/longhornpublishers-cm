@@ -1,30 +1,33 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="About us" section="about">
-  <div class="admin-page-head"><div><h1>About Us</h1><p>Manage bilingual heritage, identity statements, and team capacity blocks.</p></div></div>
+  <AdminPageHeader heading="About Us" subtitle="Manage company heritage, institutional vision, mission statements, and operational team capacity."></AdminPageHeader>
   <section class="card editor-card">
     <form id="aboutForm">
       <h2>Heritage</h2>
       <div class="two">
-        <label>Heritage copy — English<textarea name="heritage_copy_en" required></textarea></label>
-        <label>Heritage copy — French<textarea name="heritage_copy_fr" required></textarea></label>
+        <label>Heritage copy — English<textarea name="heritage_copy_en" required lang="en"></textarea></label>
+        <label>Heritage copy — French<textarea name="heritage_copy_fr" required lang="fr"></textarea></label>
       </div>
       <h2>Identity</h2>
       <div class="two">
-        <label>Purpose — English<textarea name="purpose_en" required></textarea></label>
-        <label>Purpose — French<textarea name="purpose_fr" required></textarea></label>
-        <label>Vision — English<textarea name="vision_en" required></textarea></label>
-        <label>Vision — French<textarea name="vision_fr" required></textarea></label>
-        <label>Mission — English<textarea name="mission_en" required></textarea></label>
-        <label>Mission — French<textarea name="mission_fr" required></textarea></label>
-        <label>Values — English<textarea name="values_en" required></textarea></label>
-        <label>Values — French<textarea name="values_fr" required></textarea></label>
+        <label>Purpose — English<textarea name="purpose_en" required lang="en"></textarea></label>
+        <label>Purpose — French<textarea name="purpose_fr" required lang="fr"></textarea></label>
+        <label>Vision — English<textarea name="vision_en" required lang="en"></textarea></label>
+        <label>Vision — French<textarea name="vision_fr" required lang="fr"></textarea></label>
+        <label>Mission — English<textarea name="mission_en" required lang="en"></textarea></label>
+        <label>Mission — French<textarea name="mission_fr" required lang="fr"></textarea></label>
+        <label>Values — English<textarea name="values_en" required lang="en"></textarea></label>
+        <label>Values — French<textarea name="values_fr" required lang="fr"></textarea></label>
       </div>
       <div class="toolbar"><h2>Team capacity blocks</h2><button class="button secondary" type="button" id="addBlock">+ Add block</button></div>
       <div id="blocks" class="repeat-list"></div>
       <label class="check"><input name="published" type="checkbox" /> Published — visible on the public site</label>
-      <div class="form-actions"><button class="button" type="submit">Save About page</button></div>
+      <AdminSaveBar><button class="button" type="submit">Save About page</button></AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
   </section>
@@ -84,8 +87,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>
-  .repeat-list { display:grid; gap:12px; }
-  .repeat-row { display:grid; grid-template-columns:1fr .6fr 1.4fr 1.4fr auto; gap:12px; align-items:end; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
-  @media (max-width: 980px) { .repeat-row { grid-template-columns:1fr; } }
-</style>
+

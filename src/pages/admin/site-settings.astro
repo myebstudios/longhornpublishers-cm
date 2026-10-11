@@ -1,22 +1,20 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Site Settings" section="settings">
-  <div class="admin-page-head">
-    <div>
-      <h1>Site Settings</h1>
-      <p>Manage global bilingual identity, contact details, footer copy, social links, and SEO fallbacks.</p>
-    </div>
-  </div>
+  <AdminPageHeader heading="Site Settings" subtitle="Manage corporate identity, official contact details, footer text, social links, and SEO defaults."></AdminPageHeader>
 
   <section class="card editor-card">
     <form id="settingsForm">
       <h2>Identity</h2>
       <div class="two">
-        <label>Company name — English<input name="company_name_en" required /></label>
-        <label>Company name — French<input name="company_name_fr" required /></label>
-        <label>Tagline — English<textarea name="tagline_en"></textarea></label>
-        <label>Tagline — French<textarea name="tagline_fr"></textarea></label>
+        <label>Company name — English<input name="company_name_en" required lang="en" /></label>
+        <label>Company name — French<input name="company_name_fr" required lang="fr" /></label>
+        <label>Tagline — English<textarea name="tagline_en" lang="en"></textarea></label>
+        <label>Tagline — French<textarea name="tagline_fr" lang="fr"></textarea></label>
       </div>
 
       <h2>Contact</h2>
@@ -29,10 +27,10 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       <h2>Footer and newsletter</h2>
       <div class="two">
-        <label>Footer tagline — English<textarea name="footer_tagline_en"></textarea></label>
-        <label>Footer tagline — French<textarea name="footer_tagline_fr"></textarea></label>
-        <label>Newsletter prompt — English<input name="newsletter_copy_en" /></label>
-        <label>Newsletter prompt — French<input name="newsletter_copy_fr" /></label>
+        <label>Footer tagline — English<textarea name="footer_tagline_en" lang="en"></textarea></label>
+        <label>Footer tagline — French<textarea name="footer_tagline_fr" lang="fr"></textarea></label>
+        <label>Newsletter prompt — English<input name="newsletter_copy_en" lang="en" /></label>
+        <label>Newsletter prompt — French<input name="newsletter_copy_fr" lang="fr" /></label>
         <label>Parent company URL<input name="parent_company_url" type="url" /></label>
       </div>
 
@@ -51,7 +49,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
         <div class="media-preview"><img id="ogImagePreview" alt="Open Graph preview" hidden /></div>
       </div>
 
-      <div class="form-actions"><button class="button" type="submit">Save site settings</button></div>
+      <AdminSaveBar><button class="button" type="submit">Save site settings</button></AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
   </section>
@@ -120,9 +118,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>
-  .repeat-list { display:grid; gap:12px; }
-  .repeat-row { display:grid; grid-template-columns:1fr 2fr auto; gap:12px; align-items:end; padding:14px; border:1px solid var(--line); border-radius:12px; background:var(--cream); }
-  @media (max-width: 760px) { .repeat-row { grid-template-columns:1fr; } }
-  .media-preview img { width:240px; aspect-ratio:1200/630; object-fit:cover; border-radius:10px; border:1px solid var(--line); }
-</style>
+

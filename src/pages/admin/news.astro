@@ -1,26 +1,51 @@
 ---
 import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
+import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="News & updates" section="news">
-  <div class="admin-page-head">
-    <div>
-      <h1>Editorial & News Desk</h1>
-      <p>Draft company news, new title announcements, and partnership press releases in English and French.</p>
-    </div>
-    <button class="button" type="button" id="openEditorBtn">+ Create New Article</button>
-  </div>
+  <AdminPageHeader heading="News & Updates" subtitle="Draft and publish company news, educational announcements, and press releases."><button class="button" type="button" id="openEditorBtn">+ Create article</button></AdminPageHeader>
 
   <!-- Collapsible Editor Form Card -->
-  <section class="card editor-card" id="editorCard" hidden>
+
+
+  <!-- Primary Article List & Search View -->
+  <section class="card list-card">
+    <div class="list-toolbar">
+      <div class="search-box">
+        <AdminIcon name="search" />
+        <input type="search" id="searchFilter" placeholder="Search news articles by headline or slug..." aria-label="Search news articles" />
+      </div>
+      <div class="filter-controls">
+        <select id="filterCategory" aria-label="Filter by article category">
+          <option value="all">All categories</option>
+          <option value="company_news">Company News</option>
+          <option value="new_titles">New Titles</option>
+          <option value="partnerships">Partnerships</option>
+          <option value="events">Events</option>
+        </select>
+        <select id="filterStatus" aria-label="Filter by article status">
+          <option value="all">All publication states</option>
+          <option value="published">Published</option>
+          <option value="draft">Drafts</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="empty" class="empty-container"></div>
+    <div class="record-head news-columns" aria-hidden="true"><span>Headline &amp; category</span><span>Publish date</span><span>Status</span><span>Actions</span></div><div id="items" class="news-list"></div>
+  </section>
+  <section class="card editor-card" id="editorCard">
     <div class="toolbar">
-      <h2 id="editorTitle">New Article</h2>
-      <button class="button secondary" type="button" id="closeEditorBtn">Close Editor ✕</button>
+      <h2 id="editorTitle">New news article</h2>
+      <button class="button secondary" type="button" id="closeEditorBtn">Close editor</button>
     </div>
     <form id="editor">
       <input type="hidden" name="id" />
-      <div class="two">
-        <label>English headline<input name="headline_en" required placeholder="e.g. Longhorn Expands Bilingual Distribution in Cameroon" /></label>
-        <label>French headline<input name="headline_fr" required placeholder="e.g. Longhorn Étend sa Distribution Bilingue au Cameroun" /></label>
+      <fieldset class="two"><legend>Article details</legend>
+        <label>English headline<input name="headline_en" required placeholder="e.g. Longhorn Expands Bilingual Distribution in Cameroon" lang="en" /></label>
+        <label>French headline<input name="headline_fr" required placeholder="e.g. Longhorn Étend sa Distribution Bilingue au Cameroun" lang="fr" /></label>
         <label>Slug<input name="slug" required pattern="[a-z0-9-]+" placeholder="bilingual-distribution-cameroon" /></label>
         <label>Category
           <select name="category">
@@ -30,52 +55,26 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
             <option value="events">Events</option>
           </select>
         </label>
-        <label>Publish date<input name="publish_date" type="date" /></label>
-        <label class="check"><input name="published" type="checkbox" /> Publish now</label>
-        <label>English excerpt<textarea name="excerpt_en" required placeholder="Brief article summary for news cards..."></textarea></label>
-        <label>French excerpt<textarea name="excerpt_fr" required placeholder="Résumé concis pour les cartes d'actualités..."></textarea></label>
-      </div>
+        <label>Stated publication date<input name="publish_date" type="date" /><small>Historical or display date; does not schedule automated release.</small></label>
+        <label class="check"><input name="published" type="checkbox" /> Published</label>
+        <label>English excerpt<textarea name="excerpt_en" required placeholder="Brief article summary for news cards..." lang="en"></textarea></label>
+        <label>French excerpt<textarea name="excerpt_fr" required placeholder="Résumé concis pour les cartes d'actualités..." lang="fr"></textarea></label>
+      </fieldset>
 
-      <label>English article body<textarea name="body_en" required placeholder="Full article content in English..."></textarea></label>
-      <label>French article body<textarea name="body_fr" required placeholder="Contenu complet en français..."></textarea></label>
+      <label>English article body<textarea name="body_en" required placeholder="Full article content in English..." lang="en"></textarea></label>
+      <label>French article body<textarea name="body_fr" required placeholder="Contenu complet en français..." lang="fr"></textarea></label>
 
-      <div class="form-actions">
-        <button class="button" type="submit">Save Article</button>
+      <AdminSaveBar>
+        <button class="button" type="submit">Save article</button>
         <button class="button secondary" type="button" id="cancelEditorBtn">Cancel</button>
-      </div>
+      </AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
-  </section>
-
-  <!-- Primary Article List & Search View -->
-  <section class="card list-card">
-    <div class="list-toolbar">
-      <div class="search-box">
-        <span class="search-icon" aria-hidden="true">🔍</span>
-        <input type="search" id="searchFilter" placeholder="Search news articles by headline or slug..." aria-label="Search news articles" />
-      </div>
-      <div class="filter-controls">
-        <select id="filterCategory" aria-label="Filter by article category">
-          <option value="all">All Categories</option>
-          <option value="company_news">Company News</option>
-          <option value="new_titles">New Titles</option>
-          <option value="partnerships">Partnerships</option>
-          <option value="events">Events</option>
-        </select>
-        <select id="filterStatus" aria-label="Filter by article status">
-          <option value="all">All Statuses</option>
-          <option value="published">Published</option>
-          <option value="draft">Drafts</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="empty" class="empty-container"></div>
-    <div id="items" class="news-list"></div>
   </section>
 </AdminLayout>
 
 <script>
+  import { adminIcon } from '../../lib/admin-icons';
   import { confirmAction, emptyToNull, errorCard, registerDirtyCheck, request, sendJson } from '../../lib/admin-client';
 
   type CmsRecord = { [key: string]: any };
@@ -106,7 +105,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   const showEditor = (isNew = false) => {
     editorCard.removeAttribute('hidden');
     if (isNew) title.textContent = 'Create New Article';
-    editorCard.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    editorCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
     const firstInput = form.querySelector('input[name="headline_en"]') as HTMLInputElement | null;
     if (firstInput) firstInput.focus();
   };
@@ -187,7 +186,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 
       const icon = document.createElement('div');
       icon.className = 'admin-empty-icon';
-      icon.textContent = '📰';
+      icon.innerHTML = adminIcon('newspaper');
 
       const titleEl = document.createElement('h3');
       titleEl.className = 'admin-empty-title';
@@ -249,10 +248,12 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       const statusSpan = document.createElement('span');
       statusSpan.className = entry.published ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
       statusSpan.textContent = entry.published ? 'Published' : 'Draft';
-      meta.append(catSpan, statusSpan);
+      heading.dataset.label='Headline & category'; heading.append(catSpan);
+      meta.dataset.label='Status'; meta.append(statusSpan);
+      const date = document.createElement('div'); date.dataset.label='Publish date'; date.textContent=entry.publish_date ? String(entry.publish_date).slice(0,10) : 'Not stated';
 
       const actions = document.createElement('div');
-      actions.className = 'item-actions';
+      actions.className = 'item-actions'; actions.dataset.label='Actions';
 
       const editButton = document.createElement('button');
       editButton.type = 'button';
@@ -284,7 +285,7 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
       };
 
       actions.append(editButton, deleteButton);
-      article.append(heading, meta, actions);
+      article.append(heading, date, meta, actions);
       items.append(article);
     });
   }
@@ -347,19 +348,4 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
   load();
 </script>
 
-<style>
-.editor-card { border: 2px solid var(--burgundy); background: linear-gradient(180deg, #ffffff, var(--cream)); }
-.editor-card[hidden] { display: none; }
-.news-list { display: grid; gap: 1rem; }
-.news-item-card { display: flex; align-items: center; justify-content: space-between; gap: 1.25rem; background: var(--cream); border: 1px solid var(--line); border-radius: 16px; padding: 1.1rem 1.4rem; transition: transform .25s ease, box-shadow .25s ease, background-color .25s ease; }
-.news-item-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(59, 15, 27, 0.07); background: #fff; }
-.title-info strong { display: block; font-family: var(--font-display); font-size: 16px; color: var(--ink); font-weight: 700; }
-.title-info .alt { display: block; margin-top: 2px; color: var(--muted); font-size: 13px; font-weight: 400; }
-.item-meta { display: flex; gap: .6rem; align-items: center; flex-wrap: wrap; }
-.item-actions { display: flex; gap: .6rem; align-items: center; }
 
-@media (max-width: 760px) {
-  .news-item-card { flex-direction: column; align-items: flex-start; gap: 1rem; }
-  .item-actions { width: 100%; justify-content: flex-end; }
-}
-</style>
