@@ -70,10 +70,7 @@ export function catalogueBadges(record: RecordData) {
   };
   const reasons = [
     !title.published ? "draft" : "",
-    title.classification !== "national_book_list_verified"
-      ? "classification restriction"
-      : "",
-    !title.cover_rights_approved ? "rights unapproved" : "",
+    !isPubliclyListed(title) && title.published ? "title not publicly listed" : "",
   ].filter(Boolean);
   return {
     labels: [
@@ -88,7 +85,7 @@ export function catalogueBadges(record: RecordData) {
         ? "No cover added"
         : coverIsPublic(title)
           ? "Cover · Public eligible"
-          : "Cover · Admin only",
+          : "Cover · Not published",
     ],
     coverReason:
       title.cover_image_id && !coverIsPublic(title) ? reasons.join(", ") : "",

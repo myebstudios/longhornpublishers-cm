@@ -87,7 +87,7 @@ test("seconds adapter preserves custom untouched millisecond values and enforces
   for (const seconds of [NaN, Infinity, 2.5, 30.5, 6.1])
     assert.throws(() => secondsToMilliseconds(seconds, 6000));
 });
-test("four published Other developed covers remain admin-only regardless of rights checkbox", () => {
+test("published Other developed covers are public regardless of rights checkbox", () => {
   for (const rights of [false, true]) {
     const state = catalogueBadges({
       published: true,
@@ -100,9 +100,9 @@ test("four published Other developed covers remain admin-only regardless of righ
       "Published · Text eligible",
       "Not featured",
       "Other developed",
-      "Cover · Admin only",
+      "Cover · Public eligible",
     ]);
-    assert.match(state.coverReason, /classification restriction/);
+    assert.equal(state.coverReason, "");
   }
 });
 test("catalogue badges keep draft/text/classification/feature/cover axes separate", () => {

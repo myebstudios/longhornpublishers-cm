@@ -3,7 +3,7 @@
  */
 interface HomeTitle {
   id: string;
-  /** Non-null only when the cover is public (CLIENT-3 C15, enforced by the query). */
+  /** Uploaded cover key for a publicly listed title. */
   cover_image_id: string | null;
 }
 
@@ -12,8 +12,7 @@ interface HomeTitle {
  * homepage editor come first; otherwise every published title in query order
  * (featured first, then newest).
  *
- * - `covers`: the cover showcase. Only cover-public titles; a selection cannot
- *   bypass C15.
+ * - `covers`: the cover showcase. Every candidate with an uploaded cover.
  * - `text`: when no candidate has a public cover, up to four titles as
  *   text cards, so the block never renders an empty column.
  */

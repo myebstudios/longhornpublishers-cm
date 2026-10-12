@@ -39,7 +39,7 @@ import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
         <label>Classification
           <select name="classification" aria-describedby="classificationHint">
             <option value="unclassified">Unclassified — not shown publicly</option>
-            <option value="other_developed">Other developed title — text only, no cover</option>
+            <option value="other_developed">Other developed title</option>
             <option value="national_book_list_verified">National Book List — verified</option>
           </select>
         </label>
@@ -47,7 +47,7 @@ import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
         <label>Evidence reference (private)<input name="booklist_evidence_ref" maxlength="500" placeholder="e.g. MINEDUB list 2026–2027, p. 12, line 4" /></label>
         <label>Verified by (private)<input name="booklist_verified_by" maxlength="120" /></label>
         <label>Verification date<input name="booklist_verified_at" type="date" /></label>
-        <label class="check"><input name="cover_rights_approved" type="checkbox" /> Cover and publication rights approved — show the cover publicly (National Book List titles only)</label>
+        <label class="check"><input name="cover_rights_approved" type="checkbox" /> Cover and publication rights recorded as approved (private record; covers show publicly for all listed titles)</label>
       </fieldset>
 
       <fieldset class="cover">

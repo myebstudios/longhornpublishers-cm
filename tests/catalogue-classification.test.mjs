@@ -25,7 +25,7 @@ test('National Book List membership requires private evidence, reviewer and a re
   assert.equal(ok.value.cover_rights_approved, true);
 });
 
-test('non-booklist classifications drop evidence and can never approve a cover', () => {
+test('non-booklist classifications drop private evidence and legacy rights metadata', () => {
   const other = parseClassification({ classification: 'other_developed', ...evidence, cover_rights_approved: true }, TODAY);
   assert.ok(other.ok);
   assert.deepEqual(
@@ -34,28 +34,32 @@ test('non-booklist classifications drop evidence and can never approve a cover',
   );
 });
 
-test('public listing and cover eligibility are fail-closed', () => {
+test('public covers default to visible for every listed title, while drafts and unclassified titles stay private', () => {
   const base = { published: true, cover_image_id: 'uploads/x.png', cover_rights_approved: true };
   assert.equal(isPubliclyListed({ ...base, classification: 'unclassified' }), false);
   assert.equal(isPubliclyListed({ ...base, published: false, classification: 'other_developed' }), false);
   assert.equal(isPubliclyListed({ ...base, classification: 'other_developed' }), true);
   assert.equal(coverIsPublic({ ...base, classification: 'national_book_list_verified' }), true);
-  assert.equal(coverIsPublic({ ...base, classification: 'national_book_list_verified', cover_rights_approved: false }), false);
-  assert.equal(coverIsPublic({ ...base, classification: 'other_developed' }), false);
+  assert.equal(coverIsPublic({ ...base, classification: 'national_book_list_verified', cover_rights_approved: false }), true);
+  assert.equal(coverIsPublic({ ...base, classification: 'other_developed' }), true);
   assert.equal(coverIsPublic({ ...base, classification: 'national_book_list_verified', published: false }), false);
+  assert.equal(coverIsPublic({ ...base, classification: 'unclassified' }), false);
+  assert.equal(coverIsPublic({ ...base, classification: 'other_developed', cover_image_id: null }), false);
 });
 
-test('every public catalogue read path applies the classification and cover gate', () => {
+test('public catalogue reads return covers without NBL or rights gates, retaining listing and demo boundaries', () => {
   const read = (p) => fs.readFileSync(new URL(`../${p}`, import.meta.url), 'utf8');
-  const lib = read('src/lib/catalogue.ts');
-  const api = read('src/pages/api/catalogue.ts');
-  const media = read('netlify/functions/media.mts');
-  for (const [name, source, queries] of [['catalogue.ts', lib, 2], ['api/catalogue.ts', api, 2]]) {
-    assert.equal(source.match(/classification IN \('national_book_list_verified', 'other_developed'\)/g)?.length, queries, `${name} listing gate`);
-    assert.equal(source.match(/CASE WHEN c?\.?classification = 'national_book_list_verified' AND c?\.?cover_rights_approved\s+THEN c?\.?cover_image_id END AS cover_image_id/g)?.length, queries, `${name} cover gate`);
-    assert.doesNotMatch(source, /(?<!AS |THEN )\b(?:c\.)?cover_image_id,/, `${name} must not select cover_image_id ungated`);
+  for (const name of ['src/lib/catalogue.ts', 'src/pages/api/catalogue.ts']) {
+    const source = read(name);
+    assert.equal(source.match(/classification IN \('national_book_list_verified', 'other_developed'\)/g)?.length, 2);
+    assert.doesNotMatch(source, /CASE WHEN|cover_rights_approved/);
+    assert.match(source, /(?:c\.)?cover_image_id,/);
+    assert.match(source, /is_demo = false/);
   }
-  assert.equal(media.match(/FROM catalogue_titles WHERE published = true[^\n]*classification = 'national_book_list_verified' AND cover_rights_approved = true/g)?.length, 2, 'media.mts cover gate');
+  const media = read('netlify/functions/media.mts');
+  assert.equal(media.match(/FROM catalogue_titles WHERE published = true[^\n]*classification IN \('national_book_list_verified', 'other_developed'\)/g)?.length, 2);
+  assert.doesNotMatch(media, /cover_rights_approved/);
+  assert.match(media, /published = true AND is_demo = false/);
 });
 
 test('migration 013 keeps existing published titles public as text-only Other developed titles', () => {

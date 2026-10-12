@@ -1,11 +1,6 @@
-/**
- * Catalogue classification and cover eligibility (CLIENT-3, C05/C15).
- *
- * A title is public only when it is published AND classified. A cover is
- * public only when the title is a verified National Book List title AND its
- * cover rights are approved. Public SQL applies the same rule
- * (`PUBLIC_CLASSIFICATIONS`, `coverIsPublic`), so a renderer cannot leak a
- * cover by forgetting a check.
+/** Catalogue classification and public cover eligibility.
+ * Published titles show uploaded covers by default (V2-5, replacing C15).
+ * Classification still determines whether a title is publicly listed.
  */
 export const CLASSIFICATIONS = ['national_book_list_verified', 'other_developed', 'unclassified'] as const;
 export type Classification = (typeof CLASSIFICATIONS)[number];
@@ -60,7 +55,7 @@ export function parseClassification(
     cover_rights_approved: body.cover_rights_approved === true,
   };
   if (value.classification !== 'national_book_list_verified') {
-    // Evidence is kept only for verified membership; cover rights mean nothing without it.
+    // Evidence and legacy rights tracking are kept only for verified membership. Public cover display is independent.
     return { ok: true, value: { ...value, booklist_evidence_ref: null, booklist_verified_by: null, booklist_verified_at: null, cover_rights_approved: false } };
   }
   if (!value.booklist_evidence_ref || !value.booklist_verified_by || !value.booklist_verified_at) {
@@ -80,6 +75,5 @@ export function isPubliclyListed(title: { published: boolean; classification: st
 }
 
 export function coverIsPublic(title: { published: boolean; classification: string; cover_rights_approved: boolean; cover_image_id: string | null }): boolean {
-  return Boolean(title.cover_image_id) && title.published
-    && title.classification === 'national_book_list_verified' && title.cover_rights_approved;
+  return Boolean(title.cover_image_id) && isPubliclyListed(title);
 }
