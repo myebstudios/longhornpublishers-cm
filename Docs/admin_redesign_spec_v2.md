@@ -217,3 +217,62 @@ Production protocol is ADMIN-V2-3's existing task instruction: audit/read-only f
 Full ADMIN-V2-1 brief and user's screenshot inspected; current page/form/media/validation contracts reviewed. External sources read/limitations recorded in principles document. This is a specification, so live v2 interaction tests are pending implementation/release, not claimed passes. Dell's `Docs/admin_v1_live_audit_2026-10-12.md` is checked before final commit; if not yet available, live counts and max field lengths remain unknown beyond the screenshot. Stress acceptance must include schema limits: hero headline 300/subheadline 1000/CTA 100/destination 2000; About heritage 8000 and each Identity pair 3000; Why presence 8000/commitment description 2000; arrays 12 team/12 commitment/8 trust/4 featured/30 project/10 social. These are maximum allowed characters/items, not measured production content lengths.
 
 No production code, data, auth, API, push or deployment is changed by this task. Commit only the two design documents on main; board task moves to Review for Yv/SoSo.
+
+## 12. Live-audit amendments
+
+Added after Dell's signed-in, read-only [live audit](admin_v1_live_audit_2026-10-12.md), commit `95b5d9a`. **This section overrides conflicting instructions in §§3–11**, especially destructive-action placement and News upload optionality. The audit covered 11 protected pages at 1440×900 and 375×667, with no application writes, runtime errors or failed requests. It does not prove save/upload/delete behavior or screen-reader accessibility. §11's pending-audit note describes the original handoff; this amendment incorporates the now-available evidence.
+
+### 12.1 Five required v1 fixes
+
+| Finding | Build requirement / live acceptance |
+| --- | --- |
+| Unstyled script-created dashboard rows (B1), e.g. “Saved5 / 5” | Put dynamic-row styles in shared admin CSS, scoped by `.admin-app`, rather than Astro page-scoped selectors. Summary rows: flex, space-between, gap 16px, padding 12px 0, min-height 44px; section rows: labeled grid/cards; recent-edit links: flex with 12px gap and stacked title/metadata. Separate caveat text below rows. Inspect actual script-created nodes after all 11 reads: styles apply, labels/values do not concatenate, focus/alert stability remains. |
+| Contact/Legal hidden without scroll cue (B2) | Keep navigation's independent overflow scroll and account footer. Reserve a 24px cue row outside nav scroll: “More below” when scrollHeight exceeds clientHeight and bottom remains; “More above” at the opposite edge. Update on scroll/resize, hide when unnecessary; no repetitive live announcements. Focused nav links scroll into view. At 1440×900 and short heights both destinations are discoverable/reachable with no footer overlap. |
+| Search takes two Escape presses (B3) | Capture Escape on the open search dialog before the native search-input clear action; preventDefault, stop propagation and close once, restoring trigger focus. Verify one press with empty and nonempty queries. Editor dirty-Escape behavior stays as §4. |
+| “1 drafts” (B4) | Shared count formatter: `count === 1 ? singular : plural`. Check 0 drafts / 1 draft / 2 drafts, and slides/articles/titles/subjects consistently; don't concatenate untranslated suffixes to arbitrary labels. |
+| Misaligned Public email field (B6) | Use the shared field wrapper with 6px label gap, 44px input, zero field-specific top margin, grid align-items:start and helpers below controls. Adjacent single-line fields align at default size; longer labels wrap and grow without clipping. Check Site settings at 1440/375 and enlarged text. |
+
+Recent edits (B5) legitimately contains six hero/homepage records after the swap: keep chronological truth and the “Latest saved records” caption; do not fabricate diversity. Existing section cards provide access to other content.
+
+### 12.2 Homepage: distinguish carousel and fallback
+
+Rename §5/§6's Legacy fallback canvas card **Fallback hero**. Default collapsed read-only summary: “Used when no carousel slides are saved”, stored image presence and headline; Edit fallback opens the large sheet. Show “Not currently used” whenever saved slide count >0; if slides exist but none is enabled, show an attention state, never imply fallback activates. Keep every legacy field, required rule and full-parent payload unchanged; no deletion/migration or automatic blanking of unused data.
+
+Audit snapshot: 5 saved / 4 enabled / 1 disabled, 4 slide images. Cards show persistent Enabled/Disabled text, order number and thumbnail; duplicate “Expanding Minds” titles remain distinguishable by order/state/CTA destination. Disabled card retains readable text and image without low-opacity dimming. Header shows all three counts and cap explanation; Add remains focusable aria-disabled at 5, with no write. The disabled anchor occupies a slot; don't remove it to create room. Autoplay summary is 6 seconds; seconds adapter remains §7.
+
+### 12.3 Catalogue: one consistent status model
+
+Use one four-axis badge group in this order, wrapping with 8px gaps, plus a separate homepage-selection line. No standalone “Publicly eligible” badge that can imply the cover is cleared.
+
+| Axis | Exact derivation / label |
+| --- | --- |
+| Publication/text | published=false → **Draft**; published=true and classification in national_book_list_verified/other_developed → **Published · Text eligible**; published=true otherwise → **Published · Listing withheld**. Eligibility is the existing public predicate, not a live CDN check. |
+| Catalogue feature | featured=true → **Catalogue featured**; otherwise **Not featured**. This flag does not mean selected on Homepage. |
+| Classification | Existing enum → **National Book List · verified**, **Other developed**, **Unclassified**; never infer verification from image presence or publication. |
+| Cover | Empty cover_image_id → **No cover added**; existing coverIsPublic predicate true → **Cover · Public eligible**; all other stored images → **Cover · Admin only**, with helper naming applicable reasons: draft, classification restriction, or rights unapproved. Rights approval alone cannot override classification. |
+
+Homepage line: **Selected on homepage** / **Not selected on homepage**, derived only from successfully loaded homepage.content.featured_catalogue_ids; failed read → “Homepage selection unavailable”. Dashboard aggregate label becomes **Text-listing eligible**, alongside a separate **Cover-public eligible** count; reuse the same predicates. Audit's four published Other developed titles display Text eligible / Not featured / Other developed / Cover Admin only; all four covers still render authenticated, while public cover count is zero. Change label to **Product code or ISBN**, helper “Enter the title's unique product code (for example LHC-PHYS-F2) or its ISBN”; retain name product_code, required/64-character/uniqueness rules. Identical EN/FR text may show a nonblocking “English and French text match — review translation” note; never auto-translate or treat matching text as validation failure.
+
+### 12.4 Friendly technical fields, client-side only
+
+| Field | Control/helper; stored value stays compatible |
+| --- | --- |
+| Slug | Label **URL name**; helper “Lowercase letters, numbers and hyphens; changing this can affect existing links.” Optional Generate from title button on Add only; explicit activation, never overwrite an existing slug automatically. Existing pattern/required rules remain. |
+| Icon key | Labeled icon select with visible samples from existing `src/components/Icon.astro` keys (including pen, brush, users, check, globe, layout, print), None where allowed; retain unknown stored key as “Current custom icon: …” and optional Custom key input. Serialize original key, no schema expansion. |
+| CTA path | **Destination** page picker for existing supported public routes, plus Custom destination input for existing paths/fragments/http(s) URLs. Show localized EN/FR destinations read-only. Preserve custom values, current href validation and stored language-neutral paths; no route guesses or forced rewrites. |
+| Latitude/longitude | **Map coordinates (optional)** with Latitude/Longitude labels, decimal examples 4.0511 / 9.7679, ranges −90…90 / −180…180 and “Use verified coordinates; leave blank if unknown.” Examples are format hints, not this office's coordinates. Keep both audited empty values; no geocoding/new map API. |
+| Legal `##` | Helper next to each body: “Start a heading on a new line with ## followed by a space; separate paragraphs with a blank line.” Provide read-only Preview using existing safe legal-block parsing (`src/lib/cms-content.ts`), not arbitrary HTML or a new rich-text format. No automatic rewriting of saved text. |
+
+### 12.5 Destructive actions and News media
+
+**Override §3 card footer and §4 deletion placement:** cards expose Edit plus a 44px **More actions** menu; Delete/Remove lives inside that menu, visually separated from ordinary actions, with the existing named-item confirmation. No red Delete beside Edit/Save, including hero/service/process rows. Menu supports keyboard operation, Escape and trigger-focus restoration; selecting Delete closes menu before opening confirmation. Legal still has no Delete. Parent-array removal still saves the complete parent record only after explicit confirmation. This avoids nesting a delete dialog over an editor.
+
+**News image upload is mandatory in the editor**, using existing `/api/media`, hidden named hero_image_id and shared Choose/Replace/Remove image controls. Show 16:9 preview, JPEG/PNG/WebP/8MB helper, upload progress/error and preserved old ID on failure; Save waits for upload completion. Text-only edits preserve the ID; Cancel does not save the article or promise blob cleanup. Audit's sole article is a 51-character leftover QA draft with no image: show No image added; do not delete it as part of redesign or invent artwork.
+
+### 12.6 Size against measured content
+
+Audit snapshot, not hardcoded totals: 4 catalogue titles (42–45-character names; 4 covers), 1 news draft, 4 subjects, 5 hero slides, 6 services, 5 process steps, 2 legal documents, 3 team blocks, 2 commitments, 7 project types, 4 trust statements and 4 homepage selections. No pagination at these volumes; retain §3's threshold of 24 for growth. Catalogue uses 3 columns at available inner width ≥900px, 2 at ≥560px, otherwise 1; hero 3/2/1 at the same widths. Titles wrap fully; no fabricated empty grid slots.
+
+Legal bodies are 1220–1465 characters EN / up to 1632 FR: **large 960px slide-over**, one 320px-minimum body textarea per language, same-sheet full-text preview, no small 560px modal. Services reach 439 characters, Who we are 537 EN / 613 FR, commitments 328–411, team descriptions 108–154: keep large grouped sheets for these edits, full read-only expansion on cards, 160px-minimum ordinary textareas. About has 3 actual team blocks, not empty decorative portraits. Coordinates, social links, OG image and legal stated dates are empty: retain explicit empty summaries, no invented defaults. Accept at 1440×900 and **375×667** (audit viewport), plus §10's short-height/zoom cases. Schema-limit stress tests remain; measured shorter content is no reason to narrow validators or crop fields.
+
+Implementation evidence must cover these five fixes, badge predicates/current four-cover state, nonnested Delete confirmation, News upload and sibling-field preservation on the published server. This amendment changes specification only; no live content edits, production tests, push or deployment are performed here. ADMIN-V2-1 remains Review.
