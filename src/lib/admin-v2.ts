@@ -31,6 +31,7 @@ import { pages, sections, recordTitle, type Section } from "./admin-v2-config";
 import {
   action,
   node,
+  statusBadge,
   thumbnail,
   translated,
   excerpt,
@@ -1866,7 +1867,7 @@ export async function startAdminV2(page: string) {
           if (title) {
             const badges = node("div", "", "admin-status-group");
             catalogueBadges(title).labels.forEach((label) =>
-              badges.append(node("span", label, "admin-badge")),
+              badges.append(statusBadge(label)),
             );
             const copy = article.querySelector(".admin-card-copy")!;
             copy.append(badges, node("small", "Selected on homepage"));

@@ -2,6 +2,7 @@ import { adminIcon } from "./admin-icons";
 import { contentIcon } from "./admin-content-icons";
 import {
   catalogueBadges,
+  adminBadgeTone,
   countLabel,
   fingerprint,
   pageRecords,
@@ -15,6 +16,8 @@ export const node = (tag: string, text = "", className = "") => {
   el.className = className;
   return el;
 };
+export const statusBadge = (label: string) =>
+  node("span", label, `admin-badge admin-badge--${adminBadgeTone(label)}`);
 export function action(
   label: string,
   fn: (button: HTMLButtonElement) => void,
@@ -22,6 +25,7 @@ export function action(
 ) {
   const b = node("button", label, className) as HTMLButtonElement;
   b.type = "button";
+  if (label === "Publish") b.classList.add("admin-publish-action");
   b.addEventListener("click", () => {
     if (b.getAttribute("aria-disabled") !== "true") fn(b);
     else
@@ -511,7 +515,7 @@ export class PreviewCollection {
     if (this.kind === "catalogue") {
       const state = catalogueBadges(row);
       for (const label of state.labels)
-        badges.append(node("span", label, "admin-badge"));
+        badges.append(statusBadge(label));
       copy.append(
         node("p", `Product code: ${row.product_code}`),
         node(
@@ -555,7 +559,7 @@ export class PreviewCollection {
     else {
       if (this.kind === "hero") {
         badges.append(
-          node("span", row.enabled ? "Enabled" : "Disabled", "admin-badge"),
+          statusBadge(row.enabled ? "Enabled" : "Disabled"),
           node("span", `Order ${row.sort_order}`, "admin-badge"),
         );
         const accent = row[`headline_accent_${this.language}`];
@@ -569,14 +573,12 @@ export class PreviewCollection {
         }
       } else
         badges.append(
-          node(
-            "span",
+          statusBadge(
             row.published === undefined
               ? "Not set up"
               : row.published
                 ? "Published"
                 : "Draft",
-            "admin-badge",
           ),
         );
       copy.append(badges);

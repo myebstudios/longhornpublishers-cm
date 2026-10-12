@@ -3,14 +3,14 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminIcon from '../../components/admin/AdminIcon.astro';
 ---
 <AdminLayout title="Overview">
- <div class="admin-page-head"><div><h1>Hello, Administrator</h1><p>Review your publication status, hero features, and recent editorial edits.</p></div><button class="button secondary" id="refreshDashboard" type="button">Refresh data</button></div>
+ <div class="admin-page-head dashboard-greeting"><div><h1>Hello, Administrator</h1><p>Review your publication status, hero features, and recent editorial edits.</p></div><button class="button secondary" id="refreshDashboard" type="button">Refresh data</button></div>
  <p id="dashboardLoading" role="status" aria-live="polite">Loading content overview…</p><p id="dashboardFetchTime" class="dashboard-caption"></p>
  <div class="dashboard-grid" id="dashboardGrid" aria-busy="true">
   <section class="card dashboard-overview"><h2>Content overview</h2><div class="metrics">
-   <article class="metric-card"><p>Catalogue titles</p><strong id="metricCatalogue" class="metric-value admin-skeleton">—</strong><small id="metricCatalogueSub">Loading…</small><span id="catalogueBadge" hidden></span></article>
-   <article class="metric-card"><p>News articles</p><strong id="metricNews" class="metric-value admin-skeleton">—</strong><small id="metricNewsSub">Loading…</small><span id="newsBadge" hidden></span></article>
-   <article class="metric-card"><p>Subjects</p><strong id="metricSubjects" class="metric-value admin-skeleton">—</strong><small id="metricSubjectsSub">Loading…</small></article>
-   <article class="metric-card"><p>Website content published</p><strong id="metricWebsite" class="metric-value admin-skeleton">—</strong><small id="metricWebsiteSub">Loading…</small><small>Includes pages, services and process steps</small></article>
+   <article class="metric-card" data-metric="catalogue"><span class="metric-icon" aria-hidden="true"><AdminIcon name="book-open" /></span><p>Catalogue titles</p><strong id="metricCatalogue" class="metric-value admin-skeleton">—</strong><small id="metricCatalogueSub">Loading…</small><span id="catalogueBadge" hidden></span></article>
+   <article class="metric-card" data-metric="news"><span class="metric-icon" aria-hidden="true"><AdminIcon name="newspaper" /></span><p>News articles</p><strong id="metricNews" class="metric-value admin-skeleton">—</strong><small id="metricNewsSub">Loading…</small><span id="newsBadge" hidden></span></article>
+   <article class="metric-card" data-metric="neutral"><span class="metric-icon" aria-hidden="true"><AdminIcon name="tags" /></span><p>Subjects</p><strong id="metricSubjects" class="metric-value admin-skeleton">—</strong><small id="metricSubjectsSub">Loading…</small></article>
+   <article class="metric-card" data-metric="published"><span class="metric-icon" aria-hidden="true"><AdminIcon name="check" /></span><p>Website content published</p><strong id="metricWebsite" class="metric-value admin-skeleton">—</strong><small id="metricWebsiteSub">Loading…</small><small>Includes pages, services and process steps</small></article>
   </div></section>
   <section class="card dashboard-hero"><div class="toolbar"><h2>Hero carousel</h2><a href="/admin/homepage/#hero-slides">Manage slides</a></div><div id="heroSummary" class="dashboard-content admin-skeleton"></div></section>
   <section class="card dashboard-sections"><h2>Section status</h2><div id="sectionStatus" class="dashboard-content admin-skeleton"></div></section>

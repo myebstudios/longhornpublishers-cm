@@ -290,3 +290,16 @@ export function editorFieldIsOwned(
 ): boolean {
   return owned.includes(name) || Boolean(mediaField && owned.includes(mediaField));
 }
+
+/** Semantic paint follows the existing badge copy, without changing eligibility. */
+export function adminBadgeTone(
+  label: string,
+): "neutral" | "success" | "featured" | "warning" | "error" {
+  if (/^(Error|Failed)$/i.test(label)) return "error";
+  if (/withheld|not published|admin only|restriction|attention/i.test(label))
+    return "warning";
+  if (/^(Published|Enabled)\b|Public eligible/.test(label)) return "success";
+  if (/^(Catalogue featured|Selected on homepage)$/.test(label))
+    return "featured";
+  return "neutral";
+}
