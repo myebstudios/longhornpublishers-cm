@@ -170,7 +170,7 @@ export const en: Content = {
     trust: [
       '60+ years parent PLC experience across Africa',
       'Educational content creators and service providers',
-      '100% Bilingual EN & FR publishing capability',
+      '100% Bilingual publishing capability',
       'Aligned to national curricula',
     ],
     whoWeAre: {
