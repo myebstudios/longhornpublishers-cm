@@ -276,3 +276,63 @@ Audit snapshot, not hardcoded totals: 4 catalogue titles (42–45-character name
 Legal bodies are 1220–1465 characters EN / up to 1632 FR: **large 960px slide-over**, one 320px-minimum body textarea per language, same-sheet full-text preview, no small 560px modal. Services reach 439 characters, Who we are 537 EN / 613 FR, commitments 328–411, team descriptions 108–154: keep large grouped sheets for these edits, full read-only expansion on cards, 160px-minimum ordinary textareas. About has 3 actual team blocks, not empty decorative portraits. Coordinates, social links, OG image and legal stated dates are empty: retain explicit empty summaries, no invented defaults. Accept at 1440×900 and **375×667** (audit viewport), plus §10's short-height/zoom cases. Schema-limit stress tests remain; measured shorter content is no reason to narrow validators or crop fields.
 
 Implementation evidence must cover these five fixes, badge predicates/current four-cover state, nonnested Delete confirmation, News upload and sibling-field preservation on the published server. This amendment changes specification only; no live content edits, production tests, push or deployment are performed here. ADMIN-V2-1 remains Review.
+
+## 13. Brand colour and depth
+
+V2-6 (`dfa09c78-0982-4989-bdff-19a1070019e9`) · Z · 12 October 2026. **Overrides the earlier accent-only, white/grey canvas, black primary-button and shadow-free rules**, including §2 and inherited v1 styling. Keep layout, typography, spacing, radii, components, data/status predicates, responsive behavior and motion unchanged. Apply to `.admin-app`, `.admin-login` and their generated cards/overlays; do not change public styles. Palette source: [src/styles/global.css](../src/styles/global.css), `@theme` / `:root` brand tokens.
+
+### 13.1 Exact admin tokens
+
+| Token (prefix `--admin-`) | Value / source |
+| --- | --- |
+| canvas / surface / subtle | `#FBF6EE` cream / `#FFFFFF` white / `#F3EADD` cream-deep |
+| ink / muted | `#1A1216` ink / `#5A4C52` ink-soft |
+| sidebar / sidebar-hover / sidebar-text | `#3B0F1B` burgundy-deep / `#5C1A2B` burgundy / `#FBF6EE` cream |
+| accent / accent-hover / accent-soft / accent-bg | `#5C1A2B` / `#3B0F1B` / `#7A2C3F` / `#F7EDF0` (retained admin tint) |
+| green / success / success-hover / success-bg | `#6FBF3F` brand green / `#2F7A2A` green-deep / `#245E20` (admin hover shade) / `#EAF7E2` green-pale |
+| orange / warning / warning-bg | `#F47E27` brand orange / `#854D0E` (retained admin text) / `#FFF0E3` (admin orange tint) |
+| danger / danger-bg | `#B91C1C` / `#FEF2F2` (retained semantic error pair) |
+| border / control-border / focus | `#E4D9CD` (decorative warm line) / `#71717A` (retained control line) / `#5C1A2B` |
+| scrim | `rgba(59,15,27,.40)` |
+| shadow-card / shadow-popover / shadow-dialog | `0 2px 10px rgba(59,15,27,.06)` / `0 14px 40px rgba(59,15,27,.10)` / `0 30px 70px rgba(59,15,27,.18)`; public site's existing shadow values |
+
+### 13.2 Component paint rules
+
+| Component | Build instruction |
+| --- | --- |
+| Sidebar, tablet rail, mobile drawer | Deep burgundy background; all labels, metadata, icons, scroll cues and account email cream at full opacity. Hover burgundy/cream. Active cream/burgundy, existing 3px inset indicator orange; retain weight and aria-current. Account footer burgundy/cream, hover soft burgundy/cream; avatar cream/burgundy. Search button cream/burgundy, hover cream-deep/burgundy. Keep existing colour logo on a white backing within its current box. Tooltips deep burgundy/cream. |
+| Canvas and topbar | Warm cream canvas; white topbar and card bodies. Body ink; metadata/helpers/placeholders muted. Open Site becomes burgundy/white, hover deep burgundy/white. Ordinary links burgundy, underlined in prose; hover deep burgundy. |
+| Dashboard greeting | Paint the existing greeting/header region deep burgundy with cream heading, subtitle and any metadata; 12px radius. Preserve its content, dimensions and placement; no additional hero or decoration affecting the grid. Any existing action here uses cream/burgundy, hover cream-deep/burgundy. |
+| Stat cards | White body, card shadow, **3px inset top strip** and **40×40px icon chip** in the existing icon position (20px line icon). Catalogue: burgundy strip, accent-bg chip/burgundy icon; Published: green strip, brand-green chip/deep-burgundy icon; Drafts: orange strip, orange chip/deep-burgundy icon; News: burgundy strip, accent-bg chip/burgundy icon. Match by metric meaning, not card position; other neutral metrics use cream-deep/burgundy. Numbers ink; labels muted. Strips/chips are supplementary decoration, never the status signal. |
+| Section-card/panel headers | Existing header region cream-deep, heading/icons/links burgundy, metadata muted; existing separator warm border. White body; no coloured paragraphs or whole-card saturation. Collection media wells cream-deep; preserve cover colours/crop and image dimensions. Existing footer stays white. |
+| Buttons and selected controls | Save/Add/Sign in: burgundy/white, hover and pressed deep burgundy/white. Explicit Publish: green-deep/white, hover and pressed success-hover/white; generic Save stays burgundy even for a published record. Secondary: white/burgundy with control-border, hover cream/burgundy. Selected language/filter/view: accent-bg/burgundy with burgundy border. Unselected icons ink/white, hover ink/cream-deep. Filled destructive confirmation retains danger/white; destructive menu text danger/white. |
+| Status badges and messages | Published/Enabled/success: success-bg/success. Draft/Disabled/Not set up/Not featured: cream-deep/muted. Featured/selected: accent-bg/burgundy. Attention/Listing withheld/Admin-only cover/restriction: warning-bg/warning. Error: danger-bg/danger. Classification labels use neutral cream-deep/muted; they are metadata, not approval. Keep §12's four-axis labels and exact eligibility rules. Small badges use existing pill radius and text+icon; no fabricated health state. Success/warning/error messages use their same foreground/background pair for all text and links; links underlined. |
+| Cards and overlays | All preview/section/stat/panel cards: shadow-card plus decorative border. Menus/search: shadow-popover. Editor/confirmation dialogs and navigation drawer: shadow-dialog. Editor/confirmation header cream-deep/burgundy, body/footer white with ink/muted text; controls as above. Shadows never replace control outlines; no hover lift or extra animation. |
+| Login and auth states | Existing standalone layout and fields retained. Canvas cream, form card white with shadow-popover and 3px inset burgundy top strip. Existing brand/title region cream-deep/burgundy; logo on white. Sign in and recovery/reset primary actions burgundy/white. Helpers muted/white; errors danger-bg/danger. Apply the same field, focus and pending rules across auth modes. |
+
+Inputs/selects/textareas stay white with ink values, muted placeholders and `1px solid control-border`; invalid border danger. Checkbox/radio selected fill burgundy with white mark; unselected control-border on white. Pressed uses the hover pair where specified; otherwise hover/pressed retain the default pair, including destructive actions. Pending/aria-disabled controls **retain their normal colours and opacity 1**; show existing busy/unavailable text and enforce the existing interaction guard. Disabled cards also stay fully readable. No alpha text, gradients, coloured image overlays or brand-green/orange text on white. Bright green and orange are decorative fills only, carrying deep-burgundy icons if present.
+
+### 13.3 Contrast ledger and focus
+
+Ratios below are computed from opaque sRGB tokens using relative luminance, displayed to two decimals; thresholds checked before rounding. Normal text passes **4.5:1**; meaningful control boundaries/icons and focus pass **3:1**, per W3C [text contrast](https://www.w3.org/WAI/WCAG21/Understanding/contrast-minimum.html) and [non-text contrast](https://www.w3.org/WAI/WCAG21/Understanding/non-text-contrast.html). This approved pair list is exhaustive for this amendment; use the same pair for icons as for its text. Decorative card lines/strips/shadows carry no essential information.
+
+| Foreground / background (hex) | Contrast :1 | Application / result |
+| --- | --- | --- |
+| Ink `#1A1216` / white `#FFFFFF`, cream `#FBF6EE`, cream-deep `#F3EADD` | 18.39 / 17.09 / 15.43 | Body, field values, neutral icons; text AA |
+| Muted `#5A4C52` / white, cream, cream-deep | 8.11 / 7.54 / 6.80 | Helpers, placeholders, neutral badges; text AA |
+| Cream `#FBF6EE` / deep burgundy `#3B0F1B`, burgundy `#5C1A2B`, soft burgundy `#7A2C3F` | 15.37 / 11.92 / 8.64 | Sidebar/greeting/footer, hover, tooltip; text AA |
+| Burgundy `#5C1A2B` / white, cream, cream-deep, accent-bg `#F7EDF0` | 12.82 / 11.92 / 10.76 / 11.19 | Links, section headings, secondary/active/selected controls; text AA |
+| Deep burgundy `#3B0F1B` / white, cream, cream-deep | 16.53 / 15.37 / 13.88 | Hovered ordinary links; text AA |
+| White `#FFFFFF` / burgundy, deep burgundy | 12.82 / 16.53 | Primary labels/marks and filled-button boundary against white; text AA |
+| White / green-deep `#2F7A2A`, success-hover `#245E20` | 5.33 / 7.79 | Publish labels/icons and boundary against white; text AA |
+| Green-deep `#2F7A2A` / green-pale `#EAF7E2`, white, cream | 4.80 / 5.33 / 4.96 | Success text; publish boundary against cream; text AA |
+| Warning `#854D0E` / orange tint `#FFF0E3` | 6.14 | Attention badge/message text; text AA |
+| Danger `#B91C1C` / danger-bg `#FEF2F2`, white, cream | 5.91 / 6.47 / 6.01 | Error text, invalid border, destructive action; text AA |
+| White / danger `#B91C1C` | 6.47 | Destructive confirmation label; text AA |
+| Deep burgundy / brand green `#6FBF3F`, orange `#F47E27` | 7.24 / 6.19 | Chip icons; exceeds text AA and icon minimum |
+| Orange `#F47E27` / burgundy, deep burgundy | 4.80 / 6.19 | Decorative dark-surface accent; ≥3:1. Active cream-row strip is decorative; selection is also shown by contrasting text, weight and aria-current |
+| Control-border `#71717A` / white, cream, cream-deep, accent-bg, green-pale, orange tint | 4.83 / 4.49 / 4.06 / 4.22 / 4.35 / 4.33 | Input/secondary-control boundary; all ≥3:1, never use this grey for text |
+
+Focus on light surfaces: retain `3px` burgundy outline with `2px` white separating gap; burgundy/white is 12.82:1 and burgundy/light surfaces ≥10.76:1. On dark sidebar/greeting surfaces: **3px cream outline + 2px deep-burgundy gap**; cream/deep, cream/burgundy and cream/soft are 15.37/11.92/8.64:1. The gap also keeps the ring distinct around cream active controls. Keep outlines outside card clipping and visible during hover/pressed/pending states; reduced-motion behavior unchanged.
+
+Acceptance for SoSo: inspect computed colours for every ledger role, default/hover/pressed/selected/pending/invalid/focus states, dark drawer/rail and all auth modes; verify dynamic nodes inherit these tokens without public-style leaks. Retain §10/§12 responsive, keyboard, content-preservation and live QA requirements. These are verified token contrasts, not a claim that the unimplemented UI passes WCAG. Specification-only commit on main; no push.
