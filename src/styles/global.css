@@ -1025,7 +1025,7 @@ body.nav-open {
 .footer__blurb { margin-top: 1.5rem; color: rgba(255,255,255,.66); font-size: var(--step--1); max-width: 38ch; }
 .footer__col h4 { font-family: var(--font-display); font-size: var(--step-0); margin-bottom: 1.15rem; }
 .footer__col li + li { margin-top: .6rem; }
-.footer__col a, .footer__col p { color: rgba(255,255,255,.66); font-size: var(--step--1); transition: color .2s ease; }
+.footer__col a, .footer__col p { color: rgba(255,255,255,.66); font-size: var(--step--1); transition: color .2s ease; overflow-wrap: anywhere; }
 .footer__col a:hover { color: var(--green); }
 .footer__bottom { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 1rem; padding-top: 2rem; font-size: var(--step--1); color: rgba(255,255,255,.5); }
 .footer__bottom a:hover { color: var(--green); }
