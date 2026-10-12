@@ -98,5 +98,5 @@ const hint=document.querySelector('kbd');if(hint)hint.textContent=/Mac|iPhone|iP
 document.addEventListener('admin:close-navigation',()=>{if(search.open)closeSearch();closeDrawer(false);hideTooltip();});
 search.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeSearch();}},true);
 const nav=sidebar.querySelector('nav')!;const cue=document.querySelector<HTMLElement>('#adminNavCue')!;
-function updateCue(){const below=nav.scrollHeight-nav.clientHeight-nav.scrollTop>2;const above=nav.scrollTop>2;cue.textContent=below?(above?'More above · More below':'More below'):above?'More above':'';}
-nav.addEventListener('scroll',updateCue,{passive:true});window.addEventListener('resize',updateCue);new ResizeObserver(updateCue).observe(nav);nav.addEventListener('focusin',event=>{(event.target as HTMLElement).scrollIntoView({block:'nearest'});updateCue();});updateCue();
+function updateCue(){const below=nav.scrollHeight-nav.clientHeight-nav.scrollTop>2;const above=nav.scrollTop>2;const message=below?(above?'More above · More below':'More below'):above?'More above':'';if(cue.textContent!==message)cue.textContent=message;}
+nav.addEventListener('scroll',updateCue,{passive:true});window.addEventListener('resize',updateCue);new ResizeObserver(()=>requestAnimationFrame(updateCue)).observe(nav);nav.addEventListener('focusin',event=>{(event.target as HTMLElement).scrollIntoView({block:'nearest'});updateCue();});updateCue();

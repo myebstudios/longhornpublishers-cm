@@ -2,14 +2,14 @@
 import { adminIcon } from './admin-icons';
 let fieldIndex = 0;
 function enhance(root: ParentNode) {
- root.querySelectorAll<HTMLFormElement>('form').forEach(form => { if (form.querySelector('[required]') && !form.querySelector('.required-hint')) { const hint=document.createElement('p'); hint.className='required-hint'; hint.textContent='Fields marked Required must be completed before saving.'; form.prepend(hint); } });
+ root.querySelectorAll<HTMLFormElement>('form').forEach(form => { if (form.querySelector('[required],[data-required]') && !form.querySelector('.required-hint')) { const hint=document.createElement('p'); hint.className='required-hint'; hint.textContent='Fields marked Required must be completed before saving.'; form.prepend(hint); } });
  root.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>('input,textarea,select').forEach(field => {
   const key = field.name || [...field.attributes].find(a => a.name.startsWith('data-') && /-(en|fr)$/.test(a.name))?.name || '';
   if (key.endsWith('_en') || key.endsWith('-en')) field.lang = 'en';
   if (key.endsWith('_fr') || key.endsWith('-fr')) field.lang = 'fr';
   if (field.type === 'hidden') return;
   const label = field.closest('label');
-  if (label && field.required && !label.querySelector('.required-marker')) { const marker=document.createElement('span'); marker.className='required-marker'; marker.textContent='Required'; label.append(marker); }
+  if (label && (field.required || field.hasAttribute('data-required')) && !label.querySelector('.required-marker')) { const marker=document.createElement('span'); marker.className='required-marker'; marker.textContent='Required'; const caption=document.createElement('span');caption.className='admin-field-caption';for(const text of [...label.childNodes].filter(n=>n.nodeType===Node.TEXT_NODE)){caption.append(text);}caption.append(document.createTextNode(' '),marker);label.prepend(caption); }
   if (label) {
    const helpers = [...label.querySelectorAll<HTMLElement>('small')];
    if (helpers.length) { const ids = new Set((field.getAttribute('aria-describedby') ?? '').split(' ').filter(Boolean)); for (const helper of helpers) { if (!helper.id) helper.id=`admin-field-help-${++fieldIndex}`; ids.add(helper.id); } field.setAttribute('aria-describedby',[...ids].join(' ')); }

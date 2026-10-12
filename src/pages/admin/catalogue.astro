@@ -3,45 +3,16 @@ import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
 import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
 import AdminIcon from '../../components/admin/AdminIcon.astro';
+
+import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
 ---
 <AdminLayout title="Catalogue" section="catalogue">
-  <AdminPageHeader heading="Educational Catalogue" subtitle="Manage publication titles, curriculum level assignments, ministerial classification status, and book cover artwork."><button class="button" type="button" id="openEditorBtn">+ Create title</button></AdminPageHeader>
-
-  <!-- Collapsible Editor Form Card -->
-
-
-  <!-- Primary Publication List & Filter View -->
-  <section class="card list-card">
-    <div class="list-toolbar">
-      <div class="search-box">
-        <AdminIcon name="search" />
-        <input type="search" id="searchFilter" placeholder="Search titles by name or slug..." aria-label="Search catalogue titles" />
-      </div>
-      <div class="filter-controls">
-        <select id="filterLevel" aria-label="Filter by education level">
-          <option value="all">All education levels</option>
-          <option value="primary">Primary</option>
-          <option value="secondary">Secondary</option>
-        </select>
-        <select id="filterStatus" aria-label="Filter by publication status">
-          <option value="all">All publication states</option>
-          <option value="published">Published</option>
-          <option value="draft">Drafts</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="empty" class="empty-container"></div>
-    <div class="record-head catalogue-columns" aria-hidden="true"><span>Title &amp; product code</span><span>Level &amp; subject</span><span>Classification</span><span>Status</span><span>Actions</span></div><div id="items" class="catalogue-list"></div>
-  </section>
-  <section class="card editor-card" id="editorCard">
-    <div class="toolbar">
-      <h2 id="editorTitle">New publication title</h2>
-      <button class="button secondary" type="button" id="closeEditorBtn">Close editor</button>
-    </div>
-    <form id="editor">
+<AdminPageHeader heading="Educational Catalogue" subtitle="Manage publication titles, curriculum level assignments, ministerial classification status, and book cover artwork."><button class="button" type="button" id="openEditorBtn">+ Create title</button></AdminPageHeader>
+<section id="adminCanvas" aria-busy="true"><p role="status">Loading saved content…</p></section>
+<AdminEditorDialog legacyEditor>
+<form hidden id="editor">
       <input type="hidden" name="id" />
-      <fieldset class="two"><legend>Publication details</legend>
+      <fieldset class="two"><legend>Content</legend>
         <label>English title<input name="title_en" required placeholder="e.g. Primary Mathematics Book 4" lang="en" /></label>
         <label>French title<input name="title_fr" required placeholder="e.g. Mathématiques Élémentaires 4" lang="fr" /></label>
         <label>Slug<input name="slug" required pattern="[a-z0-9-]+" placeholder="primary-mathematics-book-4" /></label>
@@ -64,7 +35,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
       </fieldset>
 
       <fieldset class="classification">
-        <legend>Catalogue classification</legend>
+        <legend>Classification and evidence</legend>
         <label>Classification
           <select name="classification" aria-describedby="classificationHint">
             <option value="unclassified">Unclassified — not shown publicly</option>
@@ -80,7 +51,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
       </fieldset>
 
       <fieldset class="cover">
-        <legend>Cover Image (3:4 Portrait)</legend>
+        <legend>Cover</legend>
         <input type="hidden" name="cover_image_id" />
         <div class="cover__row">
           <div class="cover__preview">
@@ -97,7 +68,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
         </div>
       </fieldset>
 
-      <div class="checks">
+      <fieldset class="checks"><legend>Publication</legend>
         <!-- Unchecked by default: an edition is a publishing claim, so it must be
              asserted deliberately rather than inherited from a form default. The
              public card badges these, so a stray default is a visible false claim. -->
@@ -105,7 +76,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
         <label><input name="language_fr" type="checkbox" lang="fr" /> French edition</label>
         <label><input name="featured" type="checkbox" /> Featured title</label>
         <label><input name="published" type="checkbox" /> Published</label>
-      </div>
+      </fieldset>
 
       <AdminSaveBar>
         <button class="button" type="submit">Save title</button>
@@ -113,418 +84,9 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
       </AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
-  </section>
+</AdminEditorDialog>
 </AdminLayout>
-
 <script>
-  import { adminIcon } from '../../lib/admin-icons';
-  import {
-    confirmAction, coverFileError, coverViewState, emptyToNull, errorCard, registerDirtyCheck, request, sendJson,
-  } from '../../lib/admin-client';
-
-  type CmsRecord = { [key: string]: any };
-
-  const form = document.querySelector('#editor') as HTMLFormElement;
-  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-  const items = document.querySelector('#items')!;
-  const empty = document.querySelector('#empty')!;
-  const status = document.querySelector('#status')!;
-  const title = document.querySelector('#editorTitle')!;
-
-  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => {
-    status.textContent = message;
-    status.className = message ? `status status--${tone}` : '';
-  };
-
-  /** Serialised form state as of the last load/save, for the unsaved-work guard. */
-  let pristine = '';
-  const snapshot = () => new URLSearchParams(new FormData(form) as any).toString();
-  const isDirty = () => snapshot() !== pristine;
-  const confirmDiscard = async () =>
-    !isDirty() || (await confirmAction('This form has unsaved changes. Discard them?'));
-
-  const reset = async (force = false) => {
-    if (!force && !(await confirmDiscard())) return false;
-    form.reset();
-    (form.elements.namedItem('id') as HTMLInputElement).value = '';
-    releasePreviewUrl();
-    coverField.value = '';
-    renderCover(null);
-    setCoverStatus('');
-    title.textContent = 'New publication title';
-    setStatus('');
-    pristine = snapshot();
-    return true;
-  };
-
-  const values = () => {
-    const data = new FormData(form);
-    return emptyToNull({
-      id: data.get('id'),
-      title_en: data.get('title_en'),
-      title_fr: data.get('title_fr'),
-      product_code: data.get('product_code'),
-      slug: data.get('slug'),
-      level: data.get('level'),
-      subject_id: data.get('subject_id') || null,
-      cover_image_id: data.get('cover_image_id') || null,
-      description_en: data.get('description_en'),
-      description_fr: data.get('description_fr'),
-      curriculum_alignment_en: data.get('curriculum_alignment_en'),
-      curriculum_alignment_fr: data.get('curriculum_alignment_fr'),
-      language_en: (form.elements.namedItem('language_en') as HTMLInputElement).checked,
-      language_fr: (form.elements.namedItem('language_fr') as HTMLInputElement).checked,
-      featured: (form.elements.namedItem('featured') as HTMLInputElement).checked,
-      published: (form.elements.namedItem('published') as HTMLInputElement).checked,
-      classification: data.get('classification') || 'unclassified',
-      booklist_evidence_ref: data.get('booklist_evidence_ref'),
-      booklist_verified_by: data.get('booklist_verified_by'),
-      booklist_verified_at: data.get('booklist_verified_at'),
-      cover_rights_approved: (form.elements.namedItem('cover_rights_approved') as HTMLInputElement).checked,
-    }, ['id', 'subject_id', 'cover_image_id', 'booklist_evidence_ref', 'booklist_verified_by', 'booklist_verified_at']);
-  };
-
-  const edit = async (entry: CmsRecord) => {
-    if (!(await confirmDiscard())) return;
-    (form.elements.namedItem('id') as HTMLInputElement).value = entry.id;
-    (form.elements.namedItem('title_en') as HTMLInputElement).value = entry.title_en ?? '';
-    (form.elements.namedItem('title_fr') as HTMLInputElement).value = entry.title_fr ?? '';
-    (form.elements.namedItem('product_code') as HTMLInputElement).value = entry.product_code ?? '';
-    (form.elements.namedItem('slug') as HTMLInputElement).value = entry.slug ?? '';
-    (form.elements.namedItem('level') as HTMLSelectElement).value = entry.level ?? 'primary';
-    (form.elements.namedItem('subject_id') as HTMLSelectElement).value = entry.subject_id ?? '';
-    (form.elements.namedItem('description_en') as HTMLTextAreaElement).value = entry.description_en ?? '';
-    (form.elements.namedItem('description_fr') as HTMLTextAreaElement).value = entry.description_fr ?? '';
-    (form.elements.namedItem('curriculum_alignment_en') as HTMLTextAreaElement).value = entry.curriculum_alignment_en ?? '';
-    (form.elements.namedItem('curriculum_alignment_fr') as HTMLTextAreaElement).value = entry.curriculum_alignment_fr ?? '';
-    (form.elements.namedItem('language_en') as HTMLInputElement).checked = Boolean(entry.language_en);
-    (form.elements.namedItem('language_fr') as HTMLInputElement).checked = Boolean(entry.language_fr);
-    (form.elements.namedItem('featured') as HTMLInputElement).checked = Boolean(entry.featured);
-    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(entry.published);
-    (form.elements.namedItem('cover_image_id') as HTMLInputElement).value = entry.cover_image_id ?? '';
-    (form.elements.namedItem('classification') as HTMLSelectElement).value = entry.classification ?? 'unclassified';
-    (form.elements.namedItem('booklist_evidence_ref') as HTMLInputElement).value = entry.booklist_evidence_ref ?? '';
-    (form.elements.namedItem('booklist_verified_by') as HTMLInputElement).value = entry.booklist_verified_by ?? '';
-    (form.elements.namedItem('booklist_verified_at') as HTMLInputElement).value = entry.booklist_verified_at ? String(entry.booklist_verified_at).slice(0, 10) : '';
-    (form.elements.namedItem('cover_rights_approved') as HTMLInputElement).checked = Boolean(entry.cover_rights_approved);
-    releasePreviewUrl();
-    coverField.value = '';
-    renderCover(entry.cover_image_id ?? null);
-    setCoverStatus('');
-    title.textContent = `Editing: ${entry.title_en}`;
-    setStatus('');
-    pristine = snapshot();
-    showEditor();
-  };
-
-  const coverIdInput = form.elements.namedItem('cover_image_id') as HTMLInputElement;
-  const coverPreview = document.querySelector('#coverPreview') as HTMLImageElement;
-  const coverEmpty = document.querySelector('#coverEmpty') as HTMLParagraphElement;
-  const coverFileLabel = document.querySelector('#coverFileLabel') as HTMLLabelElement;
-  const coverClear = document.querySelector('#coverClear') as HTMLButtonElement;
-  const coverStatus = document.querySelector('#coverStatus') as HTMLParagraphElement;
-  const coverField = document.querySelector('#coverFile') as HTMLInputElement;
-
-  let activePreviewUrl: string | null = null;
-  const releasePreviewUrl = () => {
-    if (activePreviewUrl) { URL.revokeObjectURL(activePreviewUrl); activePreviewUrl = null; }
-  };
-  const setCoverStatus = (message: string) => { coverStatus.textContent = message; };
-
-  function renderCover(storedId: string | null, localFile?: File | null) {
-    if (localFile) {
-      releasePreviewUrl();
-      activePreviewUrl = URL.createObjectURL(localFile);
-    }
-    const state = coverViewState(storedId, activePreviewUrl);
-    if (state.imageSrc) {
-      coverPreview.src = state.imageSrc;
-      coverPreview.hidden = false;
-      coverEmpty.hidden = true;
-    } else {
-      coverPreview.hidden = true;
-      coverPreview.removeAttribute('src');
-      coverEmpty.hidden = false;
-    }
-    coverFileLabel.textContent = state.fileLabel;
-    coverClear.hidden = !state.showClear;
-  }
-
-  coverField.addEventListener('change', async () => {
-    const file = coverField.files?.[0];
-    if (!file) return;
-    const err = coverFileError(file);
-    if (err) { setCoverStatus(err); coverField.value = ''; return; }
-    setCoverStatus('Uploading cover image…');
-    renderCover(coverIdInput.value || null, file);
-    try {
-      const res = await request<{ id: string }>('/api/media', {
-        method: 'POST',
-        headers: { 'Content-Type': file.type },
-        body: file,
-      }, 'Unable to upload image.');
-      if (!res.ok || !res.data?.id) { setCoverStatus(res.error!); renderCover(coverIdInput.value || null); return; }
-      coverIdInput.value = res.data.id;
-      releasePreviewUrl();
-      renderCover(res.data.id);
-      setCoverStatus('Cover image attached.');
-    } catch {
-      setCoverStatus('Upload failed. Check your connection and try again.');
-      renderCover(coverIdInput.value || null);
-    }
-  });
-
-  coverClear.addEventListener('click', () => {
-    releasePreviewUrl();
-    coverField.value = '';
-    coverIdInput.value = '';
-    renderCover(null);
-    setCoverStatus('Cover image removed.');
-  });
-
-  const editorCard = document.querySelector('#editorCard') as HTMLElement;
-  const openEditorBtn = document.querySelector('#openEditorBtn') as HTMLButtonElement;
-  const closeEditorBtn = document.querySelector('#closeEditorBtn') as HTMLButtonElement;
-  const cancelEditorBtn = document.querySelector('#cancelEditorBtn') as HTMLButtonElement;
-  const searchFilter = document.querySelector('#searchFilter') as HTMLInputElement;
-  const filterLevel = document.querySelector('#filterLevel') as HTMLSelectElement;
-  const filterStatus = document.querySelector('#filterStatus') as HTMLSelectElement;
-  const subjectSelect = form.elements.namedItem('subject_id') as HTMLSelectElement;
-
-  const showEditor = (isNew = false) => {
-    editorCard.removeAttribute('hidden');
-    if (isNew) title.textContent = 'New publication title';
-    editorCard.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
-    const firstInput = form.querySelector('input[name="title_en"]') as HTMLInputElement | null;
-    if (firstInput) firstInput.focus();
-  };
-
-  const hideEditor = async () => {
-    if (await confirmDiscard()) {
-      await reset(true);
-      editorCard.setAttribute('hidden', '');
-      setStatus('');
-    }
-  };
-
-  openEditorBtn.addEventListener('click', async () => {
-    if (await reset(true)) showEditor(true);
-  });
-
-  closeEditorBtn.addEventListener('click', hideEditor);
-  cancelEditorBtn.addEventListener('click', hideEditor);
-
-  let allRows: CmsRecord[] = [];
-
-  async function loadSubjects() {
-    const res = await request<CmsRecord[]>('/api/subjects-admin', {}, 'Unable to fetch subjects.');
-    if (!res.ok || !res.data) return;
-    subjectSelect.replaceChildren();
-    const defaultOpt = document.createElement('option');
-    defaultOpt.value = '';
-    defaultOpt.textContent = '— No subject —';
-    subjectSelect.append(defaultOpt);
-    res.data.forEach(sub => {
-      const opt = document.createElement('option');
-      opt.value = sub.id;
-      opt.textContent = `${sub.name_en} (${sub.name_fr})`;
-      subjectSelect.append(opt);
-    });
-  }
-
-  function renderList() {
-    const query = searchFilter.value.trim().toLowerCase();
-    const level = filterLevel.value;
-    const statusVal = filterStatus.value;
-
-    const filtered = allRows.filter(entry => {
-      const matchQuery = !query ||
-        String(entry.title_en || '').toLowerCase().includes(query) ||
-        String(entry.title_fr || '').toLowerCase().includes(query) ||
-        String(entry.product_code || '').toLowerCase().includes(query) ||
-        String(entry.slug || '').toLowerCase().includes(query);
-      const matchLevel = level === 'all' || String(entry.level).toLowerCase() === level;
-      const matchStatus = statusVal === 'all' || (statusVal === 'published' ? entry.published : !entry.published);
-      return matchQuery && matchLevel && matchStatus;
-    });
-
-    items.replaceChildren();
-    empty.replaceChildren();
-
-    if (!filtered.length) {
-      const card = document.createElement('div');
-      card.className = 'admin-empty-state';
-
-      const icon = document.createElement('div');
-      icon.className = 'admin-empty-icon';
-      icon.innerHTML = adminIcon('book-open');
-
-      const titleEl = document.createElement('h3');
-      titleEl.className = 'admin-empty-title';
-      titleEl.textContent = allRows.length ? 'No Matching Titles Found' : 'Catalogue is Empty';
-
-      const text = document.createElement('p');
-      text.className = 'admin-empty-text';
-      text.textContent = allRows.length
-        ? 'No catalogue entries match your current search filters. Try clearing your filters.'
-        : 'Get started by creating your first bilingual publication entry for Longhorn Publishers.';
-
-      card.append(icon, titleEl, text);
-
-      if (allRows.length) {
-        const resetBtn = document.createElement('button');
-        resetBtn.type = 'button';
-        resetBtn.className = 'button secondary';
-        resetBtn.textContent = 'Clear Filters';
-        resetBtn.onclick = () => {
-          searchFilter.value = '';
-          filterLevel.value = 'all';
-          filterStatus.value = 'all';
-          renderList();
-        };
-        card.append(resetBtn);
-      } else {
-        const createBtn = document.createElement('button');
-        createBtn.type = 'button';
-        createBtn.className = 'button';
-        createBtn.textContent = '+ Create First Title';
-        createBtn.onclick = async () => {
-          if (await reset(true)) showEditor(true);
-        };
-        card.append(createBtn);
-      }
-
-      empty.append(card);
-      return;
-    }
-
-    filtered.forEach(entry => {
-      const article = document.createElement('article');
-      article.className = 'catalogue-item-card';
-
-      const heading = document.createElement('div');
-      heading.className = 'title-info';
-      const titleStrong = document.createElement('strong');
-      titleStrong.textContent = entry.title_en;
-      const alternate = document.createElement('small');
-      alternate.className = 'alt';
-      alternate.textContent = entry.title_fr ?? '—';
-      heading.append(titleStrong, alternate);
-
-      const meta = document.createElement('div');
-      meta.className = 'item-meta';
-      const levelSpan = document.createElement('span');
-      levelSpan.className = 'admin-badge admin-badge--purple';
-      levelSpan.textContent = String(entry.level).toUpperCase();
-      const codeSpan = document.createElement('span');
-      codeSpan.className = 'admin-badge';
-      codeSpan.textContent = entry.product_code;
-      const statusSpan = document.createElement('span');
-      statusSpan.className = entry.published ? 'admin-badge admin-badge--published' : 'admin-badge admin-badge--draft';
-      statusSpan.textContent = entry.published ? 'Published' : 'Draft';
-      heading.dataset.label = 'Title & product code'; heading.append(codeSpan);
-      meta.dataset.label = 'Level & subject';
-      const subject = document.createElement('small');
-      subject.textContent = entry.subject_id ? subjectSelect.querySelector<HTMLOptionElement>(`option[value="${CSS.escape(entry.subject_id)}"]`)?.textContent ?? 'Assigned subject' : 'No subject';
-      meta.append(levelSpan, subject);
-      const classification = document.createElement('div'); classification.dataset.label='Classification';
-      const classNames: Record<string,string> = {unclassified:'Pending classification',other_developed:'Other developed title',national_book_list_verified:'National Book List — verified'};
-      classification.textContent = classNames[entry.classification] ?? 'Unknown classification';
-      const publication = document.createElement('div'); publication.dataset.label='Status'; publication.append(statusSpan);
-      const eligibility = document.createElement('small'); eligibility.textContent = entry.published && ['national_book_list_verified','other_developed'].includes(entry.classification) ? 'Publicly eligible' : 'Not publicly eligible'; publication.append(eligibility);
-
-      const actions = document.createElement('div');
-      actions.className = 'item-actions'; actions.dataset.label='Actions';
-
-      const editButton = document.createElement('button');
-      editButton.type = 'button';
-      editButton.className = 'button secondary';
-      editButton.textContent = 'Edit';
-      editButton.setAttribute('aria-label', `Edit ${entry.title_en}`);
-      editButton.onclick = () => edit(entry);
-
-      const deleteButton = document.createElement('button');
-      deleteButton.type = 'button';
-      deleteButton.className = 'button danger';
-      deleteButton.textContent = 'Delete';
-      deleteButton.setAttribute('aria-label', `Delete ${entry.title_en}`);
-      deleteButton.onclick = async () => {
-        if (!(await confirmAction(`Delete “${entry.title_en}”?`))) return;
-        deleteButton.disabled = true;
-        const result = await request(
-          `/api/catalogue-admin?id=${encodeURIComponent(entry.id)}`,
-          { method: 'DELETE' },
-          'Unable to delete title.',
-        );
-        if (!result.ok) { deleteButton.disabled = false; setStatus(result.error!, 'err'); return; }
-        if ((form.elements.namedItem('id') as HTMLInputElement).value === String(entry.id)) {
-          reset(true);
-          editorCard.setAttribute('hidden', '');
-        }
-        setStatus('Title deleted.');
-        await load();
-      };
-
-      actions.append(editButton, deleteButton);
-      article.append(heading, meta, classification, publication, actions);
-      items.append(article);
-    });
-  }
-
-  async function load() {
-    items.replaceChildren();
-    empty.replaceChildren();
-
-    // Render skeleton loading cards
-    for (let i = 0; i < 3; i++) {
-      const skel = document.createElement('div');
-      skel.className = 'admin-skeleton-card admin-skeleton';
-      skel.style.height = '72px';
-      items.append(skel);
-    }
-
-    const result = await request<CmsRecord[]>('/api/catalogue-admin', {}, 'Unable to load catalogue.');
-    if (!result.ok) {
-      items.replaceChildren();
-      empty.replaceChildren(errorCard('Catalogue Unavailable', result.error!));
-      return;
-    }
-    allRows = result.data ?? [];
-    renderList();
-  }
-
-  searchFilter?.addEventListener('input', renderList);
-  filterLevel?.addEventListener('change', renderList);
-  filterStatus?.addEventListener('change', renderList);
-
-  form.addEventListener('submit', async event => {
-    event.preventDefault();
-    if (submit.disabled) return;
-    submit.disabled = true;
-    setStatus('Saving…');
-    try {
-      const record = values();
-      const result = await sendJson(
-        `/api/catalogue-admin${record.id ? `?id=${encodeURIComponent(String(record.id))}` : ''}`,
-        record.id ? 'PUT' : 'POST',
-        record,
-        'Unable to save title.',
-      );
-      if (!result.ok) { setStatus(result.error!, 'err'); return; }
-      setStatus(record.published ? 'Title published.' : 'Draft saved.');
-      await reset(true);
-      editorCard.setAttribute('hidden', '');
-      await load();
-    } finally {
-      submit.disabled = false;
-    }
-  });
-
-  // These screens track their own baseline around load/reset, so they register
-  // that check rather than taking a second one. registerDirtyCheck also installs
-  // the shared beforeunload and in-app navigation interception.
-  registerDirtyCheck(isDirty);
-
-  pristine = snapshot();
-  loadSubjects().then(() => { pristine = snapshot(); return load(); });
+import { startAdminV2 } from '../../lib/admin-v2';
+void startAdminV2('catalogue');
 </script>

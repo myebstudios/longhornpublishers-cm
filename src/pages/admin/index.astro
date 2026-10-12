@@ -56,7 +56,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
    const n = data.hero.length, e = data.hero.filter(s => s.enabled === true).length;
    pair(hero,'Saved',`${n} / 5${marker('hero')}`); pair(hero,'Enabled',String(e)); pair(hero,'Disabled',String(n-e));
    if (!n) hero.append(text('p','Legacy hero fallback'));
-   else if (!e) hero.append(text('p','No enabled slides','status status--err'));
+   else if (!e) hero.append(text('p','No enabled slides','status status--warning'));
    else hero.append(text('small','Enabled is a configuration state; it does not verify CDN visibility.'));
   } else hero.append(text('p',pending.has('hero') ? 'Loading…' : 'Unknown · Could not load'));
   if (data.homepage) {

@@ -1,4 +1,4 @@
-import { coverIsPublic } from '../../netlify/functions/_shared/catalogue-classification';
+import { coverIsPublic } from '../../netlify/functions/_shared/catalogue-classification.ts';
 /** Read-only presentation adapters. These never infer public visibility from Published. */
 export type DashboardRecord = Record<string, unknown>;
 export type DashboardData = Record<string, DashboardRecord[]>;
