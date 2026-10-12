@@ -838,7 +838,9 @@ body.nav-open {
 .chip:hover { border-color: var(--green); }
 .chip.is-active { background: var(--burgundy); border-color: var(--burgundy); color: var(--white); }
 .catalogue-filters__reset { margin-top: 1.25rem; color: var(--burgundy); font-family: var(--font-display); font-weight: 600; text-decoration: underline; text-underline-offset: .2em; }
-.catalogue-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 180px), 1fr)); gap: 1.5rem; }
+.catalogue-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 1.5rem; }
+@media (max-width: 900px) { .catalogue-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 359px) { .catalogue-grid { grid-template-columns: 1fr; } }
 .filter-empty-state { padding: 3rem 1.5rem; margin-bottom: 1.5rem; border: 1px solid var(--line); border-radius: var(--radius-lg); background: var(--white); text-align: center; }
 .filter-empty-state p { margin-bottom: 1.25rem; color: var(--ink-soft); font-size: var(--step-0); }
 @media (max-width: 860px) {
