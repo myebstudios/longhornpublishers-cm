@@ -779,16 +779,6 @@ body.nav-open {
 
   /* Task 1: Clean 100vw breakout alignment without right-side iOS viewport drift */
 
-  .contact-map-section { padding-block: 0; }
-  .contact-map-section .map-embed {
-    position: relative;
-    left: auto;
-    width: 100vw;
-    max-width: 100vw;
-    margin-inline: calc(50% - 50vw);
-    border-radius: 0;
-    box-sizing: border-box;
-  }
 
   .contact-enquiry-section { padding-bottom: 0; }
 
@@ -999,6 +989,9 @@ body.nav-open {
   transition: transform .35s ease, box-shadow .35s ease;
 }
 .map-embed:hover { transform: translateY(-4px); box-shadow: var(--shadow-lg); }
+/* Contact page: full-bleed map band, edge to edge like the CTA band. */
+.contact-map-section .map-embed { border: 0; border-radius: 0; }
+.contact-map-section .map-embed:hover { transform: none; box-shadow: none; }
 .map-embed__frame { display: block; width: 100%; height: clamp(18rem, 38vw, 30rem); border: 0; }
 .map-embed__body { padding: clamp(1.5rem, 3vw, 2.25rem); text-align: center; }
 .map-embed__pin {
