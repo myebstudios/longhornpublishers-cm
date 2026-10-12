@@ -2,11 +2,14 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
 import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+
+import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
 ---
 <AdminLayout title="About us" section="about">
-  <AdminPageHeader heading="About Us" subtitle="Manage company heritage, institutional vision, mission statements, and operational team capacity."></AdminPageHeader>
-  <section class="card editor-card">
-    <form id="aboutForm">
+<AdminPageHeader heading="About Us" subtitle="Manage company heritage, institutional vision, mission statements, and operational team capacity."></AdminPageHeader>
+<section id="adminCanvas" aria-busy="true"><p role="status">Loading saved content…</p></section>
+<AdminEditorDialog>
+<form hidden id="aboutForm">
       <h2>Heritage</h2>
       <div class="two">
         <label>Heritage copy — English<textarea name="heritage_copy_en" required lang="en"></textarea></label>
@@ -29,59 +32,9 @@ import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
       <AdminSaveBar><button class="button" type="submit">Save About page</button></AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
-  </section>
+</AdminEditorDialog>
 </AdminLayout>
-
 <script>
-  import { guardUnsavedChanges, request, sendJson } from '../../lib/admin-client';
-  const form = document.querySelector('#aboutForm') as HTMLFormElement;
-  const blocks = document.querySelector('#blocks')!;
-  const status = document.querySelector('#status')!;
-  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-  const guard = guardUnsavedChanges(form, blocks);
-  const names = ['heritage_copy_en','heritage_copy_fr','purpose_en','purpose_fr','vision_en','vision_fr','mission_en','mission_fr','values_en','values_fr'];
-  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
-  const splitTags = (value: string) => value.split(',').map((tag) => tag.trim()).filter(Boolean);
-  function addBlock(title = '', icon = '', en = '', fr = '', titleEn = '', titleFr = '', tagsEn: string[] = [], tagsFr: string[] = []) {
-    const row = document.createElement('div'); row.className = 'repeat-row';
-    row.innerHTML = '<label>English title<input data-title-en maxlength="160"></label><label>French title<input data-title-fr maxlength="160"></label><label>Icon key<input data-icon maxlength="60"></label><label>English description<textarea data-en></textarea></label><label>French description<textarea data-fr></textarea></label><label>English tags<input data-tags-en placeholder="Comma separated"></label><label>French tags<input data-tags-fr placeholder="Separes par des virgules"></label><button class="button danger" type="button">Remove</button>';
-    (row.querySelector('[data-title-en]') as HTMLInputElement).value = titleEn || title;
-    (row.querySelector('[data-title-fr]') as HTMLInputElement).value = titleFr || title;
-    (row.querySelector('[data-tags-en]') as HTMLInputElement).value = (tagsEn ?? []).join(', ');
-    (row.querySelector('[data-tags-fr]') as HTMLInputElement).value = (tagsFr ?? []).join(', ');
-    (row.querySelector('[data-icon]') as HTMLInputElement).value = icon;
-    (row.querySelector('[data-en]') as HTMLTextAreaElement).value = en;
-    (row.querySelector('[data-fr]') as HTMLTextAreaElement).value = fr;
-    row.querySelector('button')!.addEventListener('click', () => row.remove()); blocks.append(row);
-  }
-  document.querySelector('#addBlock')!.addEventListener('click', () => addBlock());
-  async function load() {
-    const res = await request<Record<string, any> | null>('/api/about-admin', {}, 'Unable to load About content.');
-    if (!res.ok) return setStatus(res.error!, 'err');
-    if (!res.data) return setStatus('No database row yet. Enter complete bilingual content to create it.');
-    names.forEach((name) => (form.elements.namedItem(name) as HTMLInputElement).value = String(res.data?.[name] ?? ''));
-    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(res.data.published);
-    blocks.replaceChildren(); (res.data.team_capacity_blocks ?? []).forEach((item: any) => addBlock(item.title, item.icon, item.description_en, item.description_fr, item.title_en, item.title_fr, item.tags_en, item.tags_fr));
-    setStatus('About content loaded.');
-    guard.markClean();
-  }
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault(); submit.disabled = true; setStatus('Saving…');
-    const data = new FormData(form); const payload: Record<string, unknown> = {};
-    names.forEach((name) => payload[name] = data.get(name));
-    payload.published = (form.elements.namedItem('published') as HTMLInputElement).checked;
-    payload.team_capacity_blocks = [...blocks.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({
-      title: (row.querySelector('[data-title-en]') as HTMLInputElement).value,
-      title_en: (row.querySelector('[data-title-en]') as HTMLInputElement).value,
-      title_fr: (row.querySelector('[data-title-fr]') as HTMLInputElement).value,
-      tags_en: splitTags((row.querySelector('[data-tags-en]') as HTMLInputElement).value),
-      tags_fr: splitTags((row.querySelector('[data-tags-fr]') as HTMLInputElement).value),
-      icon: (row.querySelector('[data-icon]') as HTMLInputElement).value,
-      description_en: (row.querySelector('[data-en]') as HTMLTextAreaElement).value,
-      description_fr: (row.querySelector('[data-fr]') as HTMLTextAreaElement).value,
-    }));
-    const res = await sendJson('/api/about-admin', 'PUT', payload, 'Unable to save About content.');
-    setStatus(res.ok ? (payload.published ? 'About page published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
-  });
-  load();
+import { startAdminV2 } from '../../lib/admin-v2';
+void startAdminV2('about');
 </script>
