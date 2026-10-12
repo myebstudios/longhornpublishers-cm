@@ -32,7 +32,7 @@ import {
   node,
   thumbnail,
   translated,
-  fullText,
+  excerpt,
   moreActions,
   PreviewCollection,
 } from "./admin-v2-preview";
@@ -1766,7 +1766,7 @@ export async function startAdminV2(page: string) {
               }
             }
             if (item.description_en || item.description_fr)
-              fullText(copy, translated(item, "description", language));
+              excerpt(copy, translated(item, "description", language));
             if (item.value) copy.append(node("p", item.value));
             if (item.url) copy.append(node("p", item.url));
             const tags = item[`tags_${language}`] ?? [];
@@ -1850,10 +1850,8 @@ export async function startAdminV2(page: string) {
               "Attention: no enabled slides. Fallback does not activate while saved slides exist.",
             ),
           );
-        const details = document.createElement("details");
-        details.append(
-          node("summary", "View fallback summary"),
-          node("p", translated(record, "hero_headline", language)),
+        excerpt(card, translated(record, "hero_headline", language));
+        card.append(
           node(
             "small",
             record.hero_image_id
@@ -1861,7 +1859,6 @@ export async function startAdminV2(page: string) {
               : "No stored image added",
           ),
         );
-        card.append(details);
       } else if (section.key === "featured") {
         const ids = record.featured_catalogue_ids ?? [];
         if (!ids.length) card.append(node("p", "No featured titles selected"));
@@ -1902,7 +1899,7 @@ export async function startAdminV2(page: string) {
         for (const key of section.fields) {
           if (key.endsWith("_en") || key.endsWith("_fr")) {
             if (!key.endsWith(`_${language}`)) continue;
-            fullText(
+            excerpt(
               card,
               String(record[key] ?? "").trim() ||
                 `${language === "fr" ? "French" : "English"} copy missing`,

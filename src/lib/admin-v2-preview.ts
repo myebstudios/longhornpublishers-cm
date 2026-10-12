@@ -32,11 +32,8 @@ export function action(
 export const translated = (row: RecordData, stem: string, lang: string) =>
   String(row[`${stem}_${lang}`] ?? "").trim() ||
   `${lang === "fr" ? "French" : "English"} copy missing`;
-export function fullText(parent: HTMLElement, copy: string) {
-  const excerpt = node("p", copy, "admin-excerpt");
-  const details = document.createElement("details");
-  details.append(node("summary", "View full summary"), node("p", copy));
-  parent.append(excerpt, details);
+export function excerpt(parent: HTMLElement, copy: string) {
+  parent.append(node("p", copy, "admin-excerpt"));
 }
 export function thumbnail(
   id: unknown,
@@ -614,7 +611,7 @@ export class PreviewCollection {
             ? "body"
             : "description";
     if (Object.hasOwn(row, `${stem}_en`) || Object.hasOwn(row, `${stem}_fr`))
-      fullText(copy, translated(row, stem, this.language));
+      excerpt(copy, translated(row, stem, this.language));
     if (
       typeof row.updated_at === "string" &&
       Number.isFinite(Date.parse(row.updated_at))

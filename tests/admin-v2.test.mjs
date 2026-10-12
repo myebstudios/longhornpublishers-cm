@@ -1,5 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
+import fs from "node:fs";
 import {
   cloneRecord,
   calendarDateForPayload,
@@ -371,4 +372,14 @@ test("calendar dates round-trip without replacing the stated date or null with t
   assert.equal(calendarDateForPayload("2026-10-12"), "2026-10-12");
   assert.equal(calendarDateForPayload(null), null);
   assert.equal(calendarDateForPayload("invalid"), "invalid");
+});
+
+test('admin preview cards show a truncated excerpt with no full-summary disclosure', () => {
+  const read = (file) => fs.readFileSync(new URL(`../src/lib/${file}`, import.meta.url), 'utf8');
+  for (const file of ['admin-v2.ts', 'admin-v2-preview.ts']) {
+    const source = read(file);
+    assert.doesNotMatch(source, /View (full|fallback) summary/);
+    assert.doesNotMatch(source, /fullText\(/);
+  }
+  assert.match(read('admin-v2-preview.ts'), /export function excerpt\(parent: HTMLElement, copy: string\) \{\n  parent\.append\(node\("p", copy, "admin-excerpt"\)\);\n\}/);
 });
