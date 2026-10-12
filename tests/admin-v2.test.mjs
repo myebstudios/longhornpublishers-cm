@@ -383,3 +383,19 @@ test('admin preview cards show a truncated excerpt with no full-summary disclosu
   }
   assert.match(read('admin-v2-preview.ts'), /export function excerpt\(parent: HTMLElement, copy: string\) \{\n  parent\.append\(node\("p", copy, "admin-excerpt"\)\);\n\}/);
 });
+
+test('live QA polish: catalogue labels, contact reference target and delete-confirm focus', () => {
+  const read = (file) => fs.readFileSync(new URL(`../src/${file}`, import.meta.url), 'utf8');
+  const catalogue = read('pages/admin/catalogue.astro');
+  assert.match(catalogue, /<label>URL name<input name="slug"/);
+  assert.match(catalogue, /<label>Product code or ISBN<input name="product_code"/);
+  assert.doesNotMatch(catalogue, /<label>Slug<|ISBN \/ Product code/);
+  assert.match(read('lib/admin-v2.ts'), /"Office address, email and phone — Site settings",\n\s*"button secondary admin-reference-link"/);
+  const client = read('lib/admin-client.ts');
+  assert.match(client, /<h2 id="adminConfirmTitle" tabindex="-1">/);
+  assert.match(client, /aria-describedby', 'adminConfirmMessage'/);
+  assert.doesNotMatch(client, /autofocus/);
+  assert.match(client, /dialog\.returnValue = 'cancel';/);
+  assert.match(client, /querySelector<HTMLElement>\('#adminConfirmTitle'\)\?\.focus\(\)/);
+  assert.ok(client.indexOf('value="cancel"') < client.indexOf('value="confirm"'));
+});

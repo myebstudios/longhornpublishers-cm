@@ -101,10 +101,10 @@ export function confirmAction(message: string): Promise<boolean> {
     confirmDialog.setAttribute('aria-describedby', 'adminConfirmMessage');
     confirmDialog.innerHTML = `
       <form method="dialog">
-        <h2 id="adminConfirmTitle">Confirm action</h2>
+        <h2 id="adminConfirmTitle" tabindex="-1">Confirm action</h2>
         <p data-message id="adminConfirmMessage"></p>
         <div class="admin-confirm-actions">
-          <button class="button secondary" type="submit" value="cancel" autofocus>Cancel</button>
+          <button class="button secondary" type="submit" value="cancel">Cancel</button>
           <button class="button danger" type="submit" value="confirm">Confirm</button>
         </div>
       </form>
@@ -134,7 +134,9 @@ export function confirmAction(message: string): Promise<boolean> {
     dialog.addEventListener('close', onClose);
     dialog.showModal();
     document.body.style.overflow = 'hidden';
-    dialog.querySelector<HTMLButtonElement>('[value=cancel]')?.focus();
+    // Focus the heading so the title and consequence (aria-describedby) are
+    // announced first; Tab reaches Cancel before Confirm, and Escape cancels.
+    dialog.querySelector<HTMLElement>('#adminConfirmTitle')?.focus();
   });
 }
 
