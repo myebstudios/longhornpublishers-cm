@@ -23,6 +23,7 @@ import {
   editorBaseline,
   assertReadFields,
   catalogueBadges,
+  editorFieldIsOwned,
   heroSlotState,
   type RecordData,
 } from "./admin-v2-model";
@@ -489,7 +490,11 @@ export async function startAdminV2(page: string) {
       const row = field.closest<HTMLElement>(".repeat-row");
       const show =
         !owned ||
-        owned.includes(field.name) ||
+        editorFieldIsOwned(
+          field.name,
+          field.closest<HTMLElement>("[data-media]")?.dataset.media,
+          owned,
+        ) ||
         !!(
           row &&
           section?.array === row.dataset.array &&
@@ -545,9 +550,6 @@ export async function startAdminV2(page: string) {
         .querySelectorAll<HTMLElement>("#catalogueChoices label")
         .forEach((x) => (x.hidden = false));
     }
-    form
-      .querySelectorAll<HTMLElement>("[id^=adminWorkingPreview]")
-      .forEach((x) => x.remove());
   }
   async function openEdit(
     kind: string,
@@ -715,28 +717,6 @@ export async function startAdminV2(page: string) {
           });
         }
       }
-      const details = document.createElement("details");
-      details.id = "adminWorkingPreview";
-      details.className = "admin-working-preview";
-      details.append(
-        node("summary", "Show working preview"),
-        node("small", "Unsaved summary"),
-      );
-      const preview = node("div");
-      details.append(preview);
-      details.addEventListener("toggle", () => {
-        if (details.open) {
-          preview.replaceChildren();
-          for (const f of fields(form).filter(
-            (f) =>
-              !f.closest<HTMLElement>("label")?.hidden &&
-              f.type !== "hidden" &&
-              f.type !== "file",
-          ))
-            preview.append(node("p", `${f.name}: ${value(f)}`));
-        }
-      });
-      form.append(details);
     } finally {
       opening = false;
       trigger?.setAttribute("aria-disabled", String(readError));

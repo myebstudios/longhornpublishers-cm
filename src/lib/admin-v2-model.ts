@@ -281,3 +281,12 @@ export function calendarDateForPayload(value: unknown) {
     ? value.slice(0, 10)
     : value;
 }
+
+/** File pickers belong to their stored media field during section editing. */
+export function editorFieldIsOwned(
+  name: string,
+  mediaField: string | undefined,
+  owned: string[],
+): boolean {
+  return owned.includes(name) || Boolean(mediaField && owned.includes(mediaField));
+}

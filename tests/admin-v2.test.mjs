@@ -16,6 +16,7 @@ import {
   legalPreviewSections,
   secondsToMilliseconds,
   catalogueBadges,
+  editorFieldIsOwned,
   countLabel,
   sortedRecords,
   pageRecords,
@@ -398,4 +399,23 @@ test('live QA polish: catalogue labels, contact reference target and delete-conf
   assert.match(client, /dialog\.returnValue = 'cancel';/);
   assert.match(client, /querySelector<HTMLElement>\('#adminConfirmTitle'\)\?\.focus\(\)/);
   assert.ok(client.indexOf('value="cancel"') < client.indexOf('value="confirm"'));
+});
+
+test("homepage section editors keep their image picker visible and preserve siblings", () => {
+  for (const key of ["who_we_are_image_id", "hero_image_id"]) {
+    const owned = [key, "copy_en", "copy_fr"];
+    assert.equal(editorFieldIsOwned("", key, owned), true);
+    assert.equal(editorFieldIsOwned(key, key, owned), true);
+    assert.equal(editorFieldIsOwned("", "og_image_id", owned), false);
+    assert.equal(editorFieldIsOwned("copy_en", undefined, owned), true);
+    const original = { [key]: "old", published: true, trust_stats: [{ value: "100%" }] };
+    assert.deepEqual(mergeOwned(original, { [key]: "uploaded" }, [key]), { ...original, [key]: "uploaded" });
+  }
+});
+test("admin editors omit raw working summaries and retain image upload bindings", () => {
+  const source = fs.readFileSync(new URL('../src/lib/admin-v2.ts', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /Show working preview|Unsaved summary|adminWorkingPreview/);
+  assert.match(source, /editorFieldIsOwned\(\s*field\.name/);
+  assert.match(source, /uploadMedia\(selected\)/);
+  assert.match(source, /id\.value = result\.data\.id/);
 });
