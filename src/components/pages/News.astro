@@ -5,7 +5,7 @@ import Button from '../Button.astro';
 import Icon from '../Icon.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
-  articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
+  articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, newsImage, publishedOn,
 } from '../../lib/news';
 
 interface Props { locale: Locale }
@@ -13,7 +13,7 @@ const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
 
 /**
- * Articles are authored in the admin panel and read from Netlify DB at build
+ * Articles are authored in the admin panel and read from Netlify DB at request
  * time. Until the first one is published — or if the database is unreachable
  * during the build — `articles` is empty and the page keeps its honest empty
  * state rather than showing an empty grid.
@@ -38,7 +38,9 @@ const articles = await getPublishedNews();
           {articles.map((article) => (
             <article class="article-card reveal">
               <div class="article-card__thumb" aria-hidden="true">
-                <Icon name={categoryIcon(article.category)} />
+                {newsImage(article) ? (
+                  <img src={newsImage(article)!} alt="" width="640" height="400" loading="lazy" decoding="async" />
+                ) : <Icon name={categoryIcon(article.category)} />}
               </div>
               <div class="article-card__body">
                 <div class="article-card__meta">

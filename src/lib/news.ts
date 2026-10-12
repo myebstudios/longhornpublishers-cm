@@ -19,6 +19,7 @@ export interface NewsArticle {
   headline_fr: string;
   excerpt_en: string;
   excerpt_fr: string;
+  hero_image_id: string | null;
 }
 
 /** A published article plus its body, for the detail route. */
@@ -50,6 +51,8 @@ export function categoryKey(category: NewsCategory) {
 export function categoryIcon(category: NewsCategory) {
   return CATEGORY_ICON[category] ?? 'news';
 }
+
+export { newsImage } from './news-image';
 
 /** Headline in the requested locale. */
 export function headline(article: NewsArticle, locale: Locale): string {
@@ -110,14 +113,14 @@ export async function getPublishedNewsDetail(): Promise<NewsArticleDetail[]> {
     const rows = await (canRenderLocalDemoContent()
       ? db.sql`
           SELECT id, slug, category, publish_date, headline_en, headline_fr,
-                 excerpt_en, excerpt_fr, body_en, body_fr
+                 excerpt_en, excerpt_fr, hero_image_id, body_en, body_fr
           FROM news_articles
           WHERE published = true
           ORDER BY publish_date DESC NULLS LAST, created_at DESC
         `
       : db.sql`
           SELECT id, slug, category, publish_date, headline_en, headline_fr,
-                 excerpt_en, excerpt_fr, body_en, body_fr
+                 excerpt_en, excerpt_fr, hero_image_id, body_en, body_fr
           FROM news_articles
           WHERE published = true AND is_demo = false
           ORDER BY publish_date DESC NULLS LAST, created_at DESC
@@ -138,13 +141,13 @@ export async function getPublishedNews(limit?: number): Promise<NewsArticle[]> {
     const db = getBuildDatabase();
     const rows = await (canRenderLocalDemoContent()
       ? db.sql<NewsArticle>`
-          SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr
+          SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr, hero_image_id
           FROM news_articles
           WHERE published = true
           ORDER BY publish_date DESC NULLS LAST, created_at DESC
         `
       : db.sql<NewsArticle>`
-          SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr
+          SELECT id, slug, category, publish_date, headline_en, headline_fr, excerpt_en, excerpt_fr, hero_image_id
           FROM news_articles
           WHERE published = true AND is_demo = false
           ORDER BY publish_date DESC NULLS LAST, created_at DESC

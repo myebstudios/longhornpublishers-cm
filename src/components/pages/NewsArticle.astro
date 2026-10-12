@@ -9,7 +9,7 @@
 import Layout from '../../layouts/Layout.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
-  bodyParagraphs, categoryKey, excerpt, headline, publishedOn, type NewsArticleDetail,
+  bodyParagraphs, categoryKey, excerpt, headline, newsImage, publishedOn, type NewsArticleDetail,
 } from '../../lib/news';
 
 interface Props { locale: Locale; article: NewsArticleDetail }
@@ -50,6 +50,10 @@ const alternates = {
       <h1>{title}</h1>
       <p class="article-detail__lede">{excerpt(article, lang)}</p>
 
+      {newsImage(article) && (
+        <img class="article-detail__image" src={newsImage(article)!} alt="" width="960" height="540" decoding="async" />
+      )}
+
       {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
 
       <a class="link-arrow article-detail__back" href={path('news', lang)}>
@@ -87,5 +91,6 @@ const alternates = {
   .article-detail__meta time { color: var(--ink-soft); font-size: var(--step--1); }
   .article-detail__lede { margin: 1rem 0 2rem; font-size: var(--step-1); color: var(--ink-soft); }
   .article-detail p + p { margin-top: 1rem; }
+  .article-detail__image { display: block; width: 100%; height: auto; border-radius: var(--radius); margin-bottom: 2rem; }
   .article-detail__back { display: inline-block; margin-top: 2.5rem; }
 </style>

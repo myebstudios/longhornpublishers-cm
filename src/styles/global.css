@@ -958,7 +958,8 @@ body.nav-open {
 .empty-state p { max-width: 38rem; margin: 1rem auto 1.75rem; color: var(--ink-soft); }
 .article-card { display: flex; flex-direction: column; border-radius: var(--radius-lg); overflow: hidden; background: var(--white); border: 1px solid var(--line); transition: transform .3s ease, box-shadow .3s ease; }
 .article-card:hover { transform: translateY(-4px); box-shadow: var(--shadow); }
-.article-card__thumb { aspect-ratio: 16 / 10; background: linear-gradient(135deg, var(--burgundy), var(--burgundy-soft)); display: grid; place-items: center; color: var(--green); }
+.article-card__thumb img { width: 100%; height: 100%; object-fit: cover; }
+.article-card__thumb { overflow: hidden; aspect-ratio: 16 / 10; background: linear-gradient(135deg, var(--burgundy), var(--burgundy-soft)); display: grid; place-items: center; color: var(--green); }
 .article-card__body { padding: 1.5rem; display: flex; flex-direction: column; gap: .75rem; flex: 1; }
 .article-card__meta { display: flex; align-items: center; gap: .75rem; font-size: var(--step--1); color: var(--ink-soft); }
 .article-card__body h3 { font-size: var(--step-1); }

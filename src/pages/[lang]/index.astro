@@ -16,7 +16,7 @@ import {
 import { responsive } from '../../lib/images';
 import { getDevHeroSlides } from '../../data/dev-hero-slides';
 import {
-  articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, publishedOn,
+  articlePath, categoryIcon, categoryKey, excerpt, getPublishedNews, headline, newsImage, publishedOn,
 } from '../../lib/news';
 import { coverImage, getPublishedTitles, subjectName, titleText } from '../../lib/catalogue';
 import { homeCatalogue } from '../../lib/home-catalogue';
@@ -56,7 +56,7 @@ const { services, process } = await getPublishingContent();
 const categoryImage: Record<string, string> = { editorial: 'lh-production-planning.jpg', creative: 'lh-book-design.jpg', production: 'lh-print-workshop.jpg' };
 
 // Catalogue showcase, newest/featured first. Omitted entirely when nothing is
-// published, like the news teaser below. CLIENT-3 C15: the showcase lists only
+// published, like the news teaser below. V2-5: the showcase lists only
 // cover-public titles; when none qualify, up to four titles show as text cards.
 const { covers: catalogueTitles, text: catalogueTextTitles } = homeCatalogue(
   await getPublishedTitles(),
@@ -297,7 +297,9 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
           {latestNews.map((article) => (
             <article class="article-card reveal">
               <div class="article-card__thumb" aria-hidden="true">
-                <Icon name={categoryIcon(article.category)} />
+                {newsImage(article) ? (
+                  <img src={newsImage(article)!} alt="" width="640" height="400" loading="lazy" decoding="async" />
+                ) : <Icon name={categoryIcon(article.category)} />}
               </div>
               <div class="article-card__body">
                 <div class="article-card__meta">
