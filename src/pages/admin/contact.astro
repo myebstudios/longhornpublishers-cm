@@ -2,11 +2,14 @@
 import AdminLayout from '../../layouts/AdminLayout.astro';
 import AdminPageHeader from '../../components/admin/AdminPageHeader.astro';
 import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
+
+import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
 ---
 <AdminLayout title="Contact" section="contact">
-  <AdminPageHeader heading="Contact Page" subtitle="Manage contact hero introduction, inquiry project types, and map coordinates."></AdminPageHeader>
-  <section class="card editor-card">
-    <form id="contactForm"><p>Address, phone numbers, and public email are managed centrally in <a href="/admin/site-settings/">Site settings</a>.</p><h2>Introduction and coordinates</h2>
+<AdminPageHeader heading="Contact Page" subtitle="Manage contact hero introduction, inquiry project types, and map coordinates."></AdminPageHeader>
+<section id="adminCanvas" aria-busy="true"><p role="status">Loading saved content…</p></section>
+<AdminEditorDialog>
+<form hidden id="contactForm"><p>Address, phone numbers, and public email are managed centrally in <a href="/admin/site-settings/">Site settings</a>.</p><h2>Introduction and coordinates</h2>
       <div class="two">
         <label>Hero copy — English<textarea name="hero_copy_en" required lang="en"></textarea></label>
         <label>Hero copy — French<textarea name="hero_copy_fr" required lang="fr"></textarea></label>
@@ -19,37 +22,9 @@ import AdminSaveBar from '../../components/admin/AdminSaveBar.astro';
       <AdminSaveBar><button class="button" type="submit">Save Contact page</button></AdminSaveBar>
       <p id="status" role="status" aria-live="polite"></p>
     </form>
-  </section>
+</AdminEditorDialog>
 </AdminLayout>
-
 <script>
-  import { guardUnsavedChanges, request, sendJson } from '../../lib/admin-client';
-  const form = document.querySelector('#contactForm') as HTMLFormElement;
-  const options = document.querySelector('#options')!;
-  const status = document.querySelector('#status')!;
-  const guard = guardUnsavedChanges(form, options);
-  const submit = form.querySelector('button[type="submit"]') as HTMLButtonElement;
-  const setStatus = (message: string, tone: 'ok' | 'err' = 'ok') => { status.textContent = message; status.className = message ? `status status--${tone}` : ''; };
-  function addOption(en = '', fr = '') {
-    const row = document.createElement('div'); row.className = 'repeat-row';
-    row.innerHTML = '<label>English label<input data-en maxlength="160" required></label><label>French label<input data-fr maxlength="160" required></label><button class="button danger" type="button">Remove</button>';
-    (row.querySelector('[data-en]') as HTMLInputElement).value = en; (row.querySelector('[data-fr]') as HTMLInputElement).value = fr;
-    row.querySelector('button')!.addEventListener('click', () => row.remove()); options.append(row);
-  }
-  document.querySelector('#addOption')!.addEventListener('click', () => addOption());
-  async function load() {
-    const res = await request<Record<string, any> | null>('/api/contact-settings-admin', {}, 'Unable to load Contact settings.');
-    if (!res.ok) return setStatus(res.error!, 'err');
-    if (!res.data) return setStatus('No database row yet. Enter complete bilingual content to create it.');
-    for (const name of ['hero_copy_en', 'hero_copy_fr', 'map_lat', 'map_lng']) (form.elements.namedItem(name) as HTMLInputElement).value = String(res.data[name] ?? '');
-    (form.elements.namedItem('published') as HTMLInputElement).checked = Boolean(res.data.published);
-    options.replaceChildren(); (res.data.project_type_options ?? []).forEach((item: any) => addOption(item.label_en, item.label_fr)); setStatus('Contact settings loaded.'); guard.markClean();
-  }
-  form.addEventListener('submit', async (event) => {
-    event.preventDefault(); submit.disabled = true; setStatus('Saving…'); const data = new FormData(form);
-    const payload = { hero_copy_en: data.get('hero_copy_en'), hero_copy_fr: data.get('hero_copy_fr'), map_lat: data.get('map_lat'), map_lng: data.get('map_lng'), project_type_options: [...options.querySelectorAll<HTMLElement>('.repeat-row')].map((row) => ({ label_en: (row.querySelector('[data-en]') as HTMLInputElement).value, label_fr: (row.querySelector('[data-fr]') as HTMLInputElement).value })), published: (form.elements.namedItem('published') as HTMLInputElement).checked };
-    const res = await sendJson('/api/contact-settings-admin', 'PUT', payload, 'Unable to save Contact settings.');
-    setStatus(res.ok ? (payload.published ? 'Contact page published. The live site cache will refresh shortly.' : 'Draft saved. Not visible on the public site.') : res.error!, res.ok ? 'ok' : 'err'); if (res.ok) guard.markClean(); submit.disabled = false;
-  });
-  load();
+import { startAdminV2 } from '../../lib/admin-v2';
+void startAdminV2('contact');
 </script>
