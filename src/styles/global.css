@@ -737,10 +737,14 @@ body.nav-open {
 .quote__by span { font-size: var(--step--1); color: var(--ink-soft); }
 
 /* --- CTA band ---------------------------------------------------------- */
-.cta-band {
+/* Full-bleed: the section is the green band; .wrap keeps the copy aligned. */
+.cta-band-section {
   position: relative; isolation: isolate; overflow: hidden;
-  border-radius: var(--radius-xl); padding: clamp(2.5rem, 1.8rem + 3.5vw, 4.5rem);
-  background: var(--green); color: var(--burgundy-deep);
+  background: var(--green); padding-block: clamp(3.5rem, 2.5rem + 4vw, 6rem);
+}
+.cta-band {
+  position: static; padding: 0;
+  color: var(--burgundy-deep);
   display: grid; grid-template-columns: minmax(0, 1.4fr) auto; gap: 2rem; align-items: center;
 }
 .cta-band::before {
@@ -774,14 +778,6 @@ body.nav-open {
   }
 
   /* Task 1: Clean 100vw breakout alignment without right-side iOS viewport drift */
-  .cta-band-section { padding-block: 0; }
-  .cta-band {
-    width: 100vw;
-    max-width: 100vw;
-    margin-inline: calc(50% - 50vw);
-    border-radius: 0;
-    box-sizing: border-box;
-  }
 
   .contact-map-section { padding-block: 0; }
   .contact-map-section .map-embed {
