@@ -93,3 +93,10 @@ sidebar.querySelectorAll<HTMLElement>('a[title],button[title]').forEach(control=
 });
 window.addEventListener('resize',hideTooltip);document.addEventListener('keydown',e=>{if(e.key==='Escape')hideTooltip();});
 const hint=document.querySelector('kbd');if(hint)hint.textContent=/Mac|iPhone|iPad/.test(navigator.platform)?'⌘ K':'Ctrl K';
+
+// V2: close navigation surfaces before opening a focused editor.
+document.addEventListener('admin:close-navigation',()=>{if(search.open)closeSearch();closeDrawer(false);hideTooltip();});
+search.addEventListener('keydown',event=>{if(event.key==='Escape'){event.preventDefault();event.stopPropagation();closeSearch();}},true);
+const nav=sidebar.querySelector('nav')!;const cue=document.querySelector<HTMLElement>('#adminNavCue')!;
+function updateCue(){const below=nav.scrollHeight-nav.clientHeight-nav.scrollTop>2;const above=nav.scrollTop>2;cue.textContent=below?(above?'More above · More below':'More below'):above?'More above':'';}
+nav.addEventListener('scroll',updateCue,{passive:true});window.addEventListener('resize',updateCue);new ResizeObserver(updateCue).observe(nav);nav.addEventListener('focusin',event=>{(event.target as HTMLElement).scrollIntoView({block:'nearest'});updateCue();});updateCue();

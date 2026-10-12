@@ -74,7 +74,7 @@ test('six absent singleton/legal records are not counted as drafts',()=>{
 });
 test('catalogue eligibility requires a published record in either permitted classification',()=>{
  const result=catalogueCounts([{published:true,classification:'unclassified',level:'primary'},{published:false,classification:'national_book_list_verified',level:'secondary'},{published:true,classification:'national_book_list_verified',level:'secondary'},{published:true,classification:'other_developed',level:'primary'}]);
- assert.deepEqual(result,{total:4,primary:2,secondary:2,published:3,drafts:1,unclassified:1,eligible:2});
+ assert.deepEqual(result,{total:4,primary:2,secondary:2,published:3,drafts:1,unclassified:1,eligible:2,coverEligible:0});
 });
 test('homepage projection never supplies catalogue metrics',()=>{
  assert.deepEqual(adaptDashboard('homepage',{content:null,catalogue:[{published:true}]}),{homepage:[]});

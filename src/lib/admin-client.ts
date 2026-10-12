@@ -89,6 +89,11 @@ export async function request<T = unknown>(
 let confirmDialog: HTMLDialogElement | null = null;
 
 export function confirmAction(message: string): Promise<boolean> {
+  if (/unsaved/i.test(message)) {
+    const detail: { promise?: Promise<boolean> } = {};
+    document.dispatchEvent(new CustomEvent('admin:confirm', { detail }));
+    if (detail.promise) return detail.promise;
+  }
   if (!confirmDialog) {
     confirmDialog = document.createElement('dialog');
     confirmDialog.className = 'admin-confirm-dialog';

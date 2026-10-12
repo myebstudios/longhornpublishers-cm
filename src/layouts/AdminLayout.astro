@@ -23,6 +23,7 @@ const groups = ['Workspace', 'Website', 'Content', 'Settings'];
   <nav aria-label="Admin navigation">
    {groups.map(group => <section class="nav-group"><p class="nav-label nav-group-label">{group}</p><ul>{adminPages.filter(p => p.group === group).map(p => <li><a href={p.href} class:list={{active: p.section === section}} aria-current={p.section === section ? 'page' : undefined} title={p.label}><AdminIcon name={p.icon} /><span class="nav-label">{p.label}</span></a></li>)}</ul></section>)}
   </nav>
+  <p id="adminNavCue" class="admin-nav-cue" aria-hidden="true"></p>
   <div class="sidebar-foot">
    <div class="account"><span class="avatar" aria-hidden="true">AD</span><span class="nav-label" id="adminUser">Checking session…</span></div>
    <a href="/admin/site-settings/" title="Site settings" class:list={{active: section === 'settings'}} aria-current={section === 'settings' ? 'page' : undefined}><AdminIcon name="settings" /><span class="nav-label">Site settings</span></a>

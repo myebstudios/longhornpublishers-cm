@@ -1,3 +1,4 @@
+import { coverIsPublic } from '../../netlify/functions/_shared/catalogue-classification';
 /** Read-only presentation adapters. These never infer public visibility from Published. */
 export type DashboardRecord = Record<string, unknown>;
 export type DashboardData = Record<string, DashboardRecord[]>;
@@ -51,6 +52,7 @@ export function websiteCounts(data: DashboardData) {
 export function catalogueCounts(rows: DashboardRecord[]) {
  return { total: rows.length, primary: rows.filter(r => r.level === 'primary').length, secondary: rows.filter(r => r.level === 'secondary').length,
   ...publicationCounts(rows), unclassified: rows.filter(r => r.classification === 'unclassified').length,
+  coverEligible: rows.filter(r => coverIsPublic({published:r.published===true,classification:String(r.classification),cover_rights_approved:r.cover_rights_approved===true,cover_image_id:typeof r.cover_image_id==='string'?r.cover_image_id:null})).length,
   eligible: rows.filter(r => r.published === true && ['national_book_list_verified', 'other_developed'].includes(String(r.classification))).length };
 }
 export const sourceLabels: Record<string, {label: string; href: string; icon: string}> = {

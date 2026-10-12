@@ -1,0 +1,10 @@
+---
+import AdminIcon from './AdminIcon.astro';
+---
+<dialog id="adminEditorDialog" class="admin-editor-dialog" aria-labelledby="adminEditorTitle">
+ <header class="admin-editor-header"><div><h2 id="adminEditorTitle" tabindex="-1">Edit content</h2><p id="adminEditorContext"></p></div><button id="adminEditorClose" class="icon-button" type="button" aria-label="Close editor"><AdminIcon name="close" /></button></header>
+ <nav id="adminEditorIndex" class="admin-editor-index" aria-label="Editor sections"></nav>
+ <div id="adminEditorBody" class="admin-editor-body"><div id="adminEditorErrors" tabindex="-1" hidden></div><slot /></div>
+ <div id="adminDiscardDecision" class="admin-discard-decision" hidden><h3>Discard unsaved changes?</h3><p>Your working changes will be discarded. Uploaded media may already exist.</p><div><button class="button secondary" id="adminKeepEditing" type="button">Keep editing</button><button class="button danger" id="adminDiscardChanges" type="button">Discard changes</button></div></div>
+ <footer id="adminEditorFooter" class="admin-editor-footer"><div><p id="adminSaveConsequence"></p><p id="adminEditorStatus" role="status" aria-live="polite"></p></div><div id="adminEditorActions"></div></footer>
+</dialog>

@@ -25,6 +25,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
  </div><div id="dashboardErrors"></div>
 </AdminLayout>
 <script>
+ import { countLabel } from '../../lib/admin-v2-model';
  import { dashboardFeedback } from '../../lib/admin-dashboard-feedback';
  import { request } from '../../lib/admin-client';
  import { adminIcon } from '../../lib/admin-icons';
@@ -40,7 +41,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   node.textContent = data[source] ? String(data[source].length) : '—';
   el(`metric${name}Sub`).textContent = data[source] ? helper(data[source]) + marker(source) : pending.has(source) ? 'Loading…' : 'Could not load';
  }
- const publishHelper = (rows: any[]) => { const c = publicationCounts(rows); return `${c.published} published · ${c.drafts} drafts`; };
+ const publishHelper = (rows: any[]) => { const c = publicationCounts(rows); return `${c.published} published · ${countLabel(c.drafts,'draft')}`; };
  function pair(container: HTMLElement, label: string, value: string) { const row = document.createElement('div'); row.className = 'summary-row'; row.append(text('span',label),text('strong',value)); container.append(row); }
  function render() {
   metric('Catalogue','catalogue',publishHelper); metric('News','news',publishHelper); metric('Subjects','subjects',r => `${r.filter(x => x.title_count === 0).length} with no assigned titles`);
@@ -49,7 +50,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   const stale = contributing.some(s => errors.has(s));
   el('metricWebsite').textContent = aggregate && !stale ? String(aggregate.published) : '—';
   el('metricWebsite').classList.toggle('admin-skeleton', !aggregate && contributing.some(s => pending.has(s)));
-  el('metricWebsiteSub').textContent = aggregate && !stale ? `${aggregate.published} published · ${aggregate.drafts} drafts · ${aggregate.missing} pages not set up${contributing.some(s => pending.has(s)) ? ' · Updating' : ''}` : contributing.some(s => pending.has(s)) ? 'Loading…' : 'Could not load';
+  el('metricWebsiteSub').textContent = aggregate && !stale ? `${aggregate.published} published · ${countLabel(aggregate.drafts,'draft')} · ${countLabel(aggregate.missing,'page')} not set up${contributing.some(s => pending.has(s)) ? ' · Updating' : ''}` : contributing.some(s => pending.has(s)) ? 'Loading…' : 'Could not load';
   const hero = el('heroSummary'); hero.classList.remove('admin-skeleton'); hero.replaceChildren();
   if (data.hero) {
    const n = data.hero.length, e = data.hero.filter(s => s.enabled === true).length;
@@ -77,7 +78,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
    sections.append(row);
   }
   const cat = el('catalogueSummary'); cat.classList.remove('admin-skeleton'); cat.replaceChildren();
-  if (data.catalogue) { const c = catalogueCounts(data.catalogue); for (const [label,key] of [['Total','total'],['Primary','primary'],['Secondary','secondary'],['Published','published'],['Drafts','drafts'],['Unclassified','unclassified'],['Publicly eligible','eligible']] as const) pair(cat,label,String(c[key])); if (marker('catalogue')) cat.append(text('small',marker('catalogue').slice(3))); }
+  if (data.catalogue) { const c = catalogueCounts(data.catalogue); for (const [label,key] of [['Total','total'],['Primary','primary'],['Secondary','secondary'],['Published','published'],['Drafts','drafts'],['Unclassified','unclassified'],['Text-listing eligible','eligible'],['Cover-public eligible','coverEligible']] as const) pair(cat,label,String(c[key])); if (marker('catalogue')) cat.append(text('small',marker('catalogue').slice(3))); }
   else cat.append(text('p',pending.has('catalogue') ? 'Loading…' : 'Could not load'));
   const recent = el('recentEdits'); recent.classList.remove('admin-skeleton'); recent.replaceChildren();
   if (errors.size) recent.append(text('p','Some sections could not be loaded.','status status--err'));
