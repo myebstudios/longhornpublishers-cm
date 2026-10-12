@@ -80,3 +80,24 @@ test('the admin API requires explicit classification on update only', () => {
   const source = fs.readFileSync(new URL('../netlify/functions/catalogue.mts', import.meta.url), 'utf8');
   assert.match(source, /parseClassification\(body, undefined, \{ requireExplicit: req\.method === 'PUT' \}\)/);
 });
+
+test('homepage catalogue falls back to up to four text cards when no candidate has a public cover', async () => {
+  const { homeCatalogue } = await import('../src/lib/home-catalogue.ts');
+  const text = (id) => ({ id, cover_image_id: null });
+  const live = ['a', 'b', 'c', 'd', 'e'].map(text);
+  assert.deepEqual(homeCatalogue(live, []), { covers: [], text: live.slice(0, 4) });
+  assert.deepEqual(homeCatalogue(live).text.map((t) => t.id), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(homeCatalogue(live, ['e', 'missing', 'b']).text.map((t) => t.id), ['e', 'b']);
+  assert.deepEqual(homeCatalogue(live, ['missing']).text.length, 4);
+  const withCover = [...live, { id: 'nbl', cover_image_id: 'uploads/nbl.png' }];
+  assert.deepEqual(homeCatalogue(withCover), { covers: [withCover[5]], text: [] });
+  assert.deepEqual(homeCatalogue(withCover, ['a']).text.map((t) => t.id), ['a']);
+  assert.deepEqual(homeCatalogue([]), { covers: [], text: [] });
+});
+
+test('the homepage never renders the catalogue block without cards', () => {
+  const page = fs.readFileSync(new URL('../src/pages/[lang]/index.astro', import.meta.url), 'utf8');
+  assert.match(page, /homeCatalogue\(/);
+  assert.doesNotMatch(page, /catalogueTextOnly/);
+  assert.match(page, /catalogueTextTitles\.map/);
+});
