@@ -1031,7 +1031,8 @@ body.nav-open {
 }
 
 /* Newsletter */
-.newsletter { display: flex; gap: .5rem; margin-top: 1.25rem; }
+.newsletter { display: flex; flex-wrap: wrap; gap: .5rem; margin-top: 1.25rem; }
+.newsletter .form__status { flex-basis: 100%; margin-top: .25rem; }
 .newsletter input { flex: 1; min-width: 0; padding: .7rem 1rem; border-radius: 999px; border: 1px solid var(--line-light); background: rgba(255,255,255,.07); color: var(--white); font-size: var(--step--1); }
 .newsletter input::placeholder { color: rgba(255,255,255,.45); }
 .newsletter input:focus { border-color: var(--green-deep); }

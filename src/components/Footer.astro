@@ -44,7 +44,16 @@ const serviceAnchors = [
         <p class="footer__blurb">
           {footerTagline}
         </p>
-        <form class="newsletter" name="newsletter" method="POST" action="/__forms.html" data-netlify="true" netlify-honeypot="bot-field">
+        <form
+          class="newsletter"
+          name="newsletter"
+          method="POST"
+          action="/__forms.html"
+          data-netlify="true"
+          netlify-honeypot="bot-field"
+          data-success={locale === 'fr' ? 'Merci — votre inscription est confirmée.' : 'Thank you — you’re subscribed.'}
+          data-error={locale === 'fr' ? 'L’inscription a échoué. Veuillez réessayer.' : 'Subscription failed. Please try again.'}
+        >
           <input type="hidden" name="form-name" value="newsletter" />
           <p class="visually-hidden"><label>{locale === 'fr' ? 'Ne remplissez pas ce champ :' : 'Do not fill this out:'} <input name="bot-field" /></label></p>
           <label class="visually-hidden" for={`footerEmail-${locale}`}>{locale === 'fr' ? 'Adresse e-mail' : 'Email address'}</label>
