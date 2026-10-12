@@ -1930,6 +1930,7 @@ export async function startAdminV2(page: string) {
         const link = node(
           "a",
           "Office address, email and phone — Site settings",
+          "button secondary admin-reference-link",
         ) as HTMLAnchorElement;
         link.href = "/admin/site-settings/";
         card.append(link);
