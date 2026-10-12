@@ -236,10 +236,17 @@ export class AdminEditor {
     this.errors.append(heading, copy);
     for (const original of fields) {
       const field =
-        original instanceof HTMLInputElement && original.type === "hidden"
+        original instanceof HTMLInputElement &&
+        (original.type === "hidden" || original.hidden)
           ? (original
+              .closest("label")
+              ?.querySelector<HTMLElement>(
+                "[data-destination-picker],[data-icon-picker]",
+              ) ??
+            original
               .closest("fieldset")
-              ?.querySelector<HTMLElement>("input[type=file]") ?? original)
+              ?.querySelector<HTMLElement>("input[type=file]") ??
+            original)
           : original;
       field.id ||= `admin-v2-error-field-${++this.errorIndex}`;
       field.setAttribute("aria-invalid", "true");
@@ -270,7 +277,11 @@ export class AdminEditor {
       const a = document.createElement("a");
       a.href = `#${field.id}`;
       a.textContent =
-        field.closest("label")?.textContent?.trim().slice(0, 100) ??
+        field
+          .closest("label")
+          ?.querySelector(".admin-field-caption")
+          ?.textContent?.trim() ??
+        field.closest("label")?.textContent?.trim() ??
         "Review field";
       a.addEventListener("click", (event) => {
         event.preventDefault();

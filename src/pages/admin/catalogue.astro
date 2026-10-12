@@ -74,9 +74,10 @@ import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
              public card badges these, so a stray default is a visible false claim. -->
         <label><input name="language_en" type="checkbox" lang="en" /> English edition</label>
         <label><input name="language_fr" type="checkbox" lang="fr" /> French edition</label>
-        <label><input name="featured" type="checkbox" /> Featured title</label>
+        <label><input name="featured" type="checkbox" aria-describedby="catalogueFeaturedHint" /> Catalogue featured</label>
         <label><input name="published" type="checkbox" /> Published</label>
       </fieldset>
+<small id="catalogueFeaturedHint">Catalogue featured is separate from the selected titles on Homepage.</small>
 
       <AdminSaveBar>
         <button class="button" type="submit">Save title</button>

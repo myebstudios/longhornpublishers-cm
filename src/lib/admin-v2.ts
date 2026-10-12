@@ -18,6 +18,11 @@ import {
   legalPreviewSections,
   secondsToMilliseconds,
   countLabel,
+  calendarDateForPayload,
+  hydrateEditorField,
+  editorBaseline,
+  assertReadFields,
+  catalogueBadges,
   heroSlotState,
   type RecordData,
 } from "./admin-v2-model";
@@ -96,7 +101,11 @@ export async function startAdminV2(page: string) {
   const sectionCache = new Map<string, { el: HTMLElement; stamp: string }>();
   const arraySearch = new Map<string, string>();
   const collections = new Map<string, PreviewCollection>();
-  const pageStatus = node("p", "", "admin-saved-status");
+  const pageStatus =
+    document.querySelector<HTMLElement>("#status") ??
+    node("p", "", "admin-saved-status");
+  pageStatus.id = "status";
+  pageStatus.className = "admin-saved-status";
   pageStatus.tabIndex = -1;
   pageStatus.setAttribute("role", "status");
   pageStatus.setAttribute("aria-live", "polite");
@@ -179,6 +188,91 @@ export async function startAdminV2(page: string) {
       .querySelectorAll("[data-delete-slide],[data-move-up],[data-move-down]")
       .forEach((b) => b.setAttribute("hidden", ""));
   });
+  function checkReadRecords(kind: string, rows: RecordData[]) {
+    const contract: Record<string, string[]> = {
+      catalogue: [
+        "title_en",
+        "title_fr",
+        "product_code",
+        "slug",
+        "level",
+        "subject_id",
+        "languages",
+        "cover_image_id",
+        "description_en",
+        "description_fr",
+        "curriculum_alignment_en",
+        "curriculum_alignment_fr",
+        "featured",
+        "published",
+        "classification",
+        "booklist_evidence_ref",
+        "booklist_verified_by",
+        "booklist_verified_at",
+        "cover_rights_approved",
+      ],
+      news: [
+        "headline_en",
+        "headline_fr",
+        "slug",
+        "category",
+        "publish_date",
+        "excerpt_en",
+        "excerpt_fr",
+        "body_en",
+        "body_fr",
+        "published",
+        "hero_image_id",
+      ],
+      subjects: ["name_en", "name_fr", "title_count"],
+      hero: [
+        "image_id",
+        "sort_order",
+        "enabled",
+        "headline_en",
+        "headline_fr",
+        "subheadline_en",
+        "subheadline_fr",
+        "primary_cta_label_en",
+        "primary_cta_label_fr",
+        "primary_cta_href",
+      ],
+      services: [
+        "name_en",
+        "name_fr",
+        "slug",
+        "short_en",
+        "short_fr",
+        "category",
+        "icon",
+        "description_en",
+        "description_fr",
+        "sort_order",
+        "published",
+      ],
+      process: [
+        "step_number",
+        "title_en",
+        "title_fr",
+        "description_en",
+        "description_fr",
+        "published",
+      ],
+      legal: ["page", "body_en", "body_fr", "content_updated_at", "published"],
+    };
+    const keys =
+      contract[kind] ??
+      (sections[page] ?? []).flatMap((section) => section.fields);
+    rows.forEach((row) => {
+      assertReadFields(row, keys);
+      for (const section of sections[page] ?? []) {
+        if (section.array && Object.hasOwn(row, section.array)) {
+          for (const item of row[section.array] ?? [])
+            assertReadFields(item, []);
+        }
+      }
+    });
+  }
   function initializeInputs(form: HTMLFormElement, record: RecordData) {
     form.reset();
     for (const field of fields(form)) {
@@ -192,11 +286,7 @@ export async function startAdminV2(page: string) {
         v = record.languages?.includes(field.name.slice(-2)) ?? false;
       if (field.name === "hero_autoplay_interval")
         v = Number(record.hero_autoplay_interval ?? 6000) / 1000;
-      if (field instanceof HTMLInputElement && field.type === "checkbox")
-        field.checked = v === true;
-      else if (v !== undefined)
-        field.value =
-          field.type === "date" && v ? String(v).slice(0, 10) : String(v ?? "");
+      hydrateEditorField(field, v);
     }
     if (page === "catalogue") {
       const select = form.elements.namedItem("subject_id") as HTMLSelectElement;
@@ -315,6 +405,13 @@ export async function startAdminV2(page: string) {
       edits[field.name] = v;
     }
     const result = { ...cloneRecord(baseline), ...edits };
+    for (const key of [
+      "publish_date",
+      "booklist_verified_at",
+      "content_updated_at",
+    ])
+      if (Object.hasOwn(result, key))
+        result[key] = calendarDateForPayload(result[key]);
     if (page === "catalogue") {
       if (
         edits.language_en !== undefined ||
@@ -490,19 +587,20 @@ export async function startAdminV2(page: string) {
       activeKind = kind;
       activeSection = fresh ? section : null;
       arrayIndex = index;
-      baseline = cloneRecord(fresh ?? {});
+      const defaults: RecordData = {};
+      if (!fresh) {
+        if (!["subjects", "hero"].includes(kind)) defaults.published = false;
+        if (kind === "hero") defaults.enabled = false;
+        if (kind === "services")
+          defaults.sort_order = (data.services ?? []).length;
+        if (kind === "process")
+          defaults.step_number = (data.process ?? []).length + 1;
+        if (kind === "legal") defaults.page = row?.page;
+      }
+      baseline = editorBaseline(fresh, singletonKind(kind), defaults);
       working = cloneRecord(baseline);
       latestConflict = null;
       activeForm = formFor(kind, row ?? undefined);
-      if (!fresh) {
-        if (!["subjects", "hero"].includes(kind)) baseline.published = false;
-        if (kind === "hero") baseline.enabled = false;
-        if (kind === "services")
-          baseline.sort_order = (data.services ?? []).length;
-        if (kind === "process")
-          baseline.step_number = (data.process ?? []).length + 1;
-        if (kind === "legal") baseline.page = row?.page;
-      }
       if (addItem && section?.array) {
         baseline[section.array] ??= [];
         if (baseline[section.array].length >= (section.limit ?? Infinity)) {
@@ -525,7 +623,7 @@ export async function startAdminV2(page: string) {
       const opened = editor.open(
         form,
         editTitle,
-        row && !singletonKind(kind) ? recordTitle(row) : config.title,
+        row && !singletonKind(kind) ? recordTitle(fresh ?? row) : config.title,
         activeSection?.mode ??
           (kind === "subjects"
             ? "short"
@@ -753,6 +851,18 @@ export async function startAdminV2(page: string) {
           page === "homepage"
             ? (before.data as RecordData)?.content
             : before.data;
+        if (fresh) {
+          try {
+            checkReadRecords(activeKind, [fresh as RecordData]);
+          } catch (error) {
+            editor.showErrors(
+              error instanceof Error
+                ? error.message
+                : "Latest saved content unavailable.",
+            );
+            return;
+          }
+        }
         if (fingerprint(fresh ?? {}) !== fingerprint(baseline)) {
           latestConflict = cloneRecord((fresh as RecordData) ?? {});
           showConflict();
@@ -1095,6 +1205,8 @@ export async function startAdminV2(page: string) {
           ["/about", "About us"],
           ["/why-choose-us", "Why choose us"],
           ["/news", "News"],
+          ["/privacy-policy", "Privacy Policy"],
+          ["/terms-of-use", "Terms of Use"],
         ];
         for (const [url, name] of routes) select.append(new Option(name, url));
         select.append(new Option("Custom destination", "__custom"));
@@ -1414,7 +1526,11 @@ export async function startAdminV2(page: string) {
         const hero = node("section");
         hero.id = "hero-slides";
         const header = node("header", "", "toolbar");
-        header.append(node("h2", "Hero carousel slides"));
+        const heading = node("h2", "Hero carousel slides");
+        heading.id = "heroSlidesTitle";
+        heading.tabIndex = -1;
+        hero.setAttribute("aria-labelledby", heading.id);
+        header.append(heading);
         const add = action(
           "Add slide",
           (b) => {
@@ -1770,6 +1886,14 @@ export async function startAdminV2(page: string) {
               "admin-card-copy",
             ),
           );
+          if (title) {
+            const badges = node("div", "", "admin-status-group");
+            catalogueBadges(title).labels.forEach((label) =>
+              badges.append(node("span", label, "admin-badge")),
+            );
+            const copy = article.querySelector(".admin-card-copy")!;
+            copy.append(badges, node("small", "Selected on homepage"));
+          }
           li.append(article);
           list.append(li);
         }
@@ -1836,6 +1960,8 @@ export async function startAdminV2(page: string) {
       );
       if (!result.ok) throw new Error(result.error!);
       const adapted = adaptDashboard(config.source, result.data);
+      for (const [kind, rows] of Object.entries(adapted))
+        checkReadRecords(kind, rows);
       Object.assign(data, adapted);
       if (page === "homepage") {
         const [hero, titles] = await Promise.all([
@@ -1846,8 +1972,11 @@ export async function startAdminV2(page: string) {
           throw new Error(
             hero.error ?? titles.error ?? "Unable to load homepage previews.",
           );
-        Object.assign(data, adaptDashboard("hero", hero.data));
+        const heroData = adaptDashboard("hero", hero.data);
+        checkReadRecords("hero", heroData.hero);
+        Object.assign(data, heroData);
         catalogue = adaptDashboard("catalogue", titles.data).catalogue;
+        checkReadRecords("catalogue", catalogue);
       }
       if (page === "catalogue") {
         const [subjectResult, homeResult] = await Promise.all([
@@ -1857,16 +1986,14 @@ export async function startAdminV2(page: string) {
         if (subjectResult.ok)
           subjects = adaptDashboard("subjects", subjectResult.data).subjects;
         else subjects = [];
-        if (
-          homeResult.ok &&
-          homeResult.data &&
-          typeof homeResult.data === "object" &&
-          Object.hasOwn(homeResult.data, "content")
-        )
-          homeIds =
-            (homeResult.data as RecordData).content?.featured_catalogue_ids ??
-            [];
-        else homeIds = null;
+        const homeContent =
+          homeResult.ok && (homeResult.data as RecordData)?.content;
+        homeIds =
+          homeContent === null
+            ? []
+            : homeContent && Array.isArray(homeContent.featured_catalogue_ids)
+              ? homeContent.featured_catalogue_ids
+              : null;
       }
       if (!loaded) {
         loaded = true;
@@ -1995,7 +2122,24 @@ export async function startAdminV2(page: string) {
       ),
     );
   }
+  const focusFragment = () => {
+    if (editor.dialog.open) return;
+    const target =
+      location.hash === "#editor"
+        ? document.querySelector<HTMLElement>("#openEditorBtn")
+        : location.hash === "#hero-slides"
+          ? document.querySelector<HTMLElement>("#heroSlidesTitle")
+          : null;
+    if (target) {
+      target.focus();
+      target.scrollIntoView({ block: "start" });
+    }
+  };
+  window.addEventListener("hashchange", focusFragment);
   status("Loading saved content…");
   await read();
-  if (!readError) status("Saved content loaded.");
+  if (!readError) {
+    status("Saved content loaded.");
+    focusFragment();
+  }
 }

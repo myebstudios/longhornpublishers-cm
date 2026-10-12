@@ -220,3 +220,67 @@ export function operationFieldLock(fields: OperationField[]) {
     },
   };
 }
+/** A partial GET must never become an editable form populated with blank defaults. */
+export function assertReadFields(record: RecordData, keys: readonly string[]) {
+  const malformed =
+    !record ||
+    typeof record !== "object" ||
+    Array.isArray(record) ||
+    keys.some((key) => !Object.hasOwn(record, key));
+  const badBoolean =
+    record &&
+    [
+      "published",
+      "featured",
+      "enabled",
+      "hero_autoplay_enabled",
+      "cover_rights_approved",
+    ].some(
+      (key) => Object.hasOwn(record, key) && typeof record[key] !== "boolean",
+    );
+  const badArray =
+    record &&
+    [
+      "languages",
+      "trust_stats",
+      "team_capacity_blocks",
+      "quality_commitment_items",
+      "project_type_options",
+      "social_links",
+      "featured_catalogue_ids",
+      "tags_en",
+      "tags_fr",
+    ].some((key) => record[key] != null && !Array.isArray(record[key]));
+  if (malformed || badBoolean || badArray)
+    throw new Error(
+      "The server returned incomplete saved content. Retry the read before editing.",
+    );
+}
+/** Form defaults must not alter the baseline used to detect a new singleton row. */
+export function editorBaseline(
+  record: RecordData | null,
+  singleton: boolean,
+  defaults: RecordData = {},
+): RecordData {
+  return cloneRecord(record ?? (singleton ? {} : defaults));
+}
+export function hydrateEditorField(
+  field: { type: string; value: string; checked?: boolean },
+  saved: unknown,
+) {
+  if (field.type === "checkbox") {
+    if (saved !== undefined) field.checked = saved === true;
+    return;
+  }
+  if (saved !== undefined)
+    field.value =
+      field.type === "date" && saved
+        ? String(saved).slice(0, 10)
+        : String(saved ?? "");
+}
+/** Keep stored calendar days compatible with the existing date-input/API format. */
+export function calendarDateForPayload(value: unknown) {
+  return typeof value === "string" && /^\d{4}-\d{2}-\d{2}T/.test(value)
+    ? value.slice(0, 10)
+    : value;
+}

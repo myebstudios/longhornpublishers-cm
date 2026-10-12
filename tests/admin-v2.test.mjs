@@ -2,6 +2,10 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import {
   cloneRecord,
+  calendarDateForPayload,
+  hydrateEditorField,
+  editorBaseline,
+  assertReadFields,
   operationFieldLock,
   fingerprint,
   mergeOwned,
@@ -280,4 +284,91 @@ test("pending file changes never restore a forbidden nonempty file-input value",
   assert.doesNotThrow(() => lock.rollback(field));
   assert.equal(field.value, "");
   lock.release();
+});
+
+test("incomplete GETs cannot hydrate a blank editor, while explicit empty/null saved values remain recognizable", () => {
+  assert.throws(
+    () =>
+      assertReadFields({ id: "n", published: false }, [
+        "headline_en",
+        "hero_image_id",
+      ]),
+    /incomplete saved content/,
+  );
+  assert.doesNotThrow(() =>
+    assertReadFields({ headline_en: "", hero_image_id: null }, [
+      "headline_en",
+      "hero_image_id",
+    ]),
+  );
+});
+
+test("malformed boolean and array responses cannot silently change flags or crash previews", () => {
+  assert.throws(
+    () => assertReadFields({ featured: "false" }, ["featured"]),
+    /incomplete saved content/,
+  );
+  assert.throws(
+    () =>
+      assertReadFields({ team_capacity_blocks: "[]" }, [
+        "team_capacity_blocks",
+      ]),
+    /incomplete saved content/,
+  );
+  assert.throws(() => assertReadFields(null, []), /incomplete saved content/);
+  assert.doesNotThrow(() =>
+    assertReadFields(
+      { featured: false, team_capacity_blocks: [], tags_en: null },
+      ["featured", "team_capacity_blocks"],
+    ),
+  );
+});
+
+test("null singleton setup keeps the server baseline empty instead of creating a false conflict from defaults", () => {
+  assert.deepEqual(
+    editorBaseline(null, true, {
+      published: false,
+      hero_autoplay_interval: 6000,
+    }),
+    {},
+  );
+  assert.equal(
+    fingerprint(editorBaseline(null, true, { published: false })),
+    fingerprint({}),
+  );
+  assert.deepEqual(editorBaseline(null, false, { published: false }), {
+    published: false,
+  });
+  assert.deepEqual(
+    editorBaseline({ published: true, media: null }, true, {
+      published: false,
+    }),
+    { published: true, media: null },
+  );
+});
+
+test("hydration fills text and dates while retaining explicit checkbox defaults only for new fields", () => {
+  const text = { type: "text", value: "" };
+  hydrateEditorField(text, "Saved title");
+  assert.equal(text.value, "Saved title");
+  const date = { type: "date", value: "" };
+  hydrateEditorField(date, "2026-10-12T00:00:00Z");
+  assert.equal(date.value, "2026-10-12");
+  const checkbox = { type: "checkbox", value: "on", checked: true };
+  hydrateEditorField(checkbox, undefined);
+  assert.equal(checkbox.checked, true);
+  hydrateEditorField(checkbox, false);
+  assert.equal(checkbox.checked, false);
+  hydrateEditorField(text, null);
+  assert.equal(text.value, "");
+});
+
+test("calendar dates round-trip without replacing the stated date or null with today", () => {
+  assert.equal(
+    calendarDateForPayload("2026-10-12T00:00:00.000Z"),
+    "2026-10-12",
+  );
+  assert.equal(calendarDateForPayload("2026-10-12"), "2026-10-12");
+  assert.equal(calendarDateForPayload(null), null);
+  assert.equal(calendarDateForPayload("invalid"), "invalid");
 });

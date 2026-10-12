@@ -519,7 +519,7 @@ export class PreviewCollection {
         node("p", `Product code: ${row.product_code}`),
         node(
           "p",
-          `${row.level} · ${this.context().subjects?.find((s) => s.id === row.subject_id)?.[`name_${this.language}`] ?? "No subject"}`,
+          `${row.level} · ${this.context().subjects?.find((s) => s.id === row.subject_id)?.[`name_${this.language}`] ?? (row.subject_id ? "Assigned subject unavailable" : "No subject")}`,
         ),
         node(
           "small",
@@ -639,7 +639,14 @@ export class PreviewCollection {
     edit.setAttribute("aria-disabled", String(!this.fresh));
     footer.append(edit);
     if (this.remove && row.id)
-      footer.append(moreActions(name, (b) => this.remove!(row, b)));
+      footer.append(
+        moreActions(
+          this.kind === "hero"
+            ? `${name} · Order ${row.sort_order} · ${row.enabled ? "Enabled" : "Disabled"}`
+            : name,
+          (b) => this.remove!(row, b),
+        ),
+      );
     article.append(footer);
     return li;
   }
