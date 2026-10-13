@@ -142,3 +142,82 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 .admin-app .dashboard-greeting,.admin-login .admin-login-header{position:relative;isolation:isolate;background:transparent}
 .admin-app .dashboard-greeting::before,.admin-login .admin-login-header::before{content:'';position:absolute;inset:-.75rem;z-index:-1;border-radius:.75rem;background:var(--admin-sidebar)}
 .admin-login .admin-login-header::before{background:var(--admin-subtle)}
+
+/* §14 Refined brand layer: light shell, brand accents, aligned greeting. */
+.admin-app{--admin-canvas-2:#FAF7F3;--admin-rail:#5C1A2B;--admin-chip-burgundy:#F7EDF0;--admin-chip-orange:#FFF1E6;--admin-chip-orange-ink:#9A4A0B;--admin-chip-green:#EDF7E6;--admin-chip-green-ink:#2F7A2A;--admin-card-shadow:0 1px 2px rgba(26,18,22,.04),0 4px 16px rgba(26,18,22,.05)}
+.admin-app,.admin-app .app-main{background:var(--admin-canvas-2)}
+/* Sidebar: white surface, brand used for the active state only */
+.admin-app .sidebar{background:var(--admin-surface);color:var(--admin-ink);border-right:1px solid var(--admin-border);box-shadow:none}
+.admin-app .sidebar :is(p,span,small,h2,h3,strong){color:inherit}
+.admin-app .sidebar .nav-group-label{color:var(--admin-muted);font-size:.75rem;letter-spacing:.04em;text-transform:uppercase;font-weight:600}
+.admin-app .sidebar a{color:var(--admin-ink);background:transparent;box-shadow:none}
+.admin-app .sidebar a svg{color:var(--admin-muted)}
+.admin-app .sidebar a:is(:hover,:active){background:var(--admin-canvas-2);color:var(--admin-accent)}
+.admin-app .sidebar a:is(:hover,:active) svg{color:var(--admin-accent)}
+.admin-app .sidebar a.active,.admin-app .sidebar a.active:is(:hover,:active){background:var(--admin-accent-bg);color:var(--admin-accent);font-weight:600;box-shadow:inset 3px 0 var(--admin-rail)}
+.admin-app .sidebar a.active svg{color:var(--admin-accent)}
+.admin-app .sidebar a.active:focus-visible{box-shadow:inset 3px 0 var(--admin-rail);outline:3px solid var(--admin-focus);outline-offset:2px}
+.admin-app .sidebar img{background:transparent;padding:0;border-radius:0}
+.admin-app .sidebar .icon-button,.admin-app .admin-drawer>#closeDrawer{background:var(--admin-surface);color:var(--admin-muted);border:1px solid var(--admin-border)}
+.admin-app .sidebar .icon-button:is(:hover,:active){background:var(--admin-canvas-2);color:var(--admin-accent)}
+.admin-app .sidebar .search-pages{background:var(--admin-canvas-2);color:var(--admin-muted);border:1px solid var(--admin-border)}
+.admin-app .sidebar .sidebar-foot{background:var(--admin-canvas-2);color:var(--admin-ink);border:1px solid var(--admin-border)}
+.admin-app .sidebar  .sidebar-foot :is(a,button){color:var(--admin-ink)}
+.admin-app .sidebar .admin-nav-cue{color:var(--admin-muted);background:linear-gradient(transparent,var(--admin-surface) 40%)}
+/* Top bar */
+.admin-app .topbar{background:var(--admin-surface);border-bottom:1px solid var(--admin-border)}
+/* Greeting: aligned brand card, no painted overflow */
+.admin-app .dashboard-greeting{position:relative;isolation:isolate;overflow:hidden;background:linear-gradient(120deg,#5C1A2B 0%,#6E2236 55%,#7A2C3F 100%);color:#FFFFFF;border-radius:var(--admin-radius-panel);padding:1.75rem 2rem;margin-inline:0;box-shadow:var(--admin-card-shadow)}
+.admin-app .dashboard-greeting::before{content:'';position:absolute;inset:auto -4rem -6rem auto;width:18rem;height:18rem;border-radius:50%;background:radial-gradient(circle,rgba(111,191,63,.28),transparent 70%);z-index:-1}
+.admin-app .dashboard-greeting::after{content:'';position:absolute;inset:-5rem auto auto 45%;width:14rem;height:14rem;border-radius:50%;background:radial-gradient(circle,rgba(244,126,39,.16),transparent 70%);z-index:-1}
+.admin-app .dashboard-greeting :is(h1,p){color:#FFFFFF}
+.admin-app .dashboard-greeting p{opacity:.88}
+.admin-app .dashboard-greeting .button.secondary,.admin-app .dashboard-greeting .button.secondary:is(:hover,:active){background:#FFFFFF;color:var(--admin-accent);border-color:transparent}
+.admin-app .dashboard-greeting .button.secondary:hover{background:var(--admin-accent-bg)}
+/* Plain panel headings, no highlighter bars */
+.admin-app section.card>h2,.admin-app .card>h2,.admin-app .card .toolbar,.admin-app .card .toolbar h2,.admin-app .card>header,.admin-app .card>header h2{background:transparent;box-shadow:none;padding-inline:0}
+.admin-app .card h2{color:var(--admin-ink);font-size:1.0625rem;font-weight:600;letter-spacing:-.01em}
+.admin-app .card h2::before,.admin-app .card h2::after{content:none}
+/* Cards */
+.admin-app .card{background:var(--admin-surface);border:1px solid var(--admin-border);border-radius:var(--admin-radius-panel);box-shadow:var(--admin-card-shadow)}
+/* Metric cards: consistent, coloured icon chips instead of top strips */
+.admin-app .dashboard-overview .metric-card,.admin-app .metric-card{border-top:1px solid var(--admin-border);box-shadow:none !important;background:var(--admin-surface)}
+.admin-app .metric-card::before,.admin-app .metric-card::after{content:none}
+.admin-app .metrics{gap:1rem}
+.admin-app .metrics .metric-card{border:1px solid var(--admin-border);border-radius:var(--admin-radius-panel)}
+.admin-app .metric-card :is(.metric-icon,.metric-card__icon,svg){border-radius:.625rem}
+.admin-app .metrics .metric-card:nth-child(1) :is(.metric-icon,.metric-card__icon){background:var(--admin-chip-burgundy);color:var(--admin-accent)}
+.admin-app .metrics .metric-card:nth-child(2) :is(.metric-icon,.metric-card__icon){background:var(--admin-chip-orange);color:var(--admin-chip-orange-ink)}
+.admin-app .metrics .metric-card:nth-child(3) :is(.metric-icon,.metric-card__icon){background:var(--admin-chip-green);color:var(--admin-chip-green-ink)}
+.admin-app .metrics .metric-card:nth-child(4) :is(.metric-icon,.metric-card__icon){background:var(--admin-chip-burgundy);color:var(--admin-accent)}
+/* Routine "loaded" confirmations stay for screen readers only; warnings and errors stay visible */
+.admin-app :is(#dashboardLoading,.admin-saved-status):not(.status--err):not(.status--warning):not(.status--error){position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+/* Editor dialog header: white with a brand rule */
+.admin-app .admin-editor-header{background:var(--admin-surface);border-bottom:1px solid var(--admin-border);box-shadow:inset 0 3px var(--admin-rail)}
+/* Sidebar text: every label inherits the light-surface ink */
+.admin-app .sidebar :is(a,a *,p,span,strong,small,div,h1,h2,h3,button):not(svg):not(svg *){color:inherit}
+.admin-app .sidebar>*,.admin-app .sidebar nav{color:var(--admin-ink)}
+.admin-app .sidebar .nav-group-label,.admin-app .sidebar .admin-nav-cue{color:var(--admin-muted)}
+.admin-app .sidebar a.active,.admin-app .sidebar a.active *{color:var(--admin-accent)}
+.admin-app .sidebar-foot{color:var(--admin-ink)}
+.admin-app .sidebar-foot :is(small,.muted){color:var(--admin-muted)}
+/* All panel headings share one ink colour */
+.admin-app .card :is(h2,h3){color:var(--admin-ink)}
+/* Greeting: single soft green glow only */
+.admin-app .dashboard-greeting::after{content:none}
+.admin-app .dashboard-greeting::before{inset:auto -3rem -7rem auto;background:radial-gradient(circle,rgba(111,191,63,.22),transparent 68%)}
+/* Override the dark-shell rules at matching specificity */
+.admin-app .sidebar,.admin-app .admin-drawer{background:var(--admin-surface);color:var(--admin-ink);box-shadow:none}
+.admin-app .sidebar :is(.workspace-label,.nav-group-label,.admin-nav-cue,.account,small){color:var(--admin-muted)}
+.admin-app .sidebar :is(nav a,.sidebar-foot a,.sidebar-foot button,.icon-button),.admin-app .admin-drawer>#closeDrawer{color:var(--admin-ink)}
+.admin-app .sidebar :is(nav a,.sidebar-foot a,.sidebar-foot button,.icon-button):is(:hover,:active),.admin-app .admin-drawer>#closeDrawer:is(:hover,:active),.admin-app .sidebar-foot :is(a,button):is(:hover,:active){background:var(--admin-canvas-2);color:var(--admin-accent)}
+.admin-app .sidebar :is(nav a.active,nav a.active:hover,nav a.active:active){background:var(--admin-accent-bg);color:var(--admin-accent);box-shadow:inset 3px 0 var(--admin-rail)}
+.admin-app .sidebar :focus-visible,.admin-app .admin-drawer>#closeDrawer:focus-visible{outline:3px solid var(--admin-focus);outline-offset:2px;box-shadow:0 0 0 2px var(--admin-surface)}
+.admin-app .dashboard-greeting :focus-visible{outline:3px solid #FFFFFF;outline-offset:2px;box-shadow:0 0 0 2px var(--admin-accent)}
+.admin-app .workspace-label{color:var(--admin-muted)}
+.admin-app :is(.admin-section-card>header,.card>.toolbar,.admin-panel>header),.admin-app .card>h2{background:transparent;color:var(--admin-ink)}
+.admin-app :is(.admin-section-card>header,.card>.toolbar,.admin-panel>header) :is(h2,h3){color:var(--admin-ink)}
+.admin-app :is(.admin-section-card>header,.card>.toolbar,.admin-panel>header) :is(a,.admin-icon){color:var(--admin-accent)}
+.admin-app :is(.admin-section-card>header,.card>.toolbar,.admin-panel>header) :is(h2,h3):not(.admin-icon){color:var(--admin-ink)}
+.admin-app .admin-publication-strip{background:var(--admin-surface);border:1px solid var(--admin-border);box-shadow:var(--admin-card-shadow)}
+.admin-app .dashboard-greeting::before{background:radial-gradient(circle,rgba(111,191,63,.16),transparent 68%)}
