@@ -48,7 +48,7 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
 
         <div class="contact-detail">
           <div class="contact-detail__label">{t.contact.labels.email}</div>
-          {email && <p><a href={`mailto:${email}`}>{email}</a></p>}
+          {email && <p><a href={`mailto:${email}`}>{email.split('@')[0]}@<wbr />{email.split('@').slice(1).join('@')}</a></p>}
         </div>
 
         <div class="contact-detail">
