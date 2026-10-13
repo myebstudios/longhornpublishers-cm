@@ -424,18 +424,6 @@ export const en: Content = {
         imgAlt: 'English and French editions of the same title side by side',
       },
     ],
-    bilingualSlider: {
-      eyebrow: 'Bilingual Excellence',
-      titleLead: 'Side-by-side translation',
-      titleAccent: 'quality in action',
-      bookTitle: 'Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1)',
-      hint: 'Drag the handle or use ← → arrow keys to compare the passages',
-      sourceLabel: 'Source passage — English',
-      translationLabel: 'Our French translation',
-      attribution:
-        'Passage from Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1), an English-medium title. The French text is a sample translation by our in-house editorial team, shown to demonstrate translation quality.',
-      ariaLabel: 'Translation quality comparison',
-    },
     compare: {
       eyebrow: 'The difference',
       titleLead: 'Full service versus',

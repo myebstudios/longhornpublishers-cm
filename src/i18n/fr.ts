@@ -430,18 +430,6 @@ export const fr: Content = {
         imgAlt: 'Les éditions anglaise et française d’un même titre côte à côte',
       },
     ],
-    bilingualSlider: {
-      eyebrow: 'Excellence bilingue',
-      titleLead: 'Qualité de traduction',
-      titleAccent: 'côte à côte en action',
-      bookTitle: 'Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1)',
-      hint: 'Faites glisser le curseur ou utilisez les flèches ← → pour comparer les passages',
-      sourceLabel: 'Passage source — anglais',
-      translationLabel: 'Notre traduction française',
-      attribution:
-        'Passage extrait de Chemistry for Secondary Schools in Cameroon (Student’s Book Form 1), un ouvrage de langue anglaise. Le texte français est une traduction d’exemple réalisée par notre équipe éditoriale interne, présentée pour illustrer notre qualité de traduction.',
-      ariaLabel: 'Comparateur de qualité de traduction',
-    },
     compare: {
       eyebrow: 'La différence',
       titleLead: 'Prestation intégrée contre',

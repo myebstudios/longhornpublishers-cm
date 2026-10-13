@@ -111,17 +111,6 @@ export interface Content {
   why: {
     hero: Titled;
     pillars: (Titled & { body: string[]; imgAlt: string; tags?: string[] })[];
-    bilingualSlider: {
-      eyebrow: string;
-      titleLead: string;
-      titleAccent: string;
-      bookTitle: string;
-      hint: string;
-      sourceLabel: string;
-      translationLabel: string;
-      attribution: string;
-      ariaLabel: string;
-    };
     compare: Titled & {
       bad: { title: string; body: string };
       good: { title: string; body: string };
