@@ -173,9 +173,9 @@ export const fr: Content = {
       ],
     },
     trust: [
-      '60+ ans d’expérience du groupe PLC en Afrique',
-      'Créateurs de contenus éducatifs et prestataires de services',
-      'Capacité d’édition 100% bilingue EN & FR',
+      '60+ ans d’expérience du groupe',
+      'Créateurs et prestataires de contenus éducatifs',
+      'Édition 100 % bilingue',
       'Conforme aux programmes nationaux',
     ],
     whoWeAre: {

@@ -168,9 +168,9 @@ export const en: Content = {
       ],
     },
     trust: [
-      '60+ years parent PLC experience across Africa',
+      '60+ years of group experience',
       'Educational content creators and service providers',
-      '100% Bilingual publishing capability',
+      '100% bilingual publishing',
       'Aligned to national curricula',
     ],
     whoWeAre: {
