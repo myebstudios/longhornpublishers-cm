@@ -126,7 +126,7 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
         <span class="eyebrow">{t.home.whoWeAre.eyebrow}</span>
         <h2>{t.home.whoWeAre.titleLead} <em class="accent">{t.home.whoWeAre.titleAccent}</em></h2>
         {(whoCopy.length ? whoCopy : t.home.whoWeAre.body).map((p) => <p>{p}</p>)}
-        <a class="link-arrow" href={path('about', lang)}>{t.home.whoWeAre.link}</a>
+        <Button href={path('about', lang)} variant="outline">{t.home.whoWeAre.link}</Button>
       </Split>
     </div>
   </section>

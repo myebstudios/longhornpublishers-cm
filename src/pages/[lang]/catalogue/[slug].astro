@@ -1,6 +1,7 @@
 ---
 export const prerender = false;
 import Layout from '../../../layouts/Layout.astro';
+import Button from '../../../components/Button.astro';
 import {
   coverImage, curriculum, description, subjectName, titleText, getPublishedTitles,
 } from '../../../lib/catalogue';
@@ -82,9 +83,9 @@ const alternates = {
           {t.common.requestTitle}
           <span class="btn__icon" aria-hidden="true">↗</span>
         </a>
-        <a class="link-arrow catalogue-detail__back" href={path('catalogue', lang)}>
+        <Button href={path('catalogue', lang)} variant="outline" class="catalogue-detail__back">
           {lang === 'fr' ? 'Retour au catalogue' : 'Back to catalogue'}
-        </a>
+        </Button>
       </div>
     </div>
   </section>

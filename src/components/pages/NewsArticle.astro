@@ -7,6 +7,7 @@
  * a `[lang]` path because ROUTES.news differs per locale (`news` / `actualites`).
  */
 import Layout from '../../layouts/Layout.astro';
+import Button from '../Button.astro';
 import { type Locale, useTranslations, path } from '../../i18n';
 import {
   bodyParagraphs, categoryKey, excerpt, headline, newsImage, publishedOn, type NewsArticleDetail,
@@ -56,9 +57,9 @@ const alternates = {
 
       {paragraphs.map((paragraph) => <p>{paragraph}</p>)}
 
-      <a class="link-arrow article-detail__back" href={path('news', lang)}>
+      <Button href={path('news', lang)} variant="outline" class="article-detail__back">
         {lang === 'fr' ? 'Retour aux actualités' : 'Back to news'}
-      </a>
+      </Button>
     </div>
   </article>
 </Layout>

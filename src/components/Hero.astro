@@ -56,9 +56,9 @@ const { src, srcset } = responsive(img);
             </Button>
           )}
           {secondaryCtaText && secondaryCtaHref && (
-            <a href={secondaryCtaHref} class="link-arrow">
+            <Button href={secondaryCtaHref} variant="outline">
               {secondaryCtaText}
-            </a>
+            </Button>
           )}
           <slot />
         </div>

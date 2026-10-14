@@ -99,7 +99,7 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
               {service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
             </>
           ) : service[lang].body.map((paragraph) => <p>{paragraph}</p>)}
-          <a class="link-arrow" href={contactHref}>{discussLabel(service[lang].name)}</a>
+          <Button href={contactHref} variant="outline">{discussLabel(service[lang].name)}</Button>
         </Split>
       ))}
     </div>

@@ -99,7 +99,7 @@ const printInspectionIds = new Set([
             <div class="hero-carousel__cta">
               <Button href={slide.primary_cta_href} variant="primary">{slide.primary_cta_label}</Button>
               {slide.secondary_cta_label && slide.secondary_cta_href && (
-                <a href={slide.secondary_cta_href} class="link-arrow">{slide.secondary_cta_label}</a>
+                <Button href={slide.secondary_cta_href} variant="outline">{slide.secondary_cta_label}</Button>
               )}
             </div>
           </div>
