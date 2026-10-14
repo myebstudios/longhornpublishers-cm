@@ -118,6 +118,8 @@ em.accent, .accent {
 .wrap { width: min(1240px, 100% - (var(--gutter) * 2)); margin-inline: auto; }
 .wrap--narrow { width: min(760px, 100% - (var(--gutter) * 2)); }
 .section { padding-block: var(--section-y); }
+/* Pages that open without a hero: clear the floating header. */
+.section--page-top { padding-top: max(var(--section-y), calc(var(--header-h) + 2.5rem)); }
 .section--cream { background: var(--cream); }
 .section--white { background: var(--white); }
 .section--pale  { background: var(--green-pale); }
@@ -760,7 +762,7 @@ body.nav-open {
 .cta-band h2 { margin-bottom: .85rem; }
 .cta-band p { color: rgba(59,15,27,.82); max-width: 52ch; }
 @media (max-width: 860px) { .cta-band { grid-template-columns: 1fr; } }
-@media (min-width: 641px) { .cta-band > .btn { justify-self: start; } }
+.cta-band > .btn { justify-self: start; width: auto; }
 @media (max-width: 640px) {
   /* Task 2: Hero CTA stacking under 640px for EN & FR */
   .hero__cta {

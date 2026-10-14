@@ -52,7 +52,7 @@ const updated = stated
   : t.legal.lastUpdatedValue;
 ---
 <Layout title={t.meta[key].title} description={t.meta[key].description} locale={locale} routeKey={key}>
-  <section class="section section--cream">
+  <section class="section section--cream section--page-top">
     <div class="wrap" style="max-width: 72ch;">
       <div class="section-head"><h1>{copy.heading}</h1><p class="hero__lede">{copy.intro}</p></div>
       <p style="margin-bottom: 2rem; color: var(--ink-soft); font-size: var(--step--1);"><strong>{t.legal.lastUpdatedLabel}{locale === 'fr' ? ' :' : ':'}</strong> {updated}</p>
