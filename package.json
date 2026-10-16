@@ -33,7 +33,8 @@
     "test:on-demand-routing": "node --test scripts/on-demand-routing.test.mjs",
     "test:admin-dashboard": "node --experimental-strip-types --test tests/admin-dashboard.test.mjs tests/admin-v2.test.mjs",
     "test:news-images": "node --experimental-strip-types --test tests/news-images.test.mjs",
-    "test:admin-colours": "node --experimental-strip-types --test tests/admin-colours.test.mjs"
+    "test:admin-colours": "node --experimental-strip-types --test tests/admin-colours.test.mjs",
+    "test:page-images": "node --experimental-strip-types --test tests/page-images.test.mjs"
   },
   "dependencies": {
     "@astrojs/netlify": "^8.2.5",
