@@ -1,3 +1,4 @@
+import { serviceImageSource } from "./service-image";
 import { adminIcon } from "./admin-icons";
 import { contentIcon } from "./admin-content-icons";
 import {
@@ -44,6 +45,7 @@ export function thumbnail(
   title: string,
   cover = false,
   first = false,
+  source?: string,
 ) {
   const shell = node(
     "div",
@@ -60,7 +62,7 @@ export function thumbnail(
     );
     shell.replaceChildren(message);
   };
-  if (!id) {
+  if (!id && !source) {
     empty();
     return shell;
   }
@@ -71,7 +73,9 @@ export function thumbnail(
   image.loading = first ? "eager" : "lazy";
   image.decoding = "async";
   const read = () => {
-    image.src = `/api/media/${String(id).split("/").map(encodeURIComponent).join("/")}`;
+    image.src =
+      source ??
+      `/api/media/${String(id).split("/").map(encodeURIComponent).join("/")}`;
     shell.replaceChildren(image);
   };
   image.addEventListener("error", () => {
@@ -480,7 +484,7 @@ export class PreviewCollection {
         ? "cover_image_id"
         : this.kind === "news"
           ? "hero_image_id"
-          : this.kind === "hero"
+          : this.kind === "hero" || this.kind === "services"
             ? "image_id"
             : "";
     if (this.kind === "hero") {
@@ -493,7 +497,13 @@ export class PreviewCollection {
     }
     if (imageKey)
       article.prepend(
-        thumbnail(row[imageKey], name, this.kind === "catalogue", first),
+        thumbnail(
+          row[imageKey],
+          name,
+          this.kind === "catalogue",
+          first,
+          this.kind === "services" ? serviceImageSource(row) : undefined,
+        ),
       );
     else {
       const symbol = node("span");
@@ -514,8 +524,7 @@ export class PreviewCollection {
     const badges = node("div", "", "admin-status-group");
     if (this.kind === "catalogue") {
       const state = catalogueBadges(row);
-      for (const label of state.labels)
-        badges.append(statusBadge(label));
+      for (const label of state.labels) badges.append(statusBadge(label));
       copy.append(
         node("p", `Product code: ${row.product_code}`),
         node(

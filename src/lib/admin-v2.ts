@@ -7,6 +7,8 @@ import {
   uploadMedia,
 } from "./admin-client";
 import { adaptDashboard } from "./admin-dashboard";
+import { serviceImageSource } from "./service-image";
+import { mountPageImages } from "./admin-page-images";
 import { AdminEditor } from "./admin-v2-dialog";
 import {
   cloneRecord,
@@ -240,6 +242,7 @@ export async function startAdminV2(page: string) {
         "primary_cta_href",
       ],
       services: [
+        "image_id",
         "name_en",
         "name_fr",
         "slug",
@@ -1274,6 +1277,16 @@ export async function startAdminV2(page: string) {
     }
   }
   function mediaBindings(form: HTMLFormElement) {
+    if (
+      form.getAttribute("id") === "serviceForm" &&
+      !form.dataset.v2ServiceImageBound
+    ) {
+      form.dataset.v2ServiceImageBound = "true";
+      form.addEventListener("change", (event) => {
+        const target = event.target as HTMLInputElement | HTMLSelectElement;
+        if (["slug", "category"].includes(target.name)) renderMedia(form);
+      });
+    }
     const bindings: {
       id: HTMLInputElement;
       file: HTMLInputElement;
@@ -1379,7 +1392,7 @@ export async function startAdminV2(page: string) {
       const image =
         name === "cover_image_id"
           ? form.querySelector<HTMLImageElement>("#coverPreview")
-          : name === "image_id"
+          : name === "image_id" && activeKind === "hero"
             ? form.querySelector<HTMLImageElement>("[data-slide-image]")
             : name === "og_image_id"
               ? form.querySelector<HTMLImageElement>("#ogImagePreview")
@@ -1389,8 +1402,21 @@ export async function startAdminV2(page: string) {
                     .closest(".media-field")
                     ?.querySelector<HTMLImageElement>("[data-preview]");
       if (image) {
-        image.hidden = !input.value;
-        if (input.value)
+        const serviceSource =
+          name === "image_id" && activeKind === "services"
+            ? serviceImageSource({
+                ...baseline,
+                slug: (form.elements.namedItem("slug") as HTMLInputElement)
+                  ?.value,
+                category: (
+                  form.elements.namedItem("category") as HTMLSelectElement
+                )?.value,
+                image_id: input.value,
+              })
+            : null;
+        image.hidden = !input.value && !serviceSource;
+        if (serviceSource) image.src = serviceSource;
+        else if (input.value)
           image.src = `/api/media/${input.value.split("/").map(encodeURIComponent).join("/")}`;
         else image.removeAttribute("src");
       }
@@ -1407,7 +1433,7 @@ export async function startAdminV2(page: string) {
         form.querySelector<HTMLElement>("#coverFileLabel")!.textContent =
           input.value ? "Replace cover image" : "Choose cover image";
       }
-      if (name === "image_id")
+      if (name === "image_id" && activeKind === "hero")
         form.querySelector<HTMLElement>("[data-slide-image-empty]")!.hidden =
           !!input.value;
     }
@@ -2117,6 +2143,7 @@ export async function startAdminV2(page: string) {
   window.addEventListener("hashchange", focusFragment);
   status("Loading saved content…");
   await read();
+  await mountPageImages(page, editor, canvas);
   if (!readError) {
     status("Saved content loaded.");
     focusFragment();
