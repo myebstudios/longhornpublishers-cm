@@ -4,6 +4,7 @@ import type { Config } from '@netlify/functions';
 import { canRenderLocalDemoContent } from '../../src/lib/demo-content';
 import { requireAdmin } from './_shared/auth';
 import { json, methodNotAllowed } from './_shared/http';
+import { isPubliclyApproved } from './_shared/media-approval';
 import { mediaCacheTag } from './_shared/media-cache';
 
 const MAX_UPLOAD_BYTES = 8 * 1024 * 1024;
@@ -24,58 +25,6 @@ const EXTENSION_TYPE: Record<string, string> = {
   png: 'image/png',
   webp: 'image/webp',
 };
-
-/**
- * Is this blob referenced by content that is actually published?
- *
- * This is the whole authorization model for reads. The blob store also holds
- * images attached to unpublished drafts, and images uploaded and then abandoned
- * when an editor changed their mind — serving the store by key would expose all
- * of them to anyone who guessed or obtained a key. Reachability is therefore
- * derived from published content rather than from the object's existence.
- *
- * Unpublishing a title consequently revokes its cover, which is why the
- * response below is not cached immutably.
- */
-async function isPubliclyApproved(key: string): Promise<boolean> {
-  const db = getDatabase();
-  // Local development additionally releases covers attached to demo rows, which
-  // would otherwise 404 on the only runtime allowed to render them. Deployed
-  // runtimes keep the catalogue is_demo = false restriction.
-  const [row] = canRenderLocalDemoContent()
-    ? await db.sql`
-        SELECT 1 AS ok WHERE EXISTS (
-          SELECT 1 FROM catalogue_titles WHERE published = true AND classification IN ('national_book_list_verified', 'other_developed') AND cover_image_id = ${key}
-          UNION ALL
-          SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
-          UNION ALL
-          SELECT 1 FROM homepage_content WHERE id = 'default' AND (hero_image_id = ${key} OR who_we_are_image_id = ${key})
-          UNION ALL
-          SELECT 1 FROM homepage_hero_slides AS slides
-          INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
-          WHERE homepage.published = true AND slides.enabled = true AND slides.image_id = ${key}
-          UNION ALL
-          SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
-        )
-      `
-    : await db.sql`
-        SELECT 1 AS ok WHERE EXISTS (
-          SELECT 1 FROM catalogue_titles WHERE published = true AND is_demo = false AND classification IN ('national_book_list_verified', 'other_developed') AND cover_image_id = ${key}
-          UNION ALL
-          SELECT 1 FROM news_articles WHERE published = true AND hero_image_id = ${key}
-          UNION ALL
-          SELECT 1 FROM homepage_content WHERE id = 'default' AND (hero_image_id = ${key} OR who_we_are_image_id = ${key})
-          UNION ALL
-          SELECT 1 FROM homepage_hero_slides AS slides
-          INNER JOIN homepage_content AS homepage ON homepage.id = slides.homepage_id
-          WHERE homepage.published = true AND slides.enabled = true
-            AND slides.is_demo = false AND slides.image_id = ${key}
-          UNION ALL
-          SELECT 1 FROM site_settings WHERE id = 'default' AND og_image_id = ${key}
-        )
-      `;
-  return Boolean(row);
-}
 
 /**
  * Does this request even carry a credential?
@@ -109,7 +58,7 @@ async function serveMedia(req: Request, key: string): Promise<Response> {
   // the published-content check has already failed, and requireAdmin() rejects
   // anyone without the admin role.
   let adminOnly = false;
-  if (!(await isPubliclyApproved(key))) {
+  if (!(await isPubliclyApproved(key, getDatabase(), canRenderLocalDemoContent()))) {
     if (!hasCredential(req)) return new Response('Not found', { status: 404 });
     if (await requireAdmin()) return new Response('Not found', { status: 404 });
     adminOnly = true;

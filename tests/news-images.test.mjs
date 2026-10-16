@@ -34,5 +34,5 @@ test('news cards, homepage teasers and article pages render the uploaded image w
     assert.match(source, /alt=""/);
     if (!name.includes('NewsArticle')) assert.match(source, /categoryIcon\(article.category\)/);
   }
-  assert.match(read('netlify/functions/media.mts'), /FROM news_articles WHERE published = true AND hero_image_id = \$\{key\}/);
+  assert.match(read('netlify/functions/_shared/media-approval.ts'), /FROM news_articles WHERE published = true AND hero_image_id = \$\{key\}/);
 });

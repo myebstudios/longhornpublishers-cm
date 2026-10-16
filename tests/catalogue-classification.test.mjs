@@ -56,7 +56,7 @@ test('public catalogue reads return covers without NBL or rights gates, retainin
     assert.match(source, /(?:c\.)?cover_image_id,/);
     assert.match(source, /is_demo = false/);
   }
-  const media = read('netlify/functions/media.mts');
+  const media = read('netlify/functions/_shared/media-approval.ts');
   assert.equal(media.match(/FROM catalogue_titles WHERE published = true[^\n]*classification IN \('national_book_list_verified', 'other_developed'\)/g)?.length, 2);
   assert.doesNotMatch(media, /cover_rights_approved/);
   assert.match(media, /published = true AND is_demo = false/);

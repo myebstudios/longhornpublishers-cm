@@ -461,6 +461,7 @@ export interface ServiceInput {
   description_en: string;
   description_fr: string;
   icon: string | null;
+  image_id: string | null;
   sort_order: number;
   published: boolean;
 }
@@ -480,6 +481,7 @@ export function validateService(value: unknown): Validation<ServiceInput> {
   if (slug.value && !/^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug.value)) {
     return { ok: false, error: 'Service slug must be lowercase letters, numbers and hyphens.' };
   }
+  const image = mediaKey(body.image_id, 'Service image'); if (!image.ok) return image;
   const short = pair(body, 'short', 'Service summary', false, 500); if (!short.ok) return short;
   const sortOrder = Number(body.sort_order);
   if (!Number.isInteger(sortOrder) || sortOrder < 0 || sortOrder > 10_000) {
@@ -488,7 +490,7 @@ export function validateService(value: unknown): Validation<ServiceInput> {
   return { ok: true, value: {
     slug: slug.value, short_en: short.value.en, short_fr: short.value.fr,
     name_en: name.value.en!, name_fr: name.value.fr!, category: body.category as ServiceInput['category'],
-    description_en: description.value.en!, description_fr: description.value.fr!, icon: icon.value,
+    description_en: description.value.en!, description_fr: description.value.fr!, icon: icon.value, image_id: image.value,
     sort_order: sortOrder, published: body.published === true,
   } };
 }
