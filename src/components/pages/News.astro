@@ -1,4 +1,5 @@
 ---
+import { getPageImages } from '../../lib/page-images';
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Button from '../Button.astro';
@@ -11,6 +12,7 @@ import {
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+const pageImage = await getPageImages('news');
 
 /**
  * Articles are authored in the admin panel and read from Netlify DB at request
@@ -22,7 +24,7 @@ const articles = await getPublishedNews();
 ---
 
 <Layout title={t.meta.news.title} description={t.meta.news.description} locale={lang} routeKey="news">
-  <Hero content={t.news.hero} img="lh-book-delivery.jpg" compact />
+  <Hero content={t.news.hero} img={pageImage('hero')} compact />
 
   <section class="section section--cream">
     <div class="wrap">

@@ -1,4 +1,5 @@
 ---
+import { getPageImages } from '../../lib/page-images';
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Button from '../Button.astro';
@@ -11,6 +12,7 @@ import {
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+const pageImage = await getPageImages('catalogue');
 const cataloguePath = path('catalogue', lang);
 
 /**
@@ -49,7 +51,7 @@ const filterGroups = [
 ---
 
 <Layout title={t.meta.catalogue.title} description={t.meta.catalogue.description} locale={lang} routeKey="catalogue">
-  <Hero content={t.catalogue.hero} img="lh-maths-classroom.jpg" compact />
+  <Hero content={t.catalogue.hero} img={pageImage('hero')} compact />
 
   <section class="section section--cream">
     {titles.length === 0 ? (

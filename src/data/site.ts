@@ -10,6 +10,8 @@ export type Discipline = 'editorial' | 'creative' | 'production';
 
 export interface Service {
   id: string;
+  /** Optional custom upload; absent on the reviewed static service defaults. */
+  image_id?: string | null;
   icon: string;
   discipline: Discipline;
   en: { name: string; short: string; body: string[] };

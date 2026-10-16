@@ -86,7 +86,7 @@ export function responsive(
   const src = imgPath(img);
   if (!useCdn || !isRaster(src)) return { src };
 
-  const intrinsic = INTRINSIC_WIDTH[img] ?? Infinity;
+  const intrinsic = INTRINSIC_WIDTH[img] ?? INTRINSIC_WIDTH[src.replace(/^\/img\//, '')] ?? Infinity;
   const cap = Math.min(maxWidth, intrinsic);
   const widths = IMAGE_WIDTHS.filter((w) => w <= cap);
   if (!widths.length) widths.push(Math.min(cap, IMAGE_WIDTHS[0]));

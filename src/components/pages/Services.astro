@@ -1,4 +1,6 @@
 ---
+import { serviceImageSource } from '../../lib/service-image';
+import { getPageImages } from '../../lib/page-images';
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Split from '../Split.astro';
@@ -7,13 +9,14 @@ import CtaBand from '../CtaBand.astro';
 import Icon from '../Icon.astro';
 import Button from '../Button.astro';
 import { type Locale, useTranslations, path, LOCALES } from '../../i18n';
-import { SERVICE_DETAIL_IMG, disciplineLabel, DISCIPLINE_ACCENT } from '../../data/presentation';
+import { disciplineLabel, DISCIPLINE_ACCENT } from '../../data/presentation';
 import { getPublishingContent } from '../../lib/cms-content';
 import { OFFERINGS } from '../../data/offerings';
 
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+const pageImage = await getPageImages('services');
 // "Discuss editing" / "Discuter d’un projet de révision", eliding "de" before a
 // vowel or mute h ("d’impression", "d’illustration").
 const discussLabel = (name: string) => {
@@ -23,13 +26,12 @@ const discussLabel = (name: string) => {
 };
 const contactHref = path('contact', lang);
 const { services, process } = await getPublishingContent();
-const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.jpg', creative: 'lh-creative-wall.jpg', production: 'lh-print-inspection-wide.jpg' };
 ---
 
 <Layout title={t.meta.services.title} description={t.meta.services.description} locale={lang} routeKey="services">
   <Hero
     content={t.services.hero}
-    img="lh-library-reading.jpg"
+    img={pageImage('hero')}
     compact
     primaryCtaText={t.services.hero.button}
     primaryCtaHref={contactHref}
@@ -76,7 +78,7 @@ const categoryImage: Record<string, string> = { editorial: 'lh-student-reading.j
       {services.map((service, i) => (
         <Split
           id={service.id}
-          img={SERVICE_DETAIL_IMG[service.id] ?? categoryImage[service.discipline]}
+          img={serviceImageSource(service)}
           alt={service[lang].name}
           reverse={i % 2 === 1}
         >

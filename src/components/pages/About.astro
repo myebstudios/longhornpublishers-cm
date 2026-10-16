@@ -1,4 +1,5 @@
 ---
+import { getPageImages } from '../../lib/page-images';
 import Layout from '../../layouts/Layout.astro';
 import Hero from '../Hero.astro';
 import Split from '../Split.astro';
@@ -12,6 +13,7 @@ import { getAboutContent, localized, paragraphs } from '../../lib/cms-content';
 interface Props { locale: Locale }
 const { locale: lang } = Astro.props;
 const t = useTranslations(lang);
+const pageImage = await getPageImages('about');
 const about = await getAboutContent();
 const heritageBody = about ? paragraphs(localized(lang, about.heritage_copy_en, about.heritage_copy_fr)) : t.about.heritage.body;
 const identityKeys = ['purpose', 'vision', 'mission', 'values'] as const;
@@ -42,15 +44,15 @@ const IDENTITY_ACCENT = ['', 'card--accent-purple', 'card--accent-mustard', ''];
 /** Pill colour per team discipline. */
 const TEAM_PILL = ['pill--green', 'pill--mustard', 'pill--purple'];
 const TEAM_ACCENT = ['', 'card--accent-mustard', 'card--accent-purple'];
-const CAPACITY_SVGS = ['capacity-editorial.svg', 'capacity-design.svg', 'capacity-production.svg'];
+const CAPACITY_SLOTS = ['capacity_editorial', 'capacity_design', 'capacity_production'];
 ---
 
 <Layout title={t.meta.about.title} description={t.meta.about.description} locale={lang} routeKey="about">
-  <Hero content={t.about.hero} img="lh-editorial-team-wide.jpg" compact />
+  <Hero content={t.about.hero} img={pageImage('hero')} compact />
 
   <section class="section section--cream">
     <div class="wrap">
-      <Split img="lh-client-consultation.jpg" alt={t.about.heritage.imgAlt}>
+      <Split img={pageImage('heritage')} alt={t.about.heritage.imgAlt}>
         <span class="eyebrow">{t.about.heritage.eyebrow}</span>
         <h2>{t.about.heritage.titleLead}{t.about.heritage.titleAccent && <> <em class="accent">{t.about.heritage.titleAccent}</em></>}</h2>
         {heritageBody.map((paragraph) => <p>{paragraph}</p>)}
@@ -91,7 +93,7 @@ const CAPACITY_SVGS = ['capacity-editorial.svg', 'capacity-design.svg', 'capacit
         {teamItems.map((item, i) => (
           <article class:list={['card', 'card--capacity', TEAM_ACCENT[i]]} tabindex="0">
             <div class="card__illustration">
-              <img src={`/img/${CAPACITY_SVGS[i % CAPACITY_SVGS.length]}`} alt="" loading="lazy" width="400" height="240" />
+              <img src={pageImage(CAPACITY_SLOTS[i % CAPACITY_SLOTS.length])} alt="" loading="lazy" width="400" height="240" />
             </div>
             <div class="card__header-inline">
               <span class="card__icon"><Icon name={item.icon ?? 'users'} /></span>
@@ -113,7 +115,7 @@ const CAPACITY_SVGS = ['capacity-editorial.svg', 'capacity-design.svg', 'capacit
 
   <section class="section section--dark">
     <div class="wrap">
-      <Split img="lh-distribution.jpg" alt={t.about.quality.imgAlt} reverse>
+      <Split img={pageImage('quality')} alt={t.about.quality.imgAlt} reverse>
         <span class="eyebrow">{t.about.quality.eyebrow}</span>
         <h2>{t.about.quality.titleLead} <em class="accent">{t.about.quality.titleAccent}</em></h2>
         {t.about.quality.body.map((paragraph) => <p>{paragraph}</p>)}
