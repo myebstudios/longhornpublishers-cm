@@ -76,6 +76,7 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
 ---
 
 <Layout title={t.meta.home.title} description={t.meta.home.description} locale={lang} routeKey="home" preloadImage={firstHeroImage}>
+  <div class="home-fold">
   {heroSlides.length ? (
     <HeroCarousel
       slides={heroSlides}
@@ -117,6 +118,7 @@ const firstHeroImage = responsive(heroSlides[0]?.image ?? mediaPath(homepage?.he
         ]),
       )}
     </div>
+  </div>
   </div>
 
   <!-- Who we are -->
