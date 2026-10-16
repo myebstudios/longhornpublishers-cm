@@ -485,15 +485,15 @@ body.nav-open {
 .trust-item svg { flex-shrink: 0; color: var(--green); }
 
 /* --- Marquee ----------------------------------------------------------- */
-.marquee { overflow: hidden; padding-block: 2.25rem; background: var(--white); border-block: 1px solid var(--line); }
+.marquee { overflow: hidden; padding-block: 2.25rem; background: var(--green); }
 .marquee__track { display: flex; gap: 3.5rem; width: max-content; animation: marquee 38s linear infinite; }
 .marquee:hover .marquee__track { animation-play-state: paused; }
 .marquee__item {
   display: flex; align-items: center; gap: .6rem;
   font-family: var(--font-display); font-weight: 600; font-size: var(--step-0);
-  color: var(--ink-soft); white-space: nowrap; opacity: .8;
+  color: var(--burgundy-deep); white-space: nowrap;
 }
-.marquee__item svg { color: var(--green); flex-shrink: 0; }
+.marquee__item svg { color: var(--burgundy-deep); flex-shrink: 0; }
 @keyframes marquee { to { transform: translateX(-50%); } }
 @media (prefers-reduced-motion: reduce) { .marquee__track { animation: none; } }
 
