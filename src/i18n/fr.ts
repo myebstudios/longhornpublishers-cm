@@ -377,7 +377,7 @@ export const fr: Content = {
     // FR labels from the CLIENT-3B plan, pending Marketing (CLIENT-3A) review.
     groups: {
       booklist: 'Titres inscrits sur la liste nationale des ouvrages',
-      other: 'Autres titres développés',
+      other: 'Autres livres',
       titleOne: 'titre',
       titleMany: 'titres',
     },

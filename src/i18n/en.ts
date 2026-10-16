@@ -371,7 +371,7 @@ export const en: Content = {
     },
     groups: {
       booklist: 'Titles on the national booklist',
-      other: 'Other developed titles',
+      other: 'Other books',
       titleOne: 'title',
       titleMany: 'titles',
     },
