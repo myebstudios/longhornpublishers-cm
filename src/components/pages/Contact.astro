@@ -79,10 +79,11 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
 
           <span class="eyebrow">{f.eyebrow}</span>
           <h2>{f.title}</h2>
+          <p>{f.requiredHint}</p>
 
           <div class="form__grid">
             <div class="field">
-              <label for="name">{f.name}</label>
+              <label for="name">{f.name} <span>({f.required})</span></label>
               <input id="name" name="name" type="text" required autocomplete="name" />
             </div>
             <div class="field">
@@ -90,7 +91,7 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
               <input id="organisation" name="organisation" type="text" autocomplete="organization" />
             </div>
             <div class="field">
-              <label for="email">{f.email}</label>
+              <label for="email">{f.email} <span>({f.required})</span></label>
               <input id="email" name="email" type="email" required autocomplete="email" />
             </div>
             <div class="field">
@@ -123,7 +124,7 @@ const mapsEmbedSrc = `https://www.google.com/maps?q=${mapsQuery}&z=16&output=emb
             </div>
 
             <div class="field field--full">
-              <label for="message">{f.message}</label>
+              <label for="message">{f.message} <span>({f.required})</span></label>
               <textarea id="message" name="message" required placeholder={f.messagePlaceholder}></textarea>
             </div>
           </div>

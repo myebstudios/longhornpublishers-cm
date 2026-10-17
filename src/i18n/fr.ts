@@ -470,6 +470,8 @@ export const fr: Content = {
     },
     hours: 'Du lundi au vendredi',
     form: {
+      required: 'Obligatoire',
+      requiredHint: 'Les champs marqués « Obligatoire » doivent être remplis. Les autres champs sont facultatifs.',
       eyebrow: 'Demande de projet',
       title: 'Démarrer la conversation',
       name: 'Nom complet',

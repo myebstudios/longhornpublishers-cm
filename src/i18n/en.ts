@@ -464,6 +464,8 @@ export const en: Content = {
     },
     hours: 'Monday – Friday',
     form: {
+      required: 'Required',
+      requiredHint: 'Fields marked Required must be completed. All other fields are optional.',
       eyebrow: 'Project inquiry',
       title: 'Start a conversation',
       name: 'Full name',

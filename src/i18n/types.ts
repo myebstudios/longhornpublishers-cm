@@ -126,6 +126,7 @@ export interface Content {
     form: {
       eyebrow: string; title: string;
       name: string; organisation: string; email: string; phone: string;
+      required: string; requiredHint: string;
       projectType: string; projectTypePlaceholder: string; projectTypes: string[];
       languages: string; languagesPlaceholder: string; languageOptions: string[];
       stage: string; stageOptions: string[];
