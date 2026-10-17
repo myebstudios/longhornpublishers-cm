@@ -196,7 +196,7 @@ const filterGroups = [
     function openFilters() {
       trigger?.setAttribute('aria-expanded', 'true');
       drawer?.classList.add('is-open');
-      document.body.classList.add('nav-open');
+      document.body.classList.add('filters-open');
       const firstInput = drawer?.querySelector<HTMLElement>('input, button');
       firstInput?.focus();
     }
@@ -204,7 +204,7 @@ const filterGroups = [
     function closeFilters(restoreFocus = false) {
       trigger?.setAttribute('aria-expanded', 'false');
       drawer?.classList.remove('is-open');
-      document.body.classList.remove('nav-open');
+      document.body.classList.remove('filters-open');
       if (restoreFocus) trigger?.focus();
     }
 
