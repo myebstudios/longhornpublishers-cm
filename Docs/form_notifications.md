@@ -29,3 +29,9 @@ Look for `[notify]` lines in **Logs → Functions → submission-created**:
 - `skipped … not configured` means a variable is missing or a recipient address is invalid.
 - `Brevo 401` means the API key is wrong. `Brevo 400` usually means the sender isn't verified yet.
 - If emails arrive in spam, add Brevo's DNS records for the domain (Senders, domains → Domains) when DNS access is available.
+
+## Admin Inbox
+
+Migration `019_form_submissions` adds an admin-only mirror of future contact inquiries and newsletter signups. The submission event attempts the database insert before email; failures are isolated so either operation can succeed independently. Look for `[inbox] stored`, `duplicate`, `skipped`, or generic storage/notification failure lines in the same function log. Brevo errors log their HTTP status without the response body.
+
+Admins can review submissions at `/admin/inbox/`, mark them read or archived, reply by email, delete the mirrored row, and export filtered newsletter signups to CSV. Historical Netlify Forms records are not imported. Deletion in Inbox does not delete the original Netlify Forms record.
