@@ -1,5 +1,7 @@
+import { getDatabase } from '@netlify/database';
+import { createSubmissionEventHandler, storeSubmission } from './_shared/inbox-submissions';
 import { admin } from '@netlify/identity';
-import { adminRecipients, buildNotification, type NotifyEnv } from './_shared/submission-email';
+import { adminRecipients, buildNotification, type NotifyEnv, type SubmissionPayload } from './_shared/submission-email';
 
 /** Current site admins from Netlify Identity; empty if the lookup is unavailable. */
 async function currentAdmins() {
@@ -27,9 +29,7 @@ async function currentAdmins() {
  * outage never affects the visitor's submission, which Netlify has already
  * stored.
  */
-export default async function handler(req: Request) {
-  const body = await req.json().catch(() => null);
-  const payload = body?.payload;
+async function notify(payload: SubmissionPayload | null | undefined) {
   const env: NotifyEnv = {
     BREVO_API_KEY: process.env.BREVO_API_KEY,
     NOTIFY_FROM_EMAIL: process.env.NOTIFY_FROM_EMAIL,
@@ -41,7 +41,7 @@ export default async function handler(req: Request) {
   const email = payload ? buildNotification(payload, env, admins) : null;
   if (!email) {
     console.log(`[notify] skipped: form=${payload?.form_name ?? 'unknown'} (unknown form or notifications not configured)`);
-    return new Response(null, { status: 204 });
+    return;
   }
   try {
     const response = await fetch('https://api.brevo.com/v3/smtp/email', {
@@ -49,10 +49,20 @@ export default async function handler(req: Request) {
       headers: { 'api-key': env.BREVO_API_KEY!, 'content-type': 'application/json', accept: 'application/json' },
       body: JSON.stringify(email),
     });
-    if (!response.ok) console.error(`[notify] Brevo ${response.status}: ${(await response.text()).slice(0, 300)}`);
-    else console.log(`[notify] sent ${payload.form_name} notification to ${email.to.length} recipient(s) (${admins.length ? 'site admins' : 'fallback list'})`);
-  } catch (error) {
-    console.error('[notify] Brevo request failed', error instanceof Error ? error.message : error);
+    if (!response.ok) {
+      console.error(`[notify] Brevo returned ${response.status}`);
+      throw new Error('Email service rejected the notification');
+    }
+    else console.log(`[notify] sent ${payload?.form_name} notification to ${email.to.length} recipient(s) (${admins.length ? 'site admins' : 'fallback list'})`);
+  } catch {
+    console.error('[notify] Brevo request failed');
+    throw new Error('Notification delivery failed');
   }
-  return new Response(null, { status: 204 });
 }
+
+export default createSubmissionEventHandler({
+  // Resolve the DB inside the guarded storage attempt: initialization failure must not block Brevo.
+  store: payload => storeSubmission(getDatabase(), payload),
+  notify: payload => notify(payload as SubmissionPayload | null | undefined),
+  log: message => console.log(message),
+});
