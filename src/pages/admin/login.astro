@@ -78,6 +78,34 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   <script>
     import { acceptInvite, AuthError, getUser, handleAuthCallback, login, requestPasswordRecovery, updateUser } from '@netlify/identity';
     import { administratorAccessMessage, loginFailureMessage, loginStatus, loginFieldError, clearLoginErrors, beginLoginSubmission, endLoginSubmission } from '../../lib/admin-login-presentation';
+    // The browser-side session (GoTrue localStorage) can outlive the 1-hour
+    // nf_jwt token. Trusting it alone sent people to /admin/, where the server's
+    // role rule bounced them back here: an endless reload loop. Only continue
+    // when the server itself accepts the session; otherwise drop the stale one
+    // and show the sign-in form. The timestamp guard caps redirects regardless.
+    const REDIRECT_GUARD = 'lh-admin-login-redirect';
+    function clearStaleSession() {
+      try { localStorage.removeItem('gotrue.user'); } catch {}
+      document.cookie = 'nf_jwt=; path=/; secure; samesite=lax; expires=Thu, 01 Jan 1970 00:00:00 GMT';
+    }
+    async function serverAcceptsSession() {
+      try {
+        const response = await fetch('/admin/', { redirect: 'manual', cache: 'no-store', credentials: 'same-origin' });
+        return response.type !== 'opaqueredirect' && response.ok;
+      } catch {
+        return false;
+      }
+    }
+    async function continueToAdminIfServerAgrees() {
+      let last = 0;
+      try { last = Number(sessionStorage.getItem(REDIRECT_GUARD) || 0); } catch {}
+      if (Date.now() - last < 10_000 || !(await serverAcceptsSession())) {
+        clearStaleSession();
+        return;
+      }
+      try { sessionStorage.setItem(REDIRECT_GUARD, String(Date.now())); } catch {}
+      location.href = '/admin/';
+    }
     const status = document.querySelector<HTMLElement>('#status');
     const field = (form: HTMLFormElement, name: string) => form.elements.namedItem(name) as HTMLInputElement;
     const activationForm = document.querySelector('#activate') as HTMLFormElement | null;
@@ -171,7 +199,7 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
           });
         } else {
           const user = await getUser();
-          if (user?.roles?.includes('admin')) location.href = '/admin/';
+          if (user?.roles?.includes('admin')) await continueToAdminIfServerAgrees();
         }
       } catch {
         // The hash survives only the first load, so fall back to the recorded
