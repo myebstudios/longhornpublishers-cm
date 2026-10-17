@@ -1,0 +1,17 @@
+---
+import AdminLayout from '../../layouts/AdminLayout.astro';
+import AdminEditorDialog from '../../components/admin/AdminEditorDialog.astro';
+---
+<AdminLayout title="Inbox" section="inbox">
+ <div class="admin-page-head"><div><h1 id="inboxHeading" tabindex="-1">Inbox</h1><p>Review contact inquiries and newsletter signups. Dates use your browser’s local time.</p></div><button class="button secondary" id="inboxRefresh" type="button">Refresh</button></div>
+ <section class="card inbox-panel">
+  <div class="inbox-tabs" role="tablist" aria-label="Submission type"><button id="inquiriesTab" role="tab" aria-selected="true" aria-controls="inboxResults" type="button" data-form="contact">Inquiries</button><button id="newsletterTab" role="tab" aria-selected="false" aria-controls="inboxResults" tabindex="-1" type="button" data-form="newsletter">Newsletter</button></div>
+  <div class="inbox-filters"><label>Status<select id="inboxStatus"><option value="new">New</option><option value="read">Read</option><option value="archived">Archived</option><option value="all">All</option></select></label><label class="inbox-search">Search submissions<input type="search" id="inboxSearch" maxlength="200" placeholder="Name, email or message…" autocomplete="off" /></label><button class="button secondary" type="button" id="inboxExport" hidden>Export CSV</button></div>
+  <p id="inboxFeedback" role="status" aria-live="polite">Loading submissions…</p>
+  <p id="inboxExportFeedback" role="status" aria-live="polite"></p>
+  <div id="inboxResults" role="tabpanel" aria-labelledby="inquiriesTab" aria-busy="true"><div id="inboxList" class="inbox-list"></div></div>
+  <div class="inbox-pagination"><button class="button secondary" id="inboxPrevious" type="button" disabled>Previous</button><span id="inboxPage"></span><button class="button secondary" id="inboxNext" type="button" disabled>Next</button></div>
+ </section>
+ <AdminEditorDialog><form id="inboxDetail" hidden><div id="inboxDetailContent"></div></form></AdminEditorDialog>
+</AdminLayout>
+<script>import '../../lib/admin-inbox';</script>

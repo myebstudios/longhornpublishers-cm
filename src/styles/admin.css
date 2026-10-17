@@ -221,3 +221,17 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 .admin-app :is(.admin-section-card>header,.card>.toolbar,.admin-panel>header) :is(h2,h3):not(.admin-icon){color:var(--admin-ink)}
 .admin-app .admin-publication-strip{background:var(--admin-surface);border:1px solid var(--admin-border);box-shadow:var(--admin-card-shadow)}
 .admin-app .dashboard-greeting::before{background:radial-gradient(circle,rgba(111,191,63,.16),transparent 68%)}
+
+/* Inbox uses the shared admin cards, controls and dialog. */
+.admin-app .inbox-count{margin-left:auto;min-width:1.5rem;padding:.125rem .375rem;border-radius:1rem;background:var(--admin-accent);color:#fff;text-align:center;font-size:.75rem;font-variant-numeric:tabular-nums}
+.admin-app .inbox-tabs{display:flex;gap:.5rem;border-bottom:1px solid var(--admin-border);margin-bottom:1.25rem}
+.admin-app .inbox-tabs button{min-height:2.75rem;padding:.5rem 1rem;border:0;border-bottom:3px solid transparent;background:transparent;color:var(--admin-muted);font:inherit;cursor:pointer}
+.admin-app .inbox-tabs button[aria-selected=true]{border-color:var(--admin-accent);color:var(--admin-accent);font-weight:600}
+.admin-app .inbox-filters{display:flex;gap:1rem;align-items:end;flex-wrap:wrap}.admin-app .inbox-filters label{display:grid;gap:.375rem}.admin-app .inbox-search{flex:1;min-width:12rem}
+.admin-app .inbox-list{display:grid;gap:.75rem}.admin-app .inbox-item{border:1px solid var(--admin-border);border-radius:var(--admin-radius-panel);padding:1.25rem;min-width:0;display:grid;gap:.5rem}.admin-app .inbox-item h2{font-size:1.125rem;margin:0;overflow-wrap:anywhere}.admin-app .inbox-item p{margin:0;overflow-wrap:anywhere}.admin-app .inbox-item footer{display:flex;gap:.75rem;justify-content:space-between;align-items:center;flex-wrap:wrap}.admin-app .inbox-item time{font-size:.8125rem;color:var(--admin-muted)}
+.admin-app .inbox-pagination{display:flex;justify-content:center;align-items:center;gap:1rem;margin-top:1.5rem}.admin-app .inbox-details{display:grid;grid-template-columns:minmax(7rem,1fr) minmax(0,3fr);gap:.75rem 1.25rem}.admin-app .inbox-details dt{color:var(--admin-muted);font-weight:600}.admin-app .inbox-details dd{margin:0;white-space:pre-wrap;overflow-wrap:anywhere}.admin-app .inbox-reply{display:inline-flex;margin-top:1rem}
+@media(min-width:768px) and (max-width:1199px){.admin-app .sidebar nav a{position:relative}.admin-app .sidebar .inbox-count{position:absolute;right:.125rem;top:0;font-size:.625rem}}
+.admin-app.sidebar-collapsed .sidebar nav a{position:relative}.admin-app.sidebar-collapsed .sidebar .inbox-count{position:absolute;right:.125rem;top:0;font-size:.625rem}
+@media(max-width:479px){.admin-app .inbox-filters>*{width:100%}.admin-app .inbox-details{grid-template-columns:1fr;gap:.25rem}.admin-app .inbox-details dd{margin-bottom:.75rem}.admin-app .inbox-pagination{gap:.5rem}}
+
+.admin-app .inbox-state-new{background:var(--admin-accent-bg);color:var(--admin-accent)}.admin-app .inbox-state-read{background:var(--admin-success-bg);color:var(--admin-success)}.admin-app .inbox-state-archived{background:var(--admin-subtle);color:var(--admin-muted)}

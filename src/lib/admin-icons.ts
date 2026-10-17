@@ -1,4 +1,5 @@
 const paths: Record<string, string> = {
+ inbox: '<path d="m3 3-2 12v6h22v-6L21 3Z M1 15h6l2 3h6l2-3h6"/>',
  'layout-dashboard': '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="11" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="18" width="7" height="3" rx="1"/>',
  house: '<path d="m3 10 9-7 9 7v10H3Z M9 20v-7h6v7"/>',
  'building-2': '<path d="M4 21V3h12v18 M16 9h4v12 M8 7h4 M8 11h4 M8 15h4 M8 21v-3h4v3"/>',

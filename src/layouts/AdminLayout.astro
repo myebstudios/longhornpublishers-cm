@@ -2,7 +2,7 @@
 import '../styles/admin.css';
 import AdminIcon from '../components/admin/AdminIcon.astro';
 import { adminPages } from '../lib/admin-navigation';
-interface Props { title: string; section?: 'dashboard' | 'settings' | 'homepage' | 'about' | 'services' | 'why' | 'catalogue' | 'subjects' | 'news' | 'contact' | 'legal'; }
+interface Props { title: string; section?: 'dashboard' | 'inbox' | 'settings' | 'homepage' | 'about' | 'services' | 'why' | 'catalogue' | 'subjects' | 'news' | 'contact' | 'legal'; }
 const { title, section = 'dashboard' } = Astro.props;
 const groups = ['Workspace', 'Website', 'Content', 'Settings'];
 ---
@@ -21,7 +21,7 @@ const groups = ['Workspace', 'Website', 'Content', 'Settings'];
   <p class="workspace-label nav-label">Content Administration</p>
   <button class="search-pages" type="button" data-open-search aria-label="Search pages…"><AdminIcon name="search" /><span class="nav-label">Search pages…</span><kbd class="nav-label" aria-hidden="true">⌘ K</kbd></button>
   <nav aria-label="Admin navigation">
-   {groups.map(group => <section class="nav-group"><p class="nav-label nav-group-label">{group}</p><ul>{adminPages.filter(p => p.group === group).map(p => <li><a href={p.href} class:list={{active: p.section === section}} aria-current={p.section === section ? 'page' : undefined} title={p.label}><AdminIcon name={p.icon} /><span class="nav-label">{p.label}</span></a></li>)}</ul></section>)}
+   {groups.map(group => <section class="nav-group"><p class="nav-label nav-group-label">{group}</p><ul>{adminPages.filter(p => p.group === group).map(p => <li><a href={p.href} class:list={{active: p.section === section}} aria-current={p.section === section ? 'page' : undefined} title={p.label}><AdminIcon name={p.icon} /><span class="nav-label">{p.label}</span>{p.section === 'inbox' && <span data-inbox-count class="inbox-count" aria-hidden="true" hidden></span>}</a></li>)}</ul></section>)}
   </nav>
   <p id="adminNavCue" class="admin-nav-cue" aria-hidden="true"></p>
   <div class="sidebar-foot">
@@ -73,6 +73,7 @@ const groups = ['Workspace', 'Website', 'Content', 'Settings'];
  <script>
   import '../lib/admin-shell';
   import '../lib/admin-presentation';
+  import '../lib/admin-inbox-count';
  </script>
 </body>
 </html>

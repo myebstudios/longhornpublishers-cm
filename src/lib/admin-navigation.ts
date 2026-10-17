@@ -1,5 +1,6 @@
 export const adminPages = [
   { section: 'dashboard', label: 'Overview', href: '/admin/', group: 'Workspace', icon: 'layout-dashboard' },
+  { section: 'inbox', label: 'Inbox', href: '/admin/inbox/', group: 'Workspace', icon: 'inbox' },
   { section: 'homepage', label: 'Homepage', href: '/admin/homepage/', group: 'Website', icon: 'house' },
   { section: 'about', label: 'About us', href: '/admin/about/', group: 'Website', icon: 'building-2' },
   { section: 'services', label: 'Services & process', href: '/admin/services/', group: 'Website', icon: 'layers' },
