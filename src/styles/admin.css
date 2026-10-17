@@ -240,7 +240,9 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 .admin-app .sidebar .inbox-count, .admin-app .sidebar nav a .inbox-count, .admin-app .sidebar nav a.active .inbox-count { color: #FFFFFF; background: var(--admin-accent); font-weight: 600; }
 
 /* §15 Login: split-screen brand panel + clean form (presentation only). */
-.admin-login{min-height:100vh;min-height:100dvh;margin:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);background:var(--admin-surface)}
+.admin-login{display:block}
+/* Only the two login panels belong in this grid. Extensions can append body children. */
+.admin-login-layout{min-height:100vh;min-height:100dvh;margin:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);background:var(--admin-surface)}
 .admin-login .admin-login-brand{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:2.5rem 3rem;color:#fff;background:#3B0F1B}
 .admin-login .admin-login-brand__photo{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover}
 .admin-login .admin-login-brand::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(160deg,rgba(92,26,43,.72) 0%,rgba(59,15,27,.86) 55%,rgba(42,10,19,.95) 100%)}
@@ -276,7 +278,7 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 .admin-login #status:not(:empty){margin-top:1.25rem;padding:.85rem 1rem;border-radius:.75rem;font-size:.9rem}
 /* Tablet / phone: brand panel becomes a compact band above the form */
 @media (max-width:900px){
-  .admin-login{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .admin-login-layout{grid-template-columns:1fr;grid-template-rows:auto 1fr}
   .admin-login .admin-login-brand{min-height:12.5rem;padding:1.5rem 1.5rem 1.75rem;justify-content:space-between}
   .admin-login .admin-login-brand__logo{width:120px}
   .admin-login .admin-login-brand__title{font-size:1.4rem;margin-bottom:0}
