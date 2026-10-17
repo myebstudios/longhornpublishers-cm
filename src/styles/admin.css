@@ -235,3 +235,6 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 @media(max-width:479px){.admin-app .inbox-filters>*{width:100%}.admin-app .inbox-details{grid-template-columns:1fr;gap:.25rem}.admin-app .inbox-details dd{margin-bottom:.75rem}.admin-app .inbox-pagination{gap:.5rem}}
 
 .admin-app .inbox-state-new{background:var(--admin-accent-bg);color:var(--admin-accent)}.admin-app .inbox-state-read{background:var(--admin-success-bg);color:var(--admin-success)}.admin-app .inbox-state-archived{background:var(--admin-subtle);color:var(--admin-muted)}
+
+/* Inbox nav count: keep white digits on the burgundy pill (the §14 sidebar rule otherwise forces ink). */
+.admin-app .sidebar .inbox-count, .admin-app .sidebar nav a .inbox-count, .admin-app .sidebar nav a.active .inbox-count { color: #FFFFFF; background: var(--admin-accent); font-weight: 600; }
