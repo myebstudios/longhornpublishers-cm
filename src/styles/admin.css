@@ -240,7 +240,7 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 .admin-app .sidebar .inbox-count, .admin-app .sidebar nav a .inbox-count, .admin-app .sidebar nav a.active .inbox-count { color: #FFFFFF; background: var(--admin-accent); font-weight: 600; }
 
 /* §15 Login: split-screen brand panel + clean form (presentation only). */
-.admin-login{min-height:100vh;min-height:100svh;margin:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);background:var(--admin-surface)}
+.admin-login{min-height:100vh;min-height:100dvh;margin:0;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,1fr);background:var(--admin-surface)}
 .admin-login .admin-login-brand{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:2.5rem 3rem;color:#fff;background:#3B0F1B}
 .admin-login .admin-login-brand__photo{position:absolute;inset:0;z-index:-2;width:100%;height:100%;object-fit:cover}
 .admin-login .admin-login-brand::after{content:'';position:absolute;inset:0;z-index:-1;background:linear-gradient(160deg,rgba(92,26,43,.72) 0%,rgba(59,15,27,.86) 55%,rgba(42,10,19,.95) 100%)}
@@ -251,7 +251,7 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
 .admin-login .admin-login-brand__title{margin:0 0 1rem;font-size:clamp(1.9rem,1.2rem + 1.8vw,2.75rem);line-height:1.15;font-weight:700;letter-spacing:-.02em;color:#fff}
 .admin-login .admin-login-brand__text{margin:0;font-size:1rem;line-height:1.6;color:rgba(255,255,255,.82)}
 /* Form side */
-.admin-login main{align-self:center;justify-self:center;width:min(25rem,100% - 3rem);margin:0;padding:3rem 0;background:transparent;border:0;border-radius:0;box-shadow:none}
+.admin-login main{align-self:stretch;justify-self:center;display:flex;flex-direction:column;justify-content:center;width:min(25rem,100% - 3rem);margin:0;padding:3rem 0;background:transparent;border:0;border-radius:0;box-shadow:none}
 .admin-login .admin-login-header{margin:0 0 2rem;padding:0;background:transparent;border:0;box-shadow:none}
 .admin-login .admin-login-header::before{content:none}
 .admin-login .admin-login-header .brand{display:none}
@@ -281,11 +281,22 @@ dialog{color:var(--admin-ink);font:inherit}dialog::backdrop{background:var(--adm
   .admin-login .admin-login-brand__logo{width:120px}
   .admin-login .admin-login-brand__title{font-size:1.4rem;margin-bottom:0}
   .admin-login .admin-login-brand__text,.admin-login .admin-login-brand__eyebrow{display:none}
-  .admin-login main{align-self:start;padding:2.25rem 0 3rem}
+  .admin-login main{padding:1.5rem 0}
   .admin-login .admin-login-header h1{font-size:1.75rem}
 }
 .admin-login,body.admin-login{padding:0;place-items:stretch;align-items:stretch;justify-content:stretch}
-.admin-login .admin-login-brand{align-self:stretch;margin:0;min-height:100%}
+.admin-login .admin-login-brand{align-self:stretch;margin:0;min-height:0}
 .admin-login .admin-login-header :is(h1){color:var(--admin-ink)}
-@media (max-width:900px){.admin-login .admin-login-brand{min-height:12.5rem}}
+@media (max-width:900px){.admin-login .admin-login-brand{min-height:clamp(9rem,24dvh,12.5rem);gap:1rem;padding:1.25rem 1.5rem}.admin-login .admin-login-header{margin-bottom:1.25rem}}
+.admin-login #status:empty{display:none}
 @media (min-width:901px){.admin-login .admin-login-header .eyebrow{display:none}}
+/* Keep the sign-in controls in view on short phones; allow scrolling for errors or zoom. */
+@media (max-width:900px) and (max-height:700px){
+  .admin-login .admin-login-brand{min-height:7rem;padding:1rem 1.5rem;gap:.5rem}
+  .admin-login .admin-login-brand__logo{width:96px}
+  .admin-login .admin-login-brand__title{font-size:1.15rem}
+  .admin-login main{padding:1rem 0}
+  .admin-login .admin-login-header{margin-bottom:.5rem}
+  .admin-login .admin-login-header .eyebrow{display:none}
+  .admin-login form{margin-top:.75rem;gap:.85rem}
+}
