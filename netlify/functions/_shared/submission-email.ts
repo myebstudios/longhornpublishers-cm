@@ -34,6 +34,7 @@ const LABELS: Record<string, string> = {
   email: 'Email',
   phone: 'Telephone',
   project_type: 'Project type',
+  projectType: 'Project type',
   languages: 'Languages',
   stage: 'Current stage',
   message: 'Message',

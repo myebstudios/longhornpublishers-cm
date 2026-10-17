@@ -48,3 +48,9 @@ test('site admins: confirmed admin-role users only, de-duplicated, preferred ove
   assert.deepEqual(buildNotification(contact, env, admins).to, [{ email: 'boss@example.com' }]);
   assert.equal(buildNotification(contact, env, []).to.length, 2);
 });
+
+test('the contact form projectType field gets a readable label', () => {
+  const email = buildNotification({ form_name: 'contact', data: { email: 'x@example.org', projectType: 'Textbook' } }, env);
+  assert.match(email.textContent, /Project type: Textbook/);
+  assert.doesNotMatch(email.textContent, /projectType/);
+});
