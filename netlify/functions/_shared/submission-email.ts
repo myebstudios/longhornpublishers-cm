@@ -48,12 +48,29 @@ export function recipients(list: string | undefined): { email: string }[] {
   return (list ?? '').split(',').map((e) => e.trim()).filter((e) => EMAIL.test(e)).map((email) => ({ email }));
 }
 
-/** Returns null when the form is unknown or notifications are not configured. */
-export function buildNotification(payload: SubmissionPayload, env: NotifyEnv): BrevoEmail | null {
+/**
+ * Confirmed Identity users holding the `admin` role. Invited-but-unaccepted
+ * accounts are skipped so nobody is emailed before they have joined.
+ */
+export function adminRecipients(users: { email?: string; roles?: string[]; confirmedAt?: string }[]): { email: string }[] {
+  const seen = new Set<string>();
+  return users
+    .filter((u) => u.roles?.includes('admin') && u.confirmedAt && u.email && EMAIL.test(u.email))
+    .map((u) => u.email!.toLowerCase())
+    .filter((e) => (seen.has(e) ? false : (seen.add(e), true)))
+    .map((email) => ({ email }));
+}
+
+/**
+ * Returns null when the form is unknown or notifications are not configured.
+ * `admins` (current site admins) takes precedence; the NOTIFY_* lists are the
+ * fallback when the admin lookup is unavailable.
+ */
+export function buildNotification(payload: SubmissionPayload, env: NotifyEnv, admins: { email: string }[] = []): BrevoEmail | null {
   const form = payload.form_name;
   if (form !== 'contact' && form !== 'newsletter') return null;
   if (!env.BREVO_API_KEY || !env.NOTIFY_FROM_EMAIL) return null;
-  const to = recipients(form === 'newsletter' ? (env.NOTIFY_NEWSLETTER_TO || env.NOTIFY_CONTACT_TO) : env.NOTIFY_CONTACT_TO);
+  const to = admins.length ? admins : recipients(form === 'newsletter' ? (env.NOTIFY_NEWSLETTER_TO || env.NOTIFY_CONTACT_TO) : env.NOTIFY_CONTACT_TO);
   if (!to.length) return null;
 
   const data = payload.data ?? {};

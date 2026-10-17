@@ -2,6 +2,8 @@
 
 When someone submits the contact form or the newsletter form, the admins get an email. This doesn't use Netlify's paid notifications. Netlify runs `netlify/functions/submission-created.mts` for every submission that passes its spam check, and that function sends the email through Brevo's free plan (about 300 emails a day).
 
+Emails go to **all current site admins**: confirmed Netlify Identity users with the `admin` role, looked up on every submission. Invite or remove an admin and the recipients update automatically. If the lookup isn't available, the function falls back to `NOTIFY_CONTACT_TO` / `NOTIFY_NEWSLETTER_TO`.
+
 Contact enquiry emails set **Reply-To** to the visitor's address, so pressing Reply answers them directly.
 
 ## One-time setup
@@ -16,7 +18,7 @@ Contact enquiry emails set **Reply-To** to the visitor's address, so pressing Re
 | `BREVO_API_KEY` | `xkeysib-…` | yes (secret) |
 | `NOTIFY_FROM_EMAIL` | the sender verified in step 2 | yes |
 | `NOTIFY_FROM_NAME` | `Longhorn Cameroon website` | no |
-| `NOTIFY_CONTACT_TO` | `a@company.com, b@company.com` (comma-separated) | yes |
+| `NOTIFY_CONTACT_TO` | fallback recipients if the admin lookup is unavailable, e.g. `a@company.com, b@company.com` | yes |
 | `NOTIFY_NEWSLETTER_TO` | where signup emails go; falls back to `NOTIFY_CONTACT_TO` | no |
 
 Environment variables take effect on the next deploy. Setting them doesn't trigger a build by itself.

@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { buildNotification, recipients } from '../netlify/functions/_shared/submission-email.ts';
+import { adminRecipients, buildNotification, recipients } from '../netlify/functions/_shared/submission-email.ts';
 
 const env = {
   BREVO_API_KEY: 'key', NOTIFY_FROM_EMAIL: 'web@example.com', NOTIFY_FROM_NAME: 'Longhorn site',
@@ -35,4 +35,16 @@ test('skips unknown forms and missing configuration', () => {
 
 test('recipient parsing ignores blanks and invalid addresses', () => {
   assert.deepEqual(recipients(' x@y.com ,, bad, z@w.org '), [{ email: 'x@y.com' }, { email: 'z@w.org' }]);
+});
+
+test('site admins: confirmed admin-role users only, de-duplicated, preferred over the fallback list', () => {
+  const admins = adminRecipients([
+    { email: 'Boss@Example.com', roles: ['admin'], confirmedAt: '2026-01-01' },
+    { email: 'boss@example.com', roles: ['admin'], confirmedAt: '2026-01-01' },
+    { email: 'pending@example.com', roles: ['admin'] },
+    { email: 'reader@example.com', roles: [], confirmedAt: '2026-01-01' },
+  ]);
+  assert.deepEqual(admins, [{ email: 'boss@example.com' }]);
+  assert.deepEqual(buildNotification(contact, env, admins).to, [{ email: 'boss@example.com' }]);
+  assert.equal(buildNotification(contact, env, []).to.length, 2);
 });
