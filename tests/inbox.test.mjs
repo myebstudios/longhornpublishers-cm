@@ -230,9 +230,10 @@ test("API validates query, JSON status, UUID and methods without exposing data",
     400,
   );
   assert.equal((await handler()(req("?id=bad", "DELETE"))).status, 400);
-  const disallowed = await handler()(req("", "POST"));
+  assert.equal((await handler()(req("", "POST"))).status, 400);
+  const disallowed = await handler()(req("", "PATCH"));
   assert.equal(disallowed.status, 405);
-  assert.equal(disallowed.headers.get("allow"), "GET, PUT, DELETE");
+  assert.equal(disallowed.headers.get("allow"), "GET, POST, PUT, DELETE");
 });
 test("real SQL filters literal search, paginates, counts, changes status and deletes only Inbox rows", async () => {
   await reset();
@@ -353,4 +354,17 @@ test("CSV preserves quotes, Unicode and newlines while preventing spreadsheet fo
     "a@example.invalid,other@example.invalid",
   ])
     assert.equal(replyLink(bad), null);
+});
+test("import backfills earlier Netlify records once, without duplicates", async () => {
+  await reset();
+  const earlier = [
+    { id: "nf-old-1", form_name: "contact", created_at: "2026-09-16T10:00:00Z", data: { name: "Earlier", email: "e@example.org", message: "Hello" } },
+    { id: "nf-old-2", form_name: "newsletter", created_at: "2026-09-16T11:00:00Z", data: { email: "n@example.org" } },
+    { id: "nf-bad", form_name: "other", created_at: "2026-09-16T11:00:00Z", data: {} },
+  ];
+  const first = await (await handler()(req("", "POST", { action: "import", submissions: earlier }))).json();
+  assert.deepEqual([first.stored, first.duplicate, first.skipped], [2, 0, 1]);
+  const again = await (await handler()(req("", "POST", { action: "import", submissions: earlier }))).json();
+  assert.deepEqual([again.stored, again.duplicate, again.skipped], [0, 2, 1]);
+  assert.equal((await handler()(req("", "POST", { action: "import", submissions: "nope" }))).status, 400);
 });

@@ -1,5 +1,5 @@
 import type { SqlDatabase } from "./sql-types.ts";
-import { INBOX_FORMS, INBOX_STATUSES } from "./inbox-submissions.ts";
+import { INBOX_FORMS, INBOX_STATUSES, storeSubmission } from "./inbox-submissions.ts";
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const HEADERS = {
   "Cache-Control": "private, no-store",
@@ -125,6 +125,17 @@ export function createInboxHandler({
         if (!item) return json({ error: "Inbox item not found." }, 404);
         return json({ item, counts: await inboxCounts(db) });
       }
+      // One-time backfill of earlier Netlify Forms records (same shape as the
+      // Netlify submissions API). Idempotent by netlify_id; sends no email.
+      if (req.method === "POST") {
+        const body = await req.json().catch(() => null);
+        const items = body?.action === "import" && Array.isArray(body.submissions) ? body.submissions : null;
+        if (!items || items.length > 500)
+          return json({ error: "Provide up to 500 submissions to import." }, 400);
+        const result = { stored: 0, duplicate: 0, skipped: 0 };
+        for (const item of items) result[await storeSubmission(db, item)]++;
+        return json({ ...result, counts: await inboxCounts(db) });
+      }
       if (req.method === "DELETE") {
         const id = url.searchParams.get("id");
         if (!id || !UUID.test(id))
@@ -136,7 +147,7 @@ export function createInboxHandler({
       }
       return new Response("Method not allowed", {
         status: 405,
-        headers: { ...HEADERS, Allow: "GET, PUT, DELETE" },
+        headers: { ...HEADERS, Allow: "GET, POST, PUT, DELETE" },
       });
     } catch {
       // Never return or log SQL errors: they can include submitted personal data.
