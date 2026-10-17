@@ -1,6 +1,7 @@
 ---
 import '../../styles/admin.css';
 import AdminIcon from '../../components/admin/AdminIcon.astro';
+import logo from '../../../Assets/Longhorn CM logo.svg';
 ---
 <!doctype html>
 <html lang="en">
@@ -11,6 +12,15 @@ import AdminIcon from '../../components/admin/AdminIcon.astro';
   <link rel="icon" href="/favicon.svg" />
 </head>
 <body class="admin-login">
+  <aside class="admin-login-brand" aria-hidden="true">
+    <img class="admin-login-brand__photo" src="/img/lh-editorial-team-wide.jpg" alt="" decoding="async" />
+    <img class="admin-login-brand__logo" src={logo.src} alt="" width="150" height="58" />
+    <div class="admin-login-brand__copy">
+      <p class="admin-login-brand__eyebrow">Content workspace</p>
+      <p class="admin-login-brand__title">Expanding minds, one publication at a time.</p>
+      <p class="admin-login-brand__text">Manage the catalogue, pages and inquiries for Longhorn Publishers Cameroon, in English and French.</p>
+    </div>
+  </aside>
   <main>
     <header class="admin-login-header">
     <a href="/en/" class="brand"><img src="/img/longhorn-logo.png" alt="Longhorn Publishers Cameroon" width="136" height="36" /></a>
