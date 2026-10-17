@@ -31,6 +31,7 @@
     "stage:hero-launch": "node scripts/stage-hero-launch.mjs",
     "test:demo-seed": "node --experimental-strip-types --test scripts/demo-seed.test.mjs",
     "test:on-demand-routing": "node --test scripts/on-demand-routing.test.mjs",
+    "test:notifications": "node --experimental-strip-types --test tests/submission-email.test.mjs",
     "test:admin-dashboard": "node --experimental-strip-types --test tests/admin-dashboard.test.mjs tests/admin-v2.test.mjs",
     "test:news-images": "node --experimental-strip-types --test tests/news-images.test.mjs",
     "test:admin-colours": "node --experimental-strip-types --test tests/admin-colours.test.mjs",
